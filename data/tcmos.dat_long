@@ -1,0 +1,19 @@
+28/8/97-Default
+Ch#	tcmos_valu
+vmax	203
+tacref	 72
+isetm0	 85
+isetm1	 85
+iseta0	  0
+iseta1	  0
+CMOS-TAC-bits  bitValue
+TAC0-adj0	 0	(1=enable)
+TAC0-adj1	 0	(1=enable)
+TAC0-adj2	 0	(1=enable)
+TAC0-main	 0	(0=enable)
+TAC1-adj0	 0      (1=enable)
+TAC1-adj1	 0      (1=enable)
+TAC1-adj2	 0      (1=enable)
+TAC1-main	 0      (0=enable)
+
+

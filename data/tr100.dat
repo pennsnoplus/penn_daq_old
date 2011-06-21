@@ -1,0 +1,11 @@
+28/8/97-Default
+CMOS-TR100-bits  bitValue(1=enable-delay)
+width2	         1
+width4	         1
+width8	         1
+width16	         1
+width32	         1
+width64	         1
+maskBit	         1
+
+

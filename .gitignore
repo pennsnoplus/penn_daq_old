@@ -1,0 +1,8 @@
+penn_daq
+tut
+vwr
+*.swp
+*.[oa]
+*.log
+*.DS_STORE
+.history.txt

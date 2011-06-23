@@ -17,7 +17,7 @@ vwr:
 	gcc -lreadline -lncurses -o vwr vwr.c
 
 clean: 
-	-$(RM) core *.o penn_daq
+	-$(RM) core *.o penn_daq tut vwr
 
 depend: $(SRCS)
 	gcc -M $(SRCS) > .depend

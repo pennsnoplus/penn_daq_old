@@ -18,10 +18,6 @@
 #include <arpa/inet.h>
 #include <signal.h>
 
-#ifndef INET6_ADDSTRLEN
-#define INET6_ADDSTRLEN 46
-#endif
-
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 int sockfd, numbytes;

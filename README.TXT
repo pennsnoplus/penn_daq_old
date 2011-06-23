@@ -4,40 +4,40 @@
 cd into the daq folder
 $: make clean
 $: make
-$: ./mac_daq HOSTNAME [-q or --quiet]
+$: ./penn_daq HOSTNAME [-q or --quiet]
 HOSTNAME: the name of the host the program is running on.
 -q or --quiet: turns off log writing
 
 ####################
 ##  Introduction  ##
 ####################
-mac_daq.c: a DAQ program for the SNO+ experiment.
+penn_daq.c: a DAQ program for the SNO+ experiment.
 Based off of code by Paul Keener written for the original SNO experiment, 
 heavily modifed by Peter Downs (August 2010)
 
-Note-   mac_daq.c is a stream socket server. If this means nothing to you, I highly recommend
+Note-   penn_daq.c is a stream socket server. If this means nothing to you, I highly recommend
 	reading:
 		http://beej.us/guide/bgnet/
-	Seriously, go and read it. Quite an excellent guide. The majority of mac_daq is based off
+	Seriously, go and read it. Quite an excellent guide. The majority of penn_daq is based off
 	of his examples.
 
 ###################
 ##  Description  ##
 ###################
-mac_daq.c is a server which accepts stream connections from 4 different types of clients:
+penn_daq.c is a server which accepts stream connections from 4 different types of clients:
 	1. Controller client - this client sends commands which are then parsed and executed
 	2. Single Board Computer / Master Trigger Controller (SBC/MTC) - a board which can be written
 	   to and have commands done to it, it also can be polled for data
 	3. XL3 board - an update of the XL2 board used in SNO, the XL3 takes data from something like
-	   16 different PMT data collection boards and sends it to mac_daq. 
+	   16 different PMT data collection boards and sends it to penn_daq. 
 	4. View client - not yet implemented, but a client from which no data is received. The idea is that
-	   any time there is a print statement in mac_daq, or data is displayed on screen, that text should
+	   any time there is a print statement in penn_daq, or data is displayed on screen, that text should
 	   also be sent to the viewer.
-The main purpose of mac_daq is to send commands to the XL3 boards and the SBC/MTC and receive data back.
-mac_daq uses the select() function to deal with connections closing when not expected to. Instead of just
+The main purpose of penn_daq is to send commands to the XL3 boards and the SBC/MTC and receive data back.
+penn_daq uses the select() function to deal with connections closing when not expected to. Instead of just
 constantly blocking on a recv() function, polling select() allows the program to handle data as it comes in
 in nearly real time. Now, as opposed to the original, when a client disconnects nothing needs to be reset- 
-mac_daq just alerts the user to what disconnected and keeps chugging along. This is most definitely a good thing.
+penn_daq just alerts the user to what disconnected and keeps chugging along. This is most definitely a good thing.
 
 #################
 ##  TODO List  ##
@@ -105,7 +105,7 @@ in the source code, but here it is in one place, nicely formatted.
 	Example:
 	printf("new_daq: connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
 	       newfd, inet_ntop(remoteaddr.ss_family,
-	       get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDSTRLEN), newfd);
+	       get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), newfd);
 
 (3.B): int bind_listener(char *host, char *port)
 	Given a host and a port, return a file descriptor (basically an integer)
@@ -188,9 +188,9 @@ in the source code, but here it is in one place, nicely formatted.
 (3.J): int connect_to_SBC(int portno, struct hostent *server)
 	This function connects to the SBC/MTC, which will not connect automatically. Although there
 	is a section of the main listener code where it will try to connect to an SBC/MTC if it receives
-	a request, the mac_daq program will never receive this request. To connect to the SBC call
+	a request, the penn_daq program will never receive this request. To connect to the SBC call
 	"connect_to_SBC" from the control terminal. This function ssh's into the SBC, starts the OrcaReadout
-	program, and then tries (from the SBC/MTC ssh session) connect to mac_daq. After mac_daq 
+	program, and then tries (from the SBC/MTC ssh session) connect to penn_daq. After penn_daq 
 	receives that request, it accept()s and sets up the connection correctly.
 
 	Example:
@@ -207,8 +207,8 @@ in the source code, but here it is in one place, nicely formatted.
 	2. attempts to send the given string(/input/) to all of
 	   the file descriptors in fd_set /suggested/.
 	 
-	print_send() accesses the global "fdmax", defined in mac_daq.c, for its select() function.
-	print_send() also accessed the global "write_log", defined in mac_daq.c, to determine
+	print_send() accesses the global "fdmax", defined in penn_daq.c, for its select() function.
+	print_send() also accessed the global "write_log", defined in penn_daq.c, to determine
 	whether or not to write all output to a log file, too.
 	
 	By sprintf()ing any message into a buffer and feeding that buffer, along with
@@ -228,7 +228,7 @@ in the source code, but here it is in one place, nicely formatted.
 
 (3.L): void sigint_func(int sig)
 	A simple signal handler- whenever a SIGINT is thrown,
-	mac_daq catches it and runs this function instead of just
+	penn_daq catches it and runs this function instead of just
 	exiting immediately. This function makes sure that all
 	open connections/files are closed correctly. It also moves
 	any logs in the /daq directory to /daq/logs. In the program,
@@ -242,7 +242,7 @@ in the source code, but here it is in one place, nicely formatted.
 
 	Example:
 	else{
-		fprintf(stderr, "usage: ./mac_daq hostname [-q or --quiet] \n"); // argv[1] is hostname
+		fprintf(stderr, "usage: ./penn_daq hostname [-q or --quiet] \n"); // argv[1] is hostname
 		fprintf(stderr, "for more help, use \'-h\' or \'--help\' as the argument or open ./README.TXT\n");
 		leave(SIGINT);
 	}

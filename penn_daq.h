@@ -9,7 +9,6 @@ typedef u_char  byte;
 #define TRUE  1
 #define FALSE 0
 
-#define INET6_ADDSTRLEN 46
 // what to return on failure, success
 #define FAIL -1
 #define SUCCESS 0

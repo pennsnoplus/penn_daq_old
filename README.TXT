@@ -105,7 +105,7 @@ in the source code, but here it is in one place, nicely formatted.
 	Example:
 	printf("new_daq: connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
 	       newfd, inet_ntop(remoteaddr.ss_family,
-	       get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDSTRLEN), newfd);
+	       get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), newfd);
 
 (3.B): int bind_listener(char *host, char *port)
 	Given a host and a port, return a file descriptor (basically an integer)

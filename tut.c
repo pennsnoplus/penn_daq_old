@@ -27,10 +27,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-#ifndef INET6_ADDSTRLEN
-#define INET6_ADDSTRLEN 46
-#endif
-
 #define PORT "44600"
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 

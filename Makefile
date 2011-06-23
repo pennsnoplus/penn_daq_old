@@ -7,8 +7,15 @@ LIBS = -lpillowtalk -lm
 
 penn_daq: $(OBJS)
 #	gcc $(CFLAGS) -c -o penn_daq.o penn_daq.c
-	gcc -o $@ $(OBJS) $(LIBS) 
-    
+	gcc -o $@ $(OBJS) $(LIBS)
+
+tut:
+	python tut_gen.py
+	gcc -lreadline -lncurses -o tut tut.c
+
+vwr:
+	gcc -lreadline -lncurses -o vwr vwr.c
+
 clean: 
 	-$(RM) core *.o penn_daq
 

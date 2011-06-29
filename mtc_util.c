@@ -110,12 +110,63 @@ static char* getXilinxData(long *howManyBits)
  * unset bit(s) in the global trigger mask, according to mnemonics   
  * M. Neubauer 2 Sept 1997 
  */
+int unset_gt_mask_cmd(char *buffer){
+    uint32_t type = 0xFFFFFFFF;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+	if (words[0] == '-'){
+	    if (words[1] == 't'){
+		words2 = strtok(NULL, " ");
+		type = strtoul(words2,(char **) NULL,16);
+	    }
+	    if (words[1] == 'h'){
+		sprintf(psb,"Usage: unset_gt_mask -t [raw trigs to remove (hex)]\n");
+		print_send(psb, view_fdset);
+		return 0;
+	    }
+	}
+	words = strtok(NULL, " ");
+    }
+    unset_gt_mask(type);
+    return 0;
+}
+
+int set_gt_mask_cmd(char *buffer){
+    uint32_t type = 0x0;
+    int clear = 0;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+	if (words[0] == '-'){
+	    if (words[1] == 't'){
+		words2 = strtok(NULL, " ");
+		type = strtoul(words2,(char **) NULL,16);
+	    }
+	    if (words[1] == 'c'){
+		clear = 1;
+	    }
+	    if (words[1] == 'h'){
+		sprintf(psb,"Usage: set_gt_mask -t [raw trigs to add (hex)]"
+			" -c (clear gt mask first)\n");
+		print_send(psb, view_fdset);
+		return 0;
+	    }
+	}
+	words = strtok(NULL, " ");
+    }
+    if (clear == 1)
+	unset_gt_mask(0xFFFFFFFF);
+    set_gt_mask(type);
+    return 0;
+}
 
 void unset_gt_mask(unsigned long raw_trig_types) {
     uint32_t temp;
     mtc_reg_read(MTCMaskReg, &temp);
     mtc_reg_write(MTCMaskReg, temp & ~raw_trig_types);
     print_send("Triggers have been removed from the GT Mask\n", view_fdset);
+
 }
 
 void set_gt_mask(uint32_t raw_trig_types){

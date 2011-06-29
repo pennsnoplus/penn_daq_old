@@ -224,14 +224,10 @@ int final_test(char *buffer)
     
     printf("-------------------------------------------\n");
     sprintf(command_buffer,"chinj_scan -c %d -s %04x -l 0 -u 5000 -w 100 -n 10 -d -# %s",crate_num,slot_mask,id_string);
-    printf("%s\n",command_buffer);
-    printf("%s\n",id_string);
     chinj_scan(command_buffer);
 
     printf("-------------------------------------------\n");
     sprintf(command_buffer,"set_ttot -c %d -s %04x -t 440 -d -# %s",crate_num,slot_mask,id_string);
-    printf("%s\n",command_buffer);
-    printf("%s\n",id_string);
     //set_ttot(command_buffer);
 
     printf("-------------------------------------------\n");

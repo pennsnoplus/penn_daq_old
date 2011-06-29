@@ -611,7 +611,7 @@ int mem_test(char *buffer)
 int vmon(char *buffer)
 {
     char *words,*words2;
-    char v_name[21][20] = {"neg_24","neg_15","Vee","neg_3_3","neg_2","pos_3_3","neg_4","Vcc","pos_6_5","pos_8","pos_15","pos_24","neg_2_ref","neg_1_ref","pos_0_8_ref","pos_1_ref","pos_4_ref","pos_5_ref","Temp","CalD","hvt"};
+    char v_name[21][20] = {"neg_24","neg_15","Vee","neg_3_3","neg_2","pos_3_3","pos_4","Vcc","pos_6_5","pos_8","pos_15","pos_24","neg_2_ref","neg_1_ref","pos_0_8_ref","pos_1_ref","pos_4_ref","pos_5_ref","Temp","CalD","hvt"};
     uint32_t slot_mask = 0x2000;
     float voltages[16][21];
     float voltages_min[21] = {-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99.,-99};
@@ -700,16 +700,22 @@ int vmon(char *buffer)
 		int fail_flag = 0;
 		pt_node_t *newdoc = pt_map_new();
 		pt_map_set(newdoc,"type",pt_string_new("vmon"));
+		pt_node_t *verr = pt_array_new();
 		for (j=0;j<21;j++){
 		    pt_map_set(newdoc,v_name[j],pt_double_new((double)voltages[slot_num][j]));
-		    if ((voltages[slot_num][j] < voltages_min[j]) || (voltages[slot_num][j] > voltages_max[j]))
+		    if ((voltages[slot_num][j] < voltages_min[j]) || (voltages[slot_num][j] > voltages_max[j])){
+			pt_array_push_back(verr,pt_integer_new(1));
 			fail_flag = 1;
+		    }else{
+			pt_array_push_back(verr,pt_integer_new(0));
+		    }
 		}
 		if (fail_flag == 0){
 		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
 		}else{
 		    pt_map_set(newdoc,"pass",pt_string_new("no"));
 		}
+		pt_map_set(newdoc,"errors",verr);
 		if (final_test)
 		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot_num]));	
 		post_debug_doc(crate_num,slot_num,newdoc);

@@ -596,6 +596,12 @@ int process_command(char *buffer){ //DATABASE
 		hv_ramp_map(buffer);
 	else if (strncmp(buffer, "mb_stability_test",17) == 0)
 		mb_stability_test(buffer);
+	else if (strncmp(buffer, "chinj_scan", 10) == 0)
+		chinj_scan(buffer);
+	else if (strncmp(buffer, "set_gt_mask",11) == 0)
+		set_gt_mask_cmd(buffer);
+	else if (strncmp(buffer, "unset_gt_mask",11) == 0)
+		unset_gt_mask_cmd(buffer);
 	else if (strncmp(buffer, "connect_to_SBC", 14) == 0){
 		kill_SBC_process();
 		connect_to_SBC(SBC_PORT, server);

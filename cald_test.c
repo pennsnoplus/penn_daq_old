@@ -47,10 +47,10 @@ int cald_test(char *buffer)
 
 	    }else if (words[1] == 'u'){
 		words2 = strtok(NULL, " ");
-		upper = strtoul(words2,(char**)NULL,16);
+		upper = atoi(words2);
 	    }else if (words[1] == 'l'){
 		words2 = strtok(NULL, " ");
-		lower = strtoul(words2,(char**)NULL,16);
+		lower = atoi(words2);
 	    }else if (words[1] == 'n'){
 		words2 = strtok(NULL, " ");
 		num_points = atoi(words2);
@@ -87,6 +87,7 @@ int cald_test(char *buffer)
 	    num_slots++;
 	}
     }
+    printf("now doing %d points, %d samples, from %d to %d\n",num_points,samples,upper,lower);
 
     XL3_Packet packet;
     packet.cmdHeader.packet_type = CALD_TEST_ID;

@@ -487,10 +487,16 @@ int cmos_m_gtvalid(char *buffer)
 			    pt_map_set(newdoc,"iseta",iseta_new);
 			    pt_node_t* tac_shift_new = pt_array_new();
 			    pt_node_t* errors = pt_array_new();
+			    pt_node_t* gtchan0 = pt_array_new();
+			    pt_node_t* gtchan1 = pt_array_new();
 			    for (i=0;i<32;i++){
 				pt_array_push_back(tac_shift_new,pt_integer_new((byte) (tacbits_save[1][i]*16+tacbits_save[0][1])));
 				pt_array_push_back(errors,pt_integer_new(0));//FIXME
+				pt_array_push_back(gtchan0,pt_double_new(gtchan_set[0][i]));
+				pt_array_push_back(gtchan1,pt_double_new(gtchan_set[1][i]));
 			    }
+			    pt_map_set(newdoc,"GTValid_tac0",gtchan0);
+			    pt_map_set(newdoc,"GTValid_tac1",gtchan1);
 			    pt_map_set(newdoc,"tac_shift",tac_shift_new);
 			    pt_map_set(newdoc,"errors",errors);
 			    pt_map_set(newdoc,"pass",pt_string_new("yes"));//FIXME

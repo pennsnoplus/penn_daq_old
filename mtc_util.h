@@ -43,7 +43,8 @@
 int mtc_xilinxload(void);
 int mtc_init(char *buffer);
 
-
+int set_gt_mask_cmd(char *buffer);
+int unset_gt_mask_cmd(char *buffer);
 void unset_gt_mask(unsigned long raw_trig_types);
 void set_gt_mask(uint32_t raw_trig_types);
 

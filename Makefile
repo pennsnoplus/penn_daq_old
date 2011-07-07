@@ -21,8 +21,3 @@ vwr:
 clean: 
 	-$(RM) core *.o penn_daq tut vwr
 
-depend: $(SRCS)
-	gcc -M $(SRCS) > .depend
-	touch depend
-
-include .depend

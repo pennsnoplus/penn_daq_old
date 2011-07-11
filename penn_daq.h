@@ -45,6 +45,7 @@ typedef u_char  byte;
 #define MAX_PACKET_SIZE 1444
 
 // database stuff
+#define DB_SERVER "http://localhost:5984"
 #define DB_ADDRESS "localhost"
 #define DB_PORT "5984"
 #define DB_BASE_NAME "penndb1"

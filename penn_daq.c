@@ -12,7 +12,8 @@
 
 #include "include/xl_regs.h"
 
-#include "pillowtalk.h"
+#include "pouch.h"
+#include "json.h"
 
 #include "penn_daq.h"
 #include "net_util.h"
@@ -84,45 +85,16 @@ int main(int argc, char *argv[]){
 		}
 	}
 	/* print any remaining command line arguments (not options). */
-	if (optind < argc){
-		printf("Hostname: %s\n", argv[optind]);
-	}
-	else{
-		printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
-		printf("            or\n");
-		printf("       %s [-h/--help]\n", argv[0]);
-		printf("For more help, read the README\n");
-		exit(0);
-	}
-
-	/*
-	current_location = 0;
-	if (argc == 1){
-		start_logging();
-	}else if (argc == 2){
-		if( (strncmp(argv[1], "-q", 2) == 0) || (strncmp(argv[1], "--quiet", 7) == 0) ){
-			fprintf(stderr, "DAQ: silenced: did not open log file\n");
-			write_log = 0;
-		}else if( (strncmp(argv[1], "--help", 6) == 0) || (strncmp(argv[1], "-h", 2) == 0) ){
-			fprintf(stderr, "opening ./README.TXT\n");
-			system("vim README.TXT");
-			exit(SUCCESS);
-		}else if( (strncmp(argv[1],"-p",2) == 0) || (strncmp(argv[1],"--penn",6) == 0)){
-			current_location = 2;
-		}else if( (strncmp(argv[1],"-a",2) == 0) || (strncmp(argv[1],"--aboveground",13) == 0)){
-			current_location = 0;
-		}else if( (strncmp(argv[1],"-u",2) == 0) || (strncmp(argv[1],"--underground",13) == 0)){
-			current_location = 1;
-		}else{
-			start_logging();
-		}
-	}else{
-		fprintf(stderr, "usage: ./mac_daq hostname [-q or --quiet] \n"); // argv[1] is hostname
-		fprintf(stderr, "for more help, use \'-h\' or \'--help\' as the argument or open ./README.TXT\n");
-		sigint_func(SIGINT);
-
-	}
-	*/
+	//if (optind < argc){
+		//printf("Hostname: %s\n", argv[optind]);
+	//}
+	//else{
+		//printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+		//printf("            or\n");
+		//printf("       %s [-h/--help]\n", argv[0]);
+		//printf("For more help, read the README\n");
+		//exit(0);
+	//}
 
 	printf("current location is %d\n",current_location);
 
@@ -180,18 +152,21 @@ int main(int argc, char *argv[]){
 			((int)delay_value.tv_usec)/100000);
 	print_send(psb, view_fdset);
 
+	
 	// make sure the database is up and running
-	pt_response_t* response = NULL;
-	char get_db_address[500];
-	sprintf(get_db_address,"http://%s:%s/%s",DB_ADDRESS,DB_PORT,DB_BASE_NAME);
-	response = pt_get(get_db_address);
-	if (response->response_code != 200){
-		printf("Unable to connect to database. error code %d\n",(int)response->response_code);
-		pt_cleanup();
-		//exit(FAIL);
+	pouch_request *pr = pr_init();
+	pr = db_get(pr, DB_SERVER, DB_BASE_NAME);
+	pr_do(pr);
+	if(pr->httpresponse != 200){
+		printf("Unable to connect to database. error code %d\n",(int)pr->httpresponse);
+		printf("CURL error code: %d\n", pr->curlcode);
+		//exit(0);
 	}
-	pt_free_response(response);
-	pt_cleanup();
+	else{
+		printf("Connected to database: http response code %d\n",(int)pr->httpresponse);
+	}
+	pr_free(pr);
+	
 
 
 

@@ -1,4 +1,4 @@
-OBJS = penn_daq.o ttot.o xl3_util.o net_util.o xl3_rw.o mtc_rw.o db.o mtc_util.o mtc_init.o crate_init.o fec_util.o ped_run.o crate_cbal.o cgt_test_1.o cmos_m_gtvalid.o cald_test.o readout_test.o chinj_test.o final_test.o disc_check.o
+OBJS = penn_daq.o ttot.o xl3_util.o net_util.o xl3_rw.o mtc_rw.o db.o mtc_util.o mtc_init.o crate_init.o fec_util.o ped_run.o crate_cbal.o cgt_test_1.o cmos_m_gtvalid.o cald_test.o readout_test.o chinj_test.o final_test.o disc_check.o pouch.o json.o
 SRCS = $(OBJS:.o=.c)
 
 CC = gcc

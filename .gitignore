@@ -6,3 +6,4 @@ vwr
 *.log
 *.DS_STORE
 .history.txt
+.depend

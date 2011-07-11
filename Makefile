@@ -5,7 +5,7 @@ CC = gcc
 
 LIBS = -lpillowtalk -lm
 
-penn_daq: $(OBJS)
+penn_daq: $(OBJS) tut vwr
 #	gcc $(CFLAGS) -c -o penn_daq.o penn_daq.c
 	gcc -o $@ $(OBJS) $(LIBS)
 

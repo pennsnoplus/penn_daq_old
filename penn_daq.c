@@ -23,16 +23,79 @@
 #include "mtc_util.h"
 #include "crate_cbal.h"
 
-
+#include <getopt.h>
 
 int main(int argc, char *argv[]){
-
+	
 	pt_init();
 	// set up a signal handler to handle C-c
 	(void) signal(SIGINT, sigint_func);
 
 	// ########## CHECK COMMAND LINE ARGS FOR -q OR -h #############
+	current_location = 0;
+	write_log = 0;
+	int c;
+	while (1){
+		static struct option long_options[] = 
+		{
+			/* These options set a flag. */
+			/* These options don't set a flag. */
+			{"log", no_argument, 0, 'l'},
+			{"help", no_argument, 0, 'h'},
+			{"penn", no_argument, 0, 'p'},
+			{"aboveground", no_argument, 0, 'a'},
+			{"underground", no_argument, 0, 'u'},
+			{0, 0, 0, 0}
+		};
+		/* getopt_long stores the option index here. */
+		int option_index = 0;
+		c = getopt_long(argc, argv, "lhpau", long_options, &option_index);
+		/* Detect the end of options. */
+		if (c == -1)
+			break;
+		switch (c){
+			case 0:
+				break;
+			case 'l':
+				printf("Starting to log!\n");
+				start_logging();
+				break;
+			case 'h':
+				printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+				printf("            or\n");
+				printf("       %s [-h/--help]\n", argv[0]);
+				printf("For more help, read the README\n");
+				exit(0);
+				break;
+			case 'p':
+				current_location = 2;
+				break;
+			case 'a':
+				current_location = 0;
+				break;
+			case 'u':
+				current_location = 1;
+				break;
+			case '?':
+				/* getopt_long already printed an error message. */
+				break;
+			default:
+				abort();
+		}
+	}
+	/* print any remaining command line arguments (not options). */
+	if (optind < argc){
+		printf("Hostname: %s\n", argv[optind]);
+	}
+	else{
+		printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+		printf("            or\n");
+		printf("       %s [-h/--help]\n", argv[0]);
+		printf("For more help, read the README\n");
+		exit(0);
+	}
 
+	/*
 	current_location = 0;
 	if (argc == 1){
 		start_logging();
@@ -59,6 +122,7 @@ int main(int argc, char *argv[]){
 		sigint_func(SIGINT);
 
 	}
+	*/
 
 	printf("current location is %d\n",current_location);
 
@@ -87,7 +151,6 @@ int main(int argc, char *argv[]){
 	db_debug = 1;
 	fdmax = 0;
 	mtc_sock = 0;
-	write_log = 0;
 	rec_bytes=0;
 	rec_fake_bytes=0;
 	multifc_buffer_full = 0;
@@ -704,12 +767,15 @@ void sigint_func(int sig){
 			close(u);
 		}
 	}
-	print_send("new_daq: closing log\n", view_fdset);
-	if(ps_log_file){
-		stop_logging();
-	}
-	else{
-		print_send("No log file to close\n", view_fdset);
+	stop_logging();
+	if(write_log){
+		print_send("new_daq: closing log\n", view_fdset);
+		if(ps_log_file){
+			stop_logging();
+		}
+		else{
+			print_send("No log file to close\n", view_fdset);
+		}
 	}
 	exit(SUCCESS);
 }
@@ -754,16 +820,16 @@ void stop_logging(){
 	 /daq/LOGS
 	 */
 	if(write_log){
+		write_log = 0;
 		print_send("Disabled logging\n", view_fdset);
 		if(ps_log_file){
 			print_send("Closed log file\n", view_fdset);
 			fclose(ps_log_file);
-			system("mv *.log ./LOGS");
+			system("mv *.log ./logs");
 		}
 		else{
 			print_send("\tNo log file to close\n", view_fdset);
 		}
-		write_log = 0;
 	}
 	else{
 		print_send("Logging is already disabled\n", view_fdset);

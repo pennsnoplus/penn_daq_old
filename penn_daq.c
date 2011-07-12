@@ -12,8 +12,8 @@
 
 #include "include/xl_regs.h"
 
-#include "pouch.h"
-#include "json.h"
+//#include "pouch.h"
+//#include "json.h"
 
 #include "penn_daq.h"
 #include "net_util.h"
@@ -28,7 +28,7 @@
 
 int main(int argc, char *argv[]){
 	
-	pt_init();
+	;
 	// set up a signal handler to handle C-c
 	(void) signal(SIGINT, sigint_func);
 

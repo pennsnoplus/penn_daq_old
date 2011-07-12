@@ -12,7 +12,8 @@
 #include "mtc_util.h"
 #include "crate_cbal.h"
 #include "net_util.h"
-#include "pillowtalk.h"
+//#include "pouch.h"
+//#include "json.h"
 
 
 uint32_t *pmt_buf;
@@ -70,7 +71,7 @@ int crate_cbal(char * buffer)
     if (!update_db)
 	print_send("Not writing balance values to DB.\n", view_fdset);
     else
-	pt_init();
+	;
 
     int j,it,im,is;
     int error_flags[32];
@@ -896,39 +897,39 @@ int crate_cbal(char * buffer)
 	    //now lets update the database entry for this slot
 	    if (update_db){
 		printf("updating the database\n");
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("crate_cbal"));
-		pt_node_t* vbal_high_new = pt_array_new();
-		pt_node_t* vbal_low_new = pt_array_new();
-		pt_node_t* error_new = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("crate_cbal"));
+		JsonNode* vbal_high_new = json_mkarray();
+		JsonNode* vbal_low_new = json_mkarray();
+		JsonNode* error_new = json_mkarray();
 		int fail_flag = 0;
 		for (i=0;i<32;i++){
-		    pt_array_push_back(vbal_high_new,pt_integer_new(vbal_temp[0][i]));
-		    pt_array_push_back(vbal_low_new,pt_integer_new(vbal_temp[1][i]));
+		    json_append_element(vbal_high_new,json_mknumber((double)vbal_temp[0][i]));
+		    json_append_element(vbal_low_new,json_mknumber((double)vbal_temp[1][i]));
 		    if (error_flags[i] == 0)
-			pt_array_push_back(error_new,pt_string_new("none"));
+			json_append_element(error_new,json_mkstring("none"));
 		    else if (error_flags[i] == 1)
-			pt_array_push_back(error_new,pt_string_new("Extreme balance set to 150"));
+			json_append_element(error_new,json_mkstring("Extreme balance set to 150"));
 		    else if (error_flags[i] == 2)
-			pt_array_push_back(error_new,pt_string_new("Extreme balance values"));
+			json_append_element(error_new,json_mkstring("Extreme balance values"));
 		    else if (error_flags[i] == 3)
-			pt_array_push_back(error_new,pt_string_new("Partially balanced"));
+			json_append_element(error_new,json_mkstring("Partially balanced"));
 		    else if (error_flags[i] == 4)
-			pt_array_push_back(error_new,pt_string_new("Unbalanced, set to 150"));
+			json_append_element(error_new,json_mkstring("Unbalanced, set to 150"));
 		    if (error_flags[i] != 0)
 			fail_flag = 1;
 
 		}
-		pt_map_set(newdoc,"vbal_low",vbal_low_new);
-		pt_map_set(newdoc,"vbal_high",vbal_high_new);
-		pt_map_set(newdoc,"errors",error_new);
+		json_append_member(newdoc,"vbal_low",vbal_low_new);
+		json_append_member(newdoc,"vbal_high",vbal_high_new);
+		json_append_member(newdoc,"errors",error_new);
 		if (fail_flag == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[is]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[is]));	
 		post_debug_doc(crate,is,newdoc);
 	    }
 

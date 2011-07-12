@@ -13,8 +13,9 @@
 #include "fec_util.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "db.h"
-#include "pillowtalk.h"
+//#include "db.h"
+//#include "pouch.h"
+//#include "json.h"
 
 
 #define TWO_16_M1	0xFFFF /* 2^16-1 */
@@ -241,30 +242,30 @@ int cgt_test_1(char* buffer)
     if (update_db){
 	printf("updating the database\n");
 	int slot,passflag = 1;
-	pt_init();
+	;
 	for (slot=0;slot<16;slot++){
 	    if ((0x1<<slot) & slot_mask){
 		printf("updating slot %d\n",slot);
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("cgt_test"));
-		pt_map_set(newdoc,"missing_bundles",pt_integer_new(missing_bundles[slot]));
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("cgt_test"));
+		json_append_member(newdoc,"missing_bundles",json_mknumber((double)missing_bundles[slot]));
 		if (missing_bundles[slot] > 0)
 		    passflag = 0;
-		pt_node_t *chan_errs = pt_array_new();
+		JsonNode *chan_errs = json_mkarray();
 		for (i=0;i<32;i++){
-		    pt_array_push_back(chan_errs,pt_integer_new(chan_errors[slot][i]));
+		    json_append_element(chan_errs,json_mknumber((double)chan_errors[slot][i]));
 		    if (chan_errors[slot][i] > 0)
 			passflag = 0;
 		}
-		pt_map_set(newdoc,"channel_errors",chan_errs);
-		pt_map_set(newdoc,"printout",pt_string_new(error_history[slot]));
+		json_append_member(newdoc,"channel_errors",chan_errs);
+		json_append_member(newdoc,"printout",json_mkstring(error_history[slot]));
 		if (passflag == 1){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 		post_debug_doc(crate_num,slot,newdoc);
 	    }
 	}
@@ -499,20 +500,20 @@ int fifo_test(char* buffer)
     if (update_db){
 	printf("updating the database\n");
 	int slot;
-	pt_init();
+	;
 	for (slot=0;slot<16;slot++){
 	    if ((0x1<<slot) & slot_mask){
 		printf("updating slot %d\n",slot);
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("fifo_test"));
-		pt_map_set(newdoc,"printout",pt_string_new(error_history[slot]));
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("fifo_test"));
+		json_append_member(newdoc,"printout",json_mkstring(error_history[slot]));
 		if (slot_errors[slot] == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 		post_debug_doc(crate_num,slot,newdoc);
 	    }
 	}
@@ -764,20 +765,20 @@ int mb_stability_test(char* buffer)
     if (update_db){
 	printf("updating the database\n");
 	int slot;
-	pt_init();
+	;
 	for (slot=0;slot<16;slot++){
 	    if ((0x1<<slot) & slot_mask){
 		printf("updating slot %d\n",slot);
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("mb_stability_test"));
-		pt_map_set(newdoc,"printout",pt_string_new(error_history[slot]));
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("mb_stability_test"));
+		json_append_member(newdoc,"printout",json_mkstring(error_history[slot]));
 		if (slot_errors[slot] == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 		post_debug_doc(crate_num,slot,newdoc);
 	    }
 	}

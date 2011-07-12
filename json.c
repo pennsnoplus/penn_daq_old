@@ -1379,3 +1379,32 @@ bool json_check(const JsonNode *node, char errmsg[256])
 	
 	#undef problem
 }
+double json_get_number(JsonNode *node){
+	if (node && node->tag == JSON_NUMBER){
+		return node->number_;
+	}
+	return -1;
+}
+char *json_get_string(JsonNode *node){
+	if (node && node->tag == JSON_STRING){
+		return node->string_;
+	}
+	return (char *)NULL;
+}
+bool json_get_bool(JsonNode *node){
+	if (node && node->tag == JSON_BOOL){
+		return node->bool_;
+	}
+	return false;
+}
+int json_get_num_mems(JsonNode *node){
+	int num_mems = -1;
+	if (node && (node->tag == JSON_ARRAY || node->tag == JSON_OBJECT)){
+		num_mems++;
+		JsonNode *element;
+		json_foreach(element, node){
+			num_mems++;
+		}
+	}
+	return num_mems;
+}

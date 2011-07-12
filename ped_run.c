@@ -12,7 +12,8 @@
 #include "fec_util.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "pillowtalk.h"
+//#include "pouch.h"
+//#include "json.h"
 
 
 #define PED_WIDTH	    25
@@ -57,7 +58,7 @@ int ped_run(char *buffer)
     int crate = 2;
 
     char *words,*words2;
-    pt_init();
+    ;
 
     // lets get the parameters from command line
     words = strtok(buffer, " ");
@@ -384,81 +385,81 @@ int ped_run(char *buffer)
 
 	    if (update_db){
 		printf("updating the database\n");
-		pt_node_t *newdoc = pt_map_new();
-		pt_node_t *num = pt_array_new();
-		pt_node_t *qhl = pt_array_new();
-		pt_node_t *qhlrms = pt_array_new();
-		pt_node_t *qhs = pt_array_new();
-		pt_node_t *qhsrms = pt_array_new();
-		pt_node_t *qlx = pt_array_new();
-		pt_node_t *qlxrms = pt_array_new();
-		pt_node_t *tac = pt_array_new();
-		pt_node_t *tacrms = pt_array_new();
-		pt_node_t *error_node = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		JsonNode *num = json_mkarray();
+		JsonNode *qhl = json_mkarray();
+		JsonNode *qhlrms = json_mkarray();
+		JsonNode *qhs = json_mkarray();
+		JsonNode *qhsrms = json_mkarray();
+		JsonNode *qlx = json_mkarray();
+		JsonNode *qlxrms = json_mkarray();
+		JsonNode *tac = json_mkarray();
+		JsonNode *tacrms = json_mkarray();
+		JsonNode *error_node = json_mkarray();
 		for (i=0;i<32;i++){
-		    pt_node_t *numtemp = pt_array_new();
-		    pt_node_t *qhltemp = pt_array_new();
-		    pt_node_t *qhlrmstemp = pt_array_new();
-		    pt_node_t *qhstemp = pt_array_new();
-		    pt_node_t *qhsrmstemp = pt_array_new();
-		    pt_node_t *qlxtemp = pt_array_new();
-		    pt_node_t *qlxrmstemp = pt_array_new();
-		    pt_node_t *tactemp = pt_array_new();
-		    pt_node_t *tacrmstemp = pt_array_new();
+		    JsonNode *numtemp = json_mkarray();
+		    JsonNode *qhltemp = json_mkarray();
+		    JsonNode *qhlrmstemp = json_mkarray();
+		    JsonNode *qhstemp = json_mkarray();
+		    JsonNode *qhsrmstemp = json_mkarray();
+		    JsonNode *qlxtemp = json_mkarray();
+		    JsonNode *qlxrmstemp = json_mkarray();
+		    JsonNode *tactemp = json_mkarray();
+		    JsonNode *tacrmstemp = json_mkarray();
 		    for (j=0;j<16;j++){
-			pt_array_push_back(numtemp,pt_double_new(ped[i].thiscell[j].per_cell));
-			pt_array_push_back(qhltemp,pt_double_new(ped[i].thiscell[j].qhlbar));	
-			pt_array_push_back(qhlrmstemp,pt_double_new(ped[i].thiscell[j].qhlrms));	
-			pt_array_push_back(qhstemp,pt_double_new(ped[i].thiscell[j].qhsbar));	
-			pt_array_push_back(qhsrmstemp,pt_double_new(ped[i].thiscell[j].qhsrms));	
-			pt_array_push_back(qlxtemp,pt_double_new(ped[i].thiscell[j].qlxbar));	
-			pt_array_push_back(qlxrmstemp,pt_double_new(ped[i].thiscell[j].qlxrms));	
-			pt_array_push_back(tactemp,pt_double_new(ped[i].thiscell[j].tacbar));	
-			pt_array_push_back(tacrmstemp,pt_double_new(ped[i].thiscell[j].tacrms));	
+			json_append_element(numtemp,json_mknumber(ped[i].thiscell[j].per_cell));
+			json_append_element(qhltemp,json_mknumber(ped[i].thiscell[j].qhlbar));	
+			json_append_element(qhlrmstemp,json_mknumber(ped[i].thiscell[j].qhlrms));	
+			json_append_element(qhstemp,json_mknumber(ped[i].thiscell[j].qhsbar));	
+			json_append_element(qhsrmstemp,json_mknumber(ped[i].thiscell[j].qhsrms));	
+			json_append_element(qlxtemp,json_mknumber(ped[i].thiscell[j].qlxbar));	
+			json_append_element(qlxrmstemp,json_mknumber(ped[i].thiscell[j].qlxrms));	
+			json_append_element(tactemp,json_mknumber(ped[i].thiscell[j].tacbar));	
+			json_append_element(tacrmstemp,json_mknumber(ped[i].thiscell[j].tacrms));	
 		    }
-		    pt_array_push_back(num,numtemp);
-		    pt_array_push_back(qhl,qhltemp);
-		    pt_array_push_back(qhlrms,qhlrmstemp);
-		    pt_array_push_back(qhs,qhltemp);
-		    pt_array_push_back(qhsrms,qhlrmstemp);
-		    pt_array_push_back(qlx,qhltemp);
-		    pt_array_push_back(qlxrms,qhlrmstemp);
-		    pt_array_push_back(tac,qhltemp);
-		    pt_array_push_back(tacrms,qhlrmstemp);
+		    json_append_element(num,numtemp);
+		    json_append_element(qhl,qhltemp);
+		    json_append_element(qhlrms,qhlrmstemp);
+		    json_append_element(qhs,qhltemp);
+		    json_append_element(qhsrms,qhlrmstemp);
+		    json_append_element(qlx,qhltemp);
+		    json_append_element(qlxrms,qhlrmstemp);
+		    json_append_element(tac,qhltemp);
+		    json_append_element(tacrms,qhlrmstemp);
 		    if (error_flag[i] == 0){
-			pt_array_push_back(error_node,pt_string_new("none"));
+			json_append_element(error_node,json_mkstring("none"));
 		    }else{
-			pt_array_push_back(error_node,pt_integer_new(error_flag[i])); //FIXME
+			json_append_element(error_node,json_mknumber((double)error_flag[i])); //FIXME
 		    }
 		}
-		pt_map_set(newdoc,"type",pt_string_new("ped_run"));
-		pt_map_set(newdoc,"num",num);
-		pt_map_set(newdoc,"QHL",qhl);
-		pt_map_set(newdoc,"QHL_rms",qhlrms);
-		pt_map_set(newdoc,"QHS",qhs);
-		pt_map_set(newdoc,"QHS_rms",qhsrms);
-		pt_map_set(newdoc,"QLX",qlx);
-		pt_map_set(newdoc,"QLX_rms",qlxrms);
-		pt_map_set(newdoc,"TAC",tac);
-		pt_map_set(newdoc,"TAC_rms",tacrms);
-		pt_map_set(newdoc,"errors",error_node);
+		json_append_member(newdoc,"type",json_mkstring("ped_run"));
+		json_append_member(newdoc,"num",num);
+		json_append_member(newdoc,"QHL",qhl);
+		json_append_member(newdoc,"QHL_rms",qhlrms);
+		json_append_member(newdoc,"QHS",qhs);
+		json_append_member(newdoc,"QHS_rms",qhsrms);
+		json_append_member(newdoc,"QLX",qlx);
+		json_append_member(newdoc,"QLX_rms",qlxrms);
+		json_append_member(newdoc,"TAC",tac);
+		json_append_member(newdoc,"TAC_rms",tacrms);
+		json_append_member(newdoc,"errors",error_node);
 		int fail_flag = 0;
 		for (j=0;j<32;j++){
 		    if (error_flag[j] != 0)
 			fail_flag = 1;
 		}
 		if (fail_flag == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (balanced){
-		    pt_map_set(newdoc,"balanced",pt_string_new("yes"));
+		    json_append_member(newdoc,"balanced",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"balanced",pt_string_new("no"));	
+		    json_append_member(newdoc,"balanced",json_mkstring("no"));	
 		}
 		if (final_test){
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot_iter]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot_iter]));	
 		}
 		post_debug_doc(crate,slot_iter,newdoc);
 	    }

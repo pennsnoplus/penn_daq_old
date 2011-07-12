@@ -122,29 +122,29 @@ int disc_check(char *buffer)
  
     if (update_db){
 	printf("updating the database\n");
-	pt_init();
+	;
 	for (slot=0;slot<16;slot++){
 	    if ((0x1<<slot) & slot_mask){
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("disc_check"));
-		pt_node_t *diff_node = pt_array_new();
-		pt_node_t *error_node = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("disc_check"));
+		JsonNode *diff_node = json_mkarray();
+		JsonNode *error_node = json_mkarray();
 		passflag = 0;
 		for (i=0;i<32;i++){
 		    if (chan_errors[slot][i] == 1)
 			passflag = 1;
-		    pt_array_push_back(error_node,pt_integer_new(chan_errors[slot][i]));
-		    pt_array_push_back(diff_node,pt_integer_new(chan_diff[slot][i]));
+		    json_append_element(error_node,json_mknumber((double)chan_errors[slot][i]));
+		    json_append_element(diff_node,json_mknumber((double)chan_diff[slot][i]));
 		}
-		pt_map_set(newdoc,"count_minus_peds",diff_node);
-		pt_map_set(newdoc,"errors",error_node);
+		json_append_member(newdoc,"count_minus_peds",diff_node);
+		json_append_member(newdoc,"errors",error_node);
 		if (passflag == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 		post_debug_doc(crate_num,slot,newdoc);
 	    }
 	}

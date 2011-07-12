@@ -18,8 +18,9 @@
 #include "fec_util.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "pillowtalk.h"
-#include "db.h"
+//#include "pouch.h"
+//#include "json.h"
+//#include "db.h"
 
 
 #define PED_WIDTH 25
@@ -150,7 +151,7 @@ int cmos_m_gtvalid(char *buffer)
 
 
 
-    pt_init();
+    ;
 
     //initialize some constants, DAC address
     dac_isetm[0] = 132;
@@ -473,29 +474,29 @@ int cmos_m_gtvalid(char *buffer)
 			if (update_db){
 			    printf("updating the database\n");
 			    char hextostr[50];
-			    pt_node_t *newdoc = pt_map_new();
-			    pt_map_set(newdoc,"type",pt_string_new("cmos_m_gtvalid"));
-			    pt_map_set(newdoc,"vmax",pt_integer_new(VMAX));
-			    pt_map_set(newdoc,"TACREF",pt_integer_new(TACREF));
-			    pt_node_t* isetm_new = pt_array_new();
-			    pt_node_t* iseta_new = pt_array_new();
-			    pt_array_push_back(isetm_new,pt_integer_new(isetm_save[0]));
-			    pt_array_push_back(isetm_new,pt_integer_new(isetm_save[1]));
-			    pt_array_push_back(iseta_new,pt_integer_new(ISETA));
-			    pt_array_push_back(iseta_new,pt_integer_new(ISETA));
-			    pt_map_set(newdoc,"isetm",isetm_new);
-			    pt_map_set(newdoc,"iseta",iseta_new);
-			    pt_node_t* tac_shift_new = pt_array_new();
-			    pt_node_t* errors = pt_array_new();
+			    JsonNode *newdoc = json_mkobject();
+			    json_append_member(newdoc,"type",json_mkstring("cmos_m_gtvalid"));
+			    json_append_member(newdoc,"vmax",json_mknumber((double)VMAX));
+			    json_append_member(newdoc,"TACREF",json_mknumber((double)TACREF));
+			    JsonNode* isetm_new = json_mkarray();
+			    JsonNode* iseta_new = json_mkarray();
+			    json_append_element(isetm_new,json_mknumber((double)isetm_save[0]));
+			    json_append_element(isetm_new,json_mknumber((double)isetm_save[1]));
+			    json_append_element(iseta_new,json_mknumber((double)ISETA));
+			    json_append_element(iseta_new,json_mknumber((double)ISETA));
+			    json_append_member(newdoc,"isetm",isetm_new);
+			    json_append_member(newdoc,"iseta",iseta_new);
+			    JsonNode* tac_shift_new = json_mkarray();
+			    JsonNode* errors = json_mkarray();
 			    for (i=0;i<32;i++){
-				pt_array_push_back(tac_shift_new,pt_integer_new((byte) (tacbits_save[1][i]*16+tacbits_save[0][1])));
-				pt_array_push_back(errors,pt_integer_new(0));//FIXME
+				json_append_element(tac_shift_new,json_mknumber((double)(byte) (tacbits_save[1][i]*16+tacbits_save[0][1])));
+				json_append_element(errors,json_mknumber((double)0));//FIXME
 			    }
-			    pt_map_set(newdoc,"tac_shift",tac_shift_new);
-			    pt_map_set(newdoc,"errors",errors);
-			    pt_map_set(newdoc,"pass",pt_string_new("yes"));//FIXME
+			    json_append_member(newdoc,"tac_shift",tac_shift_new);
+			    json_append_member(newdoc,"errors",errors);
+			    json_append_member(newdoc,"pass",json_mkstring("yes"));//FIXME
 			    if (final_test)
-				pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+				json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 			    post_debug_doc(cn,slot,newdoc);
 
 

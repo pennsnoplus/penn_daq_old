@@ -261,8 +261,8 @@ int post_debug_doc(int crate, int card, JsonNode* doc)
 		ret = -1;
 	}
 	pr_free(post_response);
-	if (*data){
-		pr_free(data);
+	if(*data){
+		free(data);
 	}
 	return ret;
 };

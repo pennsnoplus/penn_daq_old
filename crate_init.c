@@ -94,8 +94,7 @@ int crate_init(char *buffer)
 			return -1;
 		}
 		hw_rows = json_find_member(hw_doc,"rows");
-		json_delete(totalrows);
-		json_delete(hw_doc);
+		//json_delete(hw_doc); // only delete the head node
 		pr_free(hw_response);
 	}else{
 		sprintf(get_db_address,"http://%s:%s/%s/CRATE_INIT_DOC",DB_ADDRESS,DB_PORT,DB_BASE_NAME);
@@ -107,6 +106,7 @@ int crate_init(char *buffer)
 			return -1;
 		}
 		debug_doc = json_decode(debug_response->resp.data);
+		pr_free(debug_response);
 	}
 
 	mb_num = (uint32_t *) packet.payload;
@@ -137,10 +137,6 @@ int crate_init(char *buffer)
 				return -1;
 			}
 			parse_fec_hw(value,mb_consts);
-			json_delete(next_row);
-			json_delete(key);
-			json_delete(hw);
-			// TODO: free value?
 		}else{
 			parse_fec_debug(debug_doc,mb_consts);
 		}
@@ -170,6 +166,7 @@ int crate_init(char *buffer)
 				if (n == 0){
 					printf("No crate_cbal documents for this configuration (%s). Continuing with default values.\n",config_string);
 				}else{
+					// these next three JSON nodes are pointers to the structure of viewrows; no need to delete
 					JsonNode* cbal_doc = json_find_member(json_find_element(viewrows,0),"value");
 					JsonNode* vbal_low = json_find_member(cbal_doc,"vbal_low");
 					JsonNode* vbal_high = json_find_member(cbal_doc,"vbal_high");
@@ -177,12 +174,8 @@ int crate_init(char *buffer)
 						mb_consts->vbal[0][j] = (int)json_get_number(json_find_element(vbal_low,j));
 						mb_consts->vbal[1][j] = (int)json_get_number(json_find_element(vbal_high,j));
 					}
-					json_delete(cbal_doc);
-					json_delete(vbal_low);
-					json_delete(vbal_high);
 				}
-				json_delete(viewdoc);
-				json_delete(viewrows);
+				json_delete(viewdoc); // viewrows is part of viewdoc; only delete the head node
 				pr_free(cbal_response);
 			}
 		}
@@ -212,11 +205,8 @@ int crate_init(char *buffer)
 					for (j=0;j<32;j++){
 						mb_consts->vthr[j] = (int)json_get_number(json_find_element(vthr,j));
 					}
-					json_delete(zdisc_doc);
-					json_delete(vthr);
 				}
-				json_delete(viewdoc);
-				json_delete(viewrows);
+				json_delete(viewdoc); // only delete the head
 				pr_free(zdisc_response);
 			}
 		}
@@ -250,12 +240,8 @@ int crate_init(char *buffer)
 						mb_consts->tdisc.rmp[j] = (int)json_get_number(json_find_element(rmp,j));
 						mb_consts->tdisc.vsi[j] = (int)json_get_number(json_find_element(vsi,j));
 					}
-					json_delete(ttot_doc);
-					json_delete(rmp);
-					json_delete(vsi);
 				}
 				json_delete(viewdoc);
-				json_delete(viewrows);
 				pr_free(ttot_response);
 			}
 		}
@@ -286,8 +272,7 @@ int crate_init(char *buffer)
 	JsonNode *ctc_doc = json_decode(ctc_response->resp.data);
 	JsonNode *ctc_delay_a = json_find_member(ctc_doc,"delay");
 	uint32_t ctc_delay = strtoul(json_get_string(json_find_element(ctc_delay_a,crate_num)),(char**) NULL,16);
-	json_delete(ctc_doc);
-	json_delete(ctc_delay_a);
+	json_delete(ctc_doc); // delete the head node
 	pr_free(ctc_response);
 
 

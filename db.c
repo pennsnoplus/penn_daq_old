@@ -207,7 +207,6 @@ int parse_fec_hw(JsonNode* value,mb_t* mb)
 		if ((int)json_get_number(json_find_element(json_find_member(hw,"chan_disable"),j)) != 0)
 			mb->disable_mask |= (0x1<<j);
 	}
-
 	return 0;
 
 }
@@ -248,7 +247,7 @@ int post_debug_doc(int crate, int card, JsonNode* doc)
 	json_append_member(doc,"timestamp",json_mknumber((double)(long int) the_time));
 	json_append_member(doc,"datetime",json_mkstring(datetime));
 	json_append_member(doc,"location",json_mknumber((double)current_location));
-
+	// TODO: this might be leaking a lot...
 	sprintf(put_db_address,"http://%s:%s/%s",DB_ADDRESS,DB_PORT,DB_BASE_NAME);
 	pouch_request *post_response = pr_init();
 	pr_set_method(post_response, POST);

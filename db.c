@@ -252,7 +252,8 @@ int post_debug_doc(int crate, int card, JsonNode* doc)
 	pouch_request *post_response = pr_init();
 	pr_set_method(post_response, POST);
 	pr_set_url(post_response, put_db_address);
-	post_response->req.data = json_encode(doc);
+	char *data = json_encode(doc);
+	pr_set_data(post_response, data);
 	pr_do(post_response);
 	int ret = 0;
 	if (post_response->httpresponse != 201){
@@ -260,6 +261,9 @@ int post_debug_doc(int crate, int card, JsonNode* doc)
 		ret = -1;
 	}
 	pr_free(post_response);
+	if (*data){
+		pr_free(data);
+	}
 	return ret;
 };
 
@@ -295,7 +299,8 @@ int post_debug_doc_with_id(int crate, int card, char *id, JsonNode* doc)
 	pouch_request *post_response = pr_init();
 	pr_set_method(post_response, PUT);
 	pr_set_url(post_response, put_db_address);
-	post_response->req.data = json_encode(doc);
+	char *data = json_encode(doc);
+	pr_set_data(post_response, data);
 	pr_do(post_response);
 	int ret = 0;
 	if (post_response->httpresponse != 201){
@@ -303,5 +308,8 @@ int post_debug_doc_with_id(int crate, int card, char *id, JsonNode* doc)
 		ret = -1;
 	}
 	pr_free(post_response);
+	if(*data){
+		free(data);
+	}
 	return 0;
 };

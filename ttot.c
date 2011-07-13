@@ -11,7 +11,8 @@
 #include "fec_util.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "pillowtalk.h"
+//#include "pouch.h"
+//#include "json.h"
 #include "ttot.h"
 
 int get_ttot(char * buffer)
@@ -74,7 +75,7 @@ int get_ttot(char * buffer)
     set_ped_crate_mask(0x1<<crate | MSK_CRATE21); // leave TUB masked in
 
     result = disc_m_ttot(crate,slot_mask,150,times);
-    
+
     printf("crate\t slot\t channel\t time\n");
 
     for (i=0;i<16;i++){
@@ -90,41 +91,42 @@ int get_ttot(char * buffer)
 	    }
 	}
     }
-    
+
     if (update_db){
 	printf("updating the database\n");
-	pt_init();
+	;
 	for (slot=0;slot<16;slot++){
 	    if ((0x1<<slot) & slot_mask){
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("get_ttot"));
-		pt_map_set(newdoc,"targettime",pt_integer_new(targettime));
-		pt_node_t *times_node = pt_array_new();
-		pt_node_t *error_node = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("get_ttot"));
+		json_append_member(newdoc,"targettime",json_mknumber((double)targettime));
+		JsonNode *times_node = json_mkarray();
+		JsonNode *error_node = json_mkarray();
 		passflag = 0;
 		for (i=0;i<32;i++){
 		    if (tot_errors[slot][i] == 1)
 			passflag = 1;
-		    pt_array_push_back(error_node,pt_integer_new(tot_errors[slot][i]));
-		    pt_array_push_back(times_node,pt_integer_new(times[slot*32+i]));
+		    json_append_element(error_node,json_mknumber((double)tot_errors[slot][i]));
+		    json_append_element(times_node,json_mknumber((double)times[slot*32+i]));
 		}
-		pt_map_set(newdoc,"times",times_node);
-		pt_map_set(newdoc,"errors",error_node);
+		json_append_member(newdoc,"times",times_node);
+		json_append_member(newdoc,"errors",error_node);
 		if (passflag == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 		post_debug_doc(crate,slot,newdoc);
+		json_delete(newdoc); // delete the head ndoe
 	    }
 	}
     }
 
     return 0;
 }
- 
+
 
 int set_ttot(char * buffer)
 {
@@ -187,44 +189,45 @@ int set_ttot(char * buffer)
     uint16_t allrmps[16*8],allvsis[16*8],alltimes[16*32];
     int tot_errors[16*8];
     disc_s_ttot(crate,slot_mask,targettime,allrmps,allvsis,alltimes,tot_errors);
-    
+
     if (update_db){
 	printf("updating the database\n");
-	pt_init();
+	;
 	for (slot=0;slot<16;slot++){
 	    if ((0x1<<slot) & slot_mask){
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("set_ttot"));
-		pt_map_set(newdoc,"targettime",pt_integer_new(targettime));
-		pt_node_t *rmp = pt_array_new();
-		pt_node_t *vsi = pt_array_new();
-		pt_node_t *times = pt_array_new();
-		pt_node_t *error_node = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("set_ttot"));
+		json_append_member(newdoc,"targettime",json_mknumber((double)targettime));
+		JsonNode *rmp = json_mkarray();
+		JsonNode *vsi = json_mkarray();
+		JsonNode *times = json_mkarray();
+		JsonNode *error_node = json_mkarray();
 		passflag = 0;
 		for (i=0;i<8;i++){
 		    if (tot_errors[slot*8+i] == 1)
 			passflag = 1;
-		    pt_array_push_back(rmp,pt_integer_new(allrmps[slot*8+i]));
-		    pt_array_push_back(vsi,pt_integer_new(allvsis[slot*8+i]));
-		    pt_array_push_back(error_node,pt_integer_new(tot_errors[slot*8+i]));
-		    pt_node_t *times_temp = pt_array_new();
+		    json_append_element(rmp,json_mknumber((double)allrmps[slot*8+i]));
+		    json_append_element(vsi,json_mknumber((double)allvsis[slot*8+i]));
+		    json_append_element(error_node,json_mknumber((double)tot_errors[slot*8+i]));
+		    JsonNode *times_temp = json_mkarray();
 		    for (j=0;j<4;j++){
-			pt_array_push_back(times_temp,pt_integer_new(alltimes[slot*32+i*4+j]));
+			json_append_element(times_temp,json_mknumber((double)alltimes[slot*32+i*4+j]));
 		    }
-		    pt_array_push_back(times,times_temp);
+		    json_append_element(times,times_temp);
 		}
-		pt_map_set(newdoc,"rmp",rmp);
-		pt_map_set(newdoc,"vsi",vsi);
-		pt_map_set(newdoc,"times",times);
-		pt_map_set(newdoc,"errors",error_node);
+		json_append_member(newdoc,"rmp",rmp);
+		json_append_member(newdoc,"vsi",vsi);
+		json_append_member(newdoc,"times",times);
+		json_append_member(newdoc,"errors",error_node);
 		if (passflag == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 		post_debug_doc(crate,slot,newdoc);
+		json_delete(newdoc); // head node needs deleting
 	    }
 	}
     }
@@ -351,7 +354,7 @@ int disc_m_ttot(int crate, uint32_t slot_mask, int start_time, uint16_t *disc_ti
 	    chan_done_mask = 0x0;
 	    for (time = start_time;time<=MAXTIME;time+=increment){
 		// setup gt delay
-	    	real_delay = set_gt_delay((float) time);
+		real_delay = set_gt_delay((float) time);
 		result = get_cmos_total_count2(crate,i,init);
 		for (j=0;j<32;j++){ // loop over channels
 		    //initial conditions

@@ -6,7 +6,8 @@
 #include "penn_daq.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "pillowtalk.h"
+#include "pouch.h"
+#include "json.h"
 
 static char* getXilinxData(long *howManyBits);
 
@@ -219,7 +220,6 @@ void unset_gt_mask(unsigned long raw_trig_types) {
     mtc_reg_read(MTCMaskReg, &temp);
     mtc_reg_write(MTCMaskReg, temp & ~raw_trig_types);
     print_send("Triggers have been removed from the GT Mask\n", view_fdset);
-
 }
 
 void set_gt_mask(uint32_t raw_trig_types){
@@ -615,17 +615,19 @@ float set_fine_delay(float delay) {
     float fdelay_set;
 
 
-    pt_init();
-    pt_response_t* response = NULL;
+    ;
+    pouch_request *response = pr_init();
     char get_db_address[500];
     sprintf(get_db_address,"http://%s:%s/%s/MTC_doc",DB_ADDRESS,DB_PORT,DB_BASE_NAME);
-    response = pt_get(get_db_address);
-    if (response->response_code != 200){
-	printf("Unable to connect to database. error code %d\n",(int)response->response_code);
+    pr_set_method(response, GET);
+    pr_set_url(response, get_db_address);
+    pr_do(response);
+    if (response->httpresponse != 200){
+	printf("Unable to connect to database. error code %d\n",(int)response->httpresponse);
 	return -1;
     }
-    pt_node_t *doc = response->root;
-    addel_slope = (float) pt_double_get(pt_map_get(pt_map_get(doc,"mtcd"),"fine_slope")); 
+    JsonNode *doc = json_decode(response->resp.data);
+    addel_slope = (float) json_get_number(json_find_member(json_find_member(doc,"mtcd"),"fine_slope")); 
     addel_value = (unsigned long)(delay / addel_slope);
     //sprintf(psb, "%f\t%f\t%hu", delay, addel_slope, addel_value);
     //print_send(psb, view_fdset); 
@@ -643,6 +645,8 @@ float set_fine_delay(float delay) {
     fdelay_set = (float)addel_value*addel_slope;
     //sprintf(psb, "Fine delay is set to %f ns\n", fdelay_set);
     //print_send(psb, view_fdset);
+    json_delete(doc);
+    pr_free(response);
     return fdelay_set;
 
 }

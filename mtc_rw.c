@@ -17,12 +17,12 @@ int kill_SBC_process(){
     char bash_command[500];
     char kill_screen[500];
     char kill_orcareadout[500];
-        sprintf(kill_orcareadout,"ssh -t daq@10.0.0.30 \"killall OrcaReadout >> /dev/null;  exit >> /dev/null\" >> /dev/null");
-        sprintf(kill_screen,"ssh -t daq@10.0.0.30 \"killall screen >> /dev/null; screen -wipe >> /dev/null; exit >> /dev/null\" >> /dev/null");
-    
-	system(kill_orcareadout);
-	system(kill_screen);
-	//system(bash_command);
+    sprintf(kill_orcareadout,"ssh -t daq@10.0.0.30 \"killall OrcaReadout >> /dev/null;  exit >> /dev/null\" >> /dev/null");
+    sprintf(kill_screen,"ssh -t daq@10.0.0.30 \"killall screen >> /dev/null; screen -wipe >> /dev/null; exit >> /dev/null\" >> /dev/null");
+
+    system(kill_orcareadout);
+    system(kill_screen);
+    //system(bash_command);
 
 }
 
@@ -48,70 +48,70 @@ int connect_to_SBC(int portno, struct hostent *server){
 
     int Nretrys=5;  // try 5 times
     int counter=0;
-  while (sbc_is_connected==0 || counter<Nretrys){
-      counter++;
-    if (counter == 0){  
-	sprintf(psb, "\n\t Trying to connect to the SBC\n");
-	print_send(psb, view_fdset);
-    }
-    int ALREADY_CONNECTED=0;
-    if(mtc_sock > 0){
+    while (sbc_is_connected==0 || counter<Nretrys){
+	counter++;
+	if (counter == 0){  
+	    sprintf(psb, "\n\t Trying to connect to the SBC\n");
+	    print_send(psb, view_fdset);
+	}
+	int ALREADY_CONNECTED=0;
+	if(mtc_sock > 0){
 
-	//sprintf(psb, "new_daq: Already connected to SBC/MTC (socket %d)\n", mtc_sock);
-	//print_send(psb, view_fdset);
-	ALREADY_CONNECTED=1;
-	return -1;
-    }
-    mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (mtc_sock <= 0){
-
-	sprintf(psb, "new_daq: error opening SBC/MTC socket\n");
-	print_send(psb, view_fdset);
-	print_send("error connecting to SBC\n", view_fdset);
-	return -1;
-    }
-    else if (!ALREADY_CONNECTED) {
-	sprintf(psb, "Trying to connect with screen \n");
-	print_send(psb, view_fdset);
-	usleep(100);
-	system(kill_orcareadout);
-	usleep(100);
-	system(kill_screen);
-	usleep(100);
-	system(bash_command);
+	    //sprintf(psb, "new_daq: Already connected to SBC/MTC (socket %d)\n", mtc_sock);
+	    //print_send(psb, view_fdset);
+	    ALREADY_CONNECTED=1;
+	    return -1;
+	}
 	mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (mtc_sock <= 0){
+
+	    sprintf(psb, "new_daq: error opening SBC/MTC socket\n");
+	    print_send(psb, view_fdset);
+	    print_send("error connecting to SBC\n", view_fdset);
+	    return -1;
+	}
+	else if (!ALREADY_CONNECTED) {
+	    sprintf(psb, "Trying to connect with screen \n");
+	    print_send(psb, view_fdset);
+	    usleep(100);
+	    system(kill_orcareadout);
+	    usleep(100);
+	    system(kill_screen);
+	    usleep(100);
+	    system(bash_command);
+	    mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
+	}
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	serv_addr.sin_family = AF_INET;
+	bcopy((char *)server->h_addr, 
+		(char *)&serv_addr.sin_addr.s_addr,
+		server->h_length);
+	serv_addr.sin_port = htons(portno);
+	// make the connection
+	if (connect(mtc_sock,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0){
+	    close(mtc_sock);
+	    FD_CLR(mtc_sock, &mtc_fdset);
+	    mtc_sock = 0;
+	    print_send("kk:error connecting to SBC\n", view_fdset);
+	    return -1;
+	}
+	// use FD_set so select() can be used
+	FD_SET(mtc_sock, &all_fdset);
+	FD_SET(mtc_sock, &mtc_fdset);
+	if (mtc_sock > fdmax)     // keep track of the max
+	    fdmax = mtc_sock;
+
+	// this is the test packet that ./OrcaReadout looks for     
+	// the ppc mac swaps Bytes, the linux sbc does not.
+	int32_t testWord=0x000DCBA;
+	char *send_test= (char *)&testWord;
+
+	int n;
+	n = write(mtc_sock,send_test,4);
+
+	print_send("\t Connected to SBC.\n", view_fdset);
+	sbc_is_connected = 1;
     }
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, 
-	    (char *)&serv_addr.sin_addr.s_addr,
-	    server->h_length);
-    serv_addr.sin_port = htons(portno);
-    // make the connection
-    if (connect(mtc_sock,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0){
-	close(mtc_sock);
-	FD_CLR(mtc_sock, &mtc_fdset);
-	mtc_sock = 0;
-	print_send("kk:error connecting to SBC\n", view_fdset);
-	return -1;
-    }
-    // use FD_set so select() can be used
-    FD_SET(mtc_sock, &all_fdset);
-    FD_SET(mtc_sock, &mtc_fdset);
-    if (mtc_sock > fdmax)     // keep track of the max
-	fdmax = mtc_sock;
-
-    // this is the test packet that ./OrcaReadout looks for     
-    // the ppc mac swaps Bytes, the linux sbc does not.
-    int32_t testWord=0x000DCBA;
-    char *send_test= (char *)&testWord;
-
-    int n;
-    n = write(mtc_sock,send_test,4);
-
-    print_send("\t Connected to SBC.\n", view_fdset);
-    sbc_is_connected = 1;
-  }
     return 0;
 }
 
@@ -173,7 +173,7 @@ int multi_softgt(uint32_t num)
     uint32_t *data_ptr = (uint32_t *) writestruct;
     *data_ptr = 0x0;
     do_mtc_cmd(&gPacket);
-    
+
     return 0;
 }
 
@@ -194,7 +194,7 @@ int mtc_multi_write(uint32_t address, uint32_t data, int num_writes){
     uint32_t *data_ptr = (uint32_t *) writestruct;
     int i;
     for (i=0;i<num_writes;i++){
-    *(data_ptr+i) = data;
+	*(data_ptr+i) = data;
     }
     do_mtc_cmd(&gPacket);
     return 0;
@@ -257,64 +257,64 @@ int get_caen_data(char *buffer)
 	print_send(psb, view_fdset);
 	return -1;
     }
-  
-   printf("starting to go\n");
 
-   SBC_crate_config configStruct; // for both MTC and CAEN
-   int index=0;
-   uint32_t dataId=0xBEEF0000;
+    printf("starting to go\n");
 
-   configStruct.total_cards=0x1;
-   configStruct.card_info[index].hw_type_id           = 7;                 //should be unique 
-   configStruct.card_info[index].hw_mask[0]           =  dataId;  //better be unique
-   configStruct.card_info[index].slot                         = 0; //[self slot];
-   configStruct.card_info[index].add_mod                      = 0x29; //[self addressModifier];
-   configStruct.card_info[index].base_add                     = 0x00007000; //[self baseAddress];
-   configStruct.card_info[index].deviceSpecificData[0] = 44; //reg[kMtcBbaReg].addressOffset;
-   configStruct.card_info[index].deviceSpecificData[1] = 40; //reg[kMtcBwrAddOutReg].addressOffset;
-   configStruct.card_info[index].deviceSpecificData[2] = 0x03800000; //[self memBaseAddress];
-   configStruct.card_info[index].deviceSpecificData[3] = 0x09; //[self memAddressModifier];       
-   configStruct.card_info[index].num_Trigger_Indexes = 0; //no children
-   configStruct.card_info[index].next_Card_Index = index + 1;
+    SBC_crate_config configStruct; // for both MTC and CAEN
+    int index=0;
+    uint32_t dataId=0xBEEF0000;
 
-   index=1; // CAEN time
+    configStruct.total_cards=0x1;
+    configStruct.card_info[index].hw_type_id           = 7;                 //should be unique 
+    configStruct.card_info[index].hw_mask[0]           =  dataId;  //better be unique
+    configStruct.card_info[index].slot                         = 0; //[self slot];
+    configStruct.card_info[index].add_mod                      = 0x29; //[self addressModifier];
+    configStruct.card_info[index].base_add                     = 0x00007000; //[self baseAddress];
+    configStruct.card_info[index].deviceSpecificData[0] = 44; //reg[kMtcBbaReg].addressOffset;
+    configStruct.card_info[index].deviceSpecificData[1] = 40; //reg[kMtcBwrAddOutReg].addressOffset;
+    configStruct.card_info[index].deviceSpecificData[2] = 0x03800000; //[self memBaseAddress];
+    configStruct.card_info[index].deviceSpecificData[3] = 0x09; //[self memAddressModifier];       
+    configStruct.card_info[index].num_Trigger_Indexes = 0; //no children
+    configStruct.card_info[index].next_Card_Index = index + 1;
 
-   configStruct.total_cards++;
-   configStruct.card_info[index].hw_type_id       = 6;//kCaen1720; //should be unique
-   configStruct.card_info[index].hw_mask[0]       = dataId; //better be unique
-   configStruct.card_info[index].slot                     = 0; //[self slot];
-   configStruct.card_info[index].crate            = 0; //[self crateNumber];
-   configStruct.card_info[index].add_mod          = 0x09; //[self addressModifier];
-   configStruct.card_info[index].base_add         = 0x43210000; //[self baseAddress];
-   configStruct.card_info[index].deviceSpecificData[0]    = 0x812C; //reg[kEventStored].addressOffset; //Status buffer
-   configStruct.card_info[index].deviceSpecificData[1]        = 0x814C; //reg[kEventSize].addressOffset; // "next event size" address
-   configStruct.card_info[index].deviceSpecificData[2]        = 0x0000; //reg[kOutputBuffer].addressOffset; // fifo Address
-   configStruct.card_info[index].deviceSpecificData[3]        = 0x0C; // fifo Address Modifier (A32 MBLT supervisory)
-   configStruct.card_info[index].deviceSpecificData[4]        = 0xFFC; // fifo Size
-   configStruct.card_info[index].deviceSpecificData[5]        = 0; //location; location =  (([self crateNumber]&0x01e)<<21) | (([self slot]& 0x0000001f)<<16);
-   configStruct.card_info[index].deviceSpecificData[6]        = 0xEF00; //reg[kVMEControl].addressOffset; // VME Control address
-   configStruct.card_info[index].deviceSpecificData[7]        = 0xEF1C; //reg[kBLTEventNum].addressOffset; // Num of BLT events address
+    index=1; // CAEN time
 
-   int isFixedSize=1; // ????
+    configStruct.total_cards++;
+    configStruct.card_info[index].hw_type_id       = 6;//kCaen1720; //should be unique
+    configStruct.card_info[index].hw_mask[0]       = dataId; //better be unique
+    configStruct.card_info[index].slot                     = 0; //[self slot];
+    configStruct.card_info[index].crate            = 0; //[self crateNumber];
+    configStruct.card_info[index].add_mod          = 0x09; //[self addressModifier];
+    configStruct.card_info[index].base_add         = 0x43210000; //[self baseAddress];
+    configStruct.card_info[index].deviceSpecificData[0]    = 0x812C; //reg[kEventStored].addressOffset; //Status buffer
+    configStruct.card_info[index].deviceSpecificData[1]        = 0x814C; //reg[kEventSize].addressOffset; // "next event size" address
+    configStruct.card_info[index].deviceSpecificData[2]        = 0x0000; //reg[kOutputBuffer].addressOffset; // fifo Address
+    configStruct.card_info[index].deviceSpecificData[3]        = 0x0C; // fifo Address Modifier (A32 MBLT supervisory)
+    configStruct.card_info[index].deviceSpecificData[4]        = 0xFFC; // fifo Size
+    configStruct.card_info[index].deviceSpecificData[5]        = 0; //location; location =  (([self crateNumber]&0x01e)<<21) | (([self slot]& 0x0000001f)<<16);
+    configStruct.card_info[index].deviceSpecificData[6]        = 0xEF00; //reg[kVMEControl].addressOffset; // VME Control address
+    configStruct.card_info[index].deviceSpecificData[7]        = 0xEF1C; //reg[kBLTEventNum].addressOffset; // Num of BLT events address
 
-   unsigned sizeOfEvent = 1000; //FIXME  number of uint32_t for DMA transfer
-   configStruct.card_info[index].deviceSpecificData[8]    = sizeOfEvent;  
-   configStruct.card_info[index].num_Trigger_Indexes      = 0;
-   configStruct.card_info[index].next_Card_Index  = index+1;      
+    int isFixedSize=1; // ????
 
-   SBC_Packet aPacket;
+    unsigned sizeOfEvent = 1000; //FIXME  number of uint32_t for DMA transfer
+    configStruct.card_info[index].deviceSpecificData[8]    = sizeOfEvent;  
+    configStruct.card_info[index].num_Trigger_Indexes      = 0;
+    configStruct.card_info[index].next_Card_Index  = index+1;      
 
-   aPacket.cmdHeader.destination = 0x1; //kSBC_Process; //FIXME
-   aPacket.cmdHeader.cmdID   =0x4;  // kSBC_LoadConfig; //FIXME
-   aPacket.cmdHeader.numberBytesinPayload  = sizeof(SBC_crate_config); //FIXME
-   memcpy(aPacket.payload,&configStruct,sizeof(SBC_crate_config));
+    SBC_Packet aPacket;
 
-   printf("doing a mtc_cmd\n");
-   printf("the payload is %s\n",aPacket.payload);
-   do_mtc_cmd(&aPacket);
-   printf("did it work?\n");
+    aPacket.cmdHeader.destination = 0x1; //kSBC_Process; //FIXME
+    aPacket.cmdHeader.cmdID   =0x4;  // kSBC_LoadConfig; //FIXME
+    aPacket.cmdHeader.numberBytesinPayload  = sizeof(SBC_crate_config); //FIXME
+    memcpy(aPacket.payload,&configStruct,sizeof(SBC_crate_config));
 
-   return 0;
+    printf("doing a mtc_cmd\n");
+    printf("the payload is %s\n",aPacket.payload);
+    do_mtc_cmd(&aPacket);
+    printf("did it work?\n");
+
+    return 0;
 
 } 
 

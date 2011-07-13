@@ -45,6 +45,7 @@ typedef u_char  byte;
 #define MAX_PACKET_SIZE 1444
 
 // database stuff
+#define DB_SERVER "http://localhost:5984"
 #define DB_ADDRESS "localhost"
 #define DB_PORT "5984"
 #define DB_BASE_NAME "penndb1"
@@ -97,101 +98,101 @@ typedef u_char  byte;
 #define MESSAGE_ID	            (0xEE)
 #define STATUS_ID                   (0xFF)
 
-			
+
 
 // ############### DEFINITION OF STRUCTS ###################	
 
 // structs copied from SBC_Cmds.h 
 typedef struct {
-	int32_t baseAddress;
-	int32_t addressModifier;
-	int32_t programRegOffset;
-	uint32_t errorCode;
-	int32_t fileSize;
+    int32_t baseAddress;
+    int32_t addressModifier;
+    int32_t programRegOffset;
+    uint32_t errorCode;
+    int32_t fileSize;
 } SNOMtc_XilinxLoadStruct;
 
 typedef
-    struct {
-        uint32_t address;        /*first address*/
-        uint32_t addressModifier;
-        uint32_t addressSpace;
-        uint32_t unitSize;        /*1,2,or 4*/
-        uint32_t errorCode;    /*filled on return*/
-        uint32_t numItems;        /*number of items to read*/
-    }
+struct {
+    uint32_t address;        /*first address*/
+    uint32_t addressModifier;
+    uint32_t addressSpace;
+    uint32_t unitSize;        /*1,2,or 4*/
+    uint32_t errorCode;    /*filled on return*/
+    uint32_t numItems;        /*number of items to read*/
+}
 SBC_VmeReadBlockStruct;
 
 typedef
-    struct {
-        uint32_t address;        /*first address*/
-        uint32_t addressModifier;
-        uint32_t addressSpace;
-        uint32_t unitSize;        /*1,2,or 4*/
-        uint32_t errorCode;    /*filled on return*/
-        uint32_t numItems;        /*number Items of data to follow*/
-        /*followed by the requested data, number of items from above*/
-    }
+struct {
+    uint32_t address;        /*first address*/
+    uint32_t addressModifier;
+    uint32_t addressSpace;
+    uint32_t unitSize;        /*1,2,or 4*/
+    uint32_t errorCode;    /*filled on return*/
+    uint32_t numItems;        /*number Items of data to follow*/
+    /*followed by the requested data, number of items from above*/
+}
 SBC_VmeWriteBlockStruct;
 
 
 typedef
-    struct {
-        uint32_t destination;    /*should be kSBC_Command*/
-        uint32_t cmdID;
-        uint32_t numberBytesinPayload;
-    }
+struct {
+    uint32_t destination;    /*should be kSBC_Command*/
+    uint32_t cmdID;
+    uint32_t numberBytesinPayload;
+}
 SBC_CommandHeader;
 typedef
-    struct {
-        uint32_t numBytes;                //filled in automatically
-        SBC_CommandHeader cmdHeader;
-        char message[kSBC_MaxMessageSizeBytes];
-        char payload[kSBC_MaxPayloadSizeBytes];
-    }
+struct {
+    uint32_t numBytes;                //filled in automatically
+    SBC_CommandHeader cmdHeader;
+    char message[kSBC_MaxMessageSizeBytes];
+    char payload[kSBC_MaxPayloadSizeBytes];
+}
 SBC_Packet;
 
 // XL3 structs (same should be on the actual XL3) 
 typedef
-    struct {
-	uint32_t cmd_num;
-        uint16_t packet_num;
-        uint8_t flags;
-        uint32_t address;
-        uint32_t data;
-    }
+struct {
+    uint32_t cmd_num;
+    uint16_t packet_num;
+    uint8_t flags;
+    uint32_t address;
+    uint32_t data;
+}
 FECCommand;
 
 typedef
-    struct {
-	uint32_t howmany;
-	FECCommand cmd[MAX_ACKS_SIZE];
-    }
+struct {
+    uint32_t howmany;
+    FECCommand cmd[MAX_ACKS_SIZE];
+}
 MultiFC;
 
 typedef
-    struct {
-        //uint32_t destination;
-	uint16_t packet_num;
-        uint8_t packet_type;
-	uint8_t num_bundles;
-        //uint32_t numberBytesinPayload;
-    }
+struct {
+    //uint32_t destination;
+    uint16_t packet_num;
+    uint8_t packet_type;
+    uint8_t num_bundles;
+    //uint32_t numberBytesinPayload;
+}
 XL3_CommandHeader;
 
 typedef
-    struct {
-        //uint32_t numBytes;                //filled in automatically
-        XL3_CommandHeader cmdHeader;
-        char payload[kSBC_MaxPayloadSizeBytes];
-    }
+struct {
+    //uint32_t numBytes;                //filled in automatically
+    XL3_CommandHeader cmdHeader;
+    char payload[kSBC_MaxPayloadSizeBytes];
+}
 XL3_Packet;
 
 typedef
-    struct {
-	uint32_t word1;
-	uint32_t word2;
-	uint32_t word3;
-    }
+struct {
+    uint32_t word1;
+    uint32_t word2;
+    uint32_t word3;
+}
 PMTBundle;
 
 
@@ -222,8 +223,8 @@ uint32_t current_hv_level;
 int db_debug;
 
 typedef struct {
-  uint16_t mb_id;
-  uint16_t dc_id[4];
+    uint16_t mb_id;
+    uint16_t dc_id[4];
 } hware_vals_t;
 
 hware_vals_t crate_config[19][16];

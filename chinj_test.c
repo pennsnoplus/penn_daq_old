@@ -12,7 +12,8 @@
 #include "fec_util.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "pillowtalk.h"
+//#include "pouch.h"
+//#include "json.h"
 
 #define PED_WIDTH	    25
 #define GT_DELAY	    150
@@ -61,7 +62,7 @@ int chinj_scan(char *buffer)
     int chinj_err[16];
 
     char *words,*words2;
-    pt_init();
+    ;
 
     // lets get the parameters from command line
     words = strtok(buffer, " ");
@@ -135,14 +136,14 @@ int chinj_scan(char *buffer)
     float qlxs[16*32*2][26];
     float tacs[16*32*2][26];
     int scan_errors[16*32*2][26];
-    
+
     for (i=0;i<16;i++){
 	chinj_err[i] = 0;
     }
     int dac_iter;
-    
+
     for (dac_iter=0;dac_iter<26;dac_iter++){
-	
+
 	dacvalue = dac_iter*10;
 
 	pmt_buffer = (uint32_t *) malloc( TWOTWENTY*sizeof(u_long));
@@ -392,19 +393,19 @@ int chinj_scan(char *buffer)
 	} // end loop over slots
 
 	/*
-	if (q_select == 0){
-	    printf("Qhl lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-	    printf("Number of Qhl overflows = %d\n",chinj_err[slot_iter]);
-	}
-	else if (q_select == 1){
-	    printf("Qhs lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-	    printf("Number of Qhs overflows = %d\n",chinj_err[slot_iter]);
-	}
-	else if (q_select == 2){
-	    printf("Qlx lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-	    printf("Number of Qlx overflows = %d\n",chinj_err[slot_iter]);
-	}
-	*/
+	   if (q_select == 0){
+	   printf("Qhl lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+	   printf("Number of Qhl overflows = %d\n",chinj_err[slot_iter]);
+	   }
+	   else if (q_select == 1){
+	   printf("Qhs lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+	   printf("Number of Qhs overflows = %d\n",chinj_err[slot_iter]);
+	   }
+	   else if (q_select == 2){
+	   printf("Qlx lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+	   printf("Number of Qlx overflows = %d\n",chinj_err[slot_iter]);
+	   }
+	 */
 
 	free(pmt_buffer);
 	free(ped);
@@ -418,7 +419,7 @@ int chinj_scan(char *buffer)
 
 	deselect_fecs(crate);
     } // end loop over dacvalue
-    
+
 
     // lets update this database
     if (update_db){
@@ -426,69 +427,69 @@ int chinj_scan(char *buffer)
 	for (i=0;i<16;i++)
 	{
 	    if ((0x1<<i) & slot_mask){
-		pt_node_t *newdoc = pt_map_new();
-		pt_node_t *qhl_even = pt_array_new();
-		pt_node_t *qhl_odd = pt_array_new();
-		pt_node_t *qhs_even = pt_array_new();
-		pt_node_t *qhs_odd = pt_array_new();
-		pt_node_t *qlx_even = pt_array_new();
-		pt_node_t *qlx_odd = pt_array_new();
-		pt_node_t *tac_even = pt_array_new();
-		pt_node_t *tac_odd = pt_array_new();
-		pt_node_t *error_even = pt_array_new();
-		pt_node_t *error_odd = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		JsonNode *qhl_even = json_mkarray();
+		JsonNode *qhl_odd = json_mkarray();
+		JsonNode *qhs_even = json_mkarray();
+		JsonNode *qhs_odd = json_mkarray();
+		JsonNode *qlx_even = json_mkarray();
+		JsonNode *qlx_odd = json_mkarray();
+		JsonNode *tac_even = json_mkarray();
+		JsonNode *tac_odd = json_mkarray();
+		JsonNode *error_even = json_mkarray();
+		JsonNode *error_odd = json_mkarray();
 		for (j=0;j<32;j++){
-		    pt_node_t *qhleventemp = pt_array_new();
-		    pt_node_t *qhloddtemp = pt_array_new();
-		    pt_node_t *qhseventemp = pt_array_new();
-		    pt_node_t *qhsoddtemp = pt_array_new();
-		    pt_node_t *qlxeventemp = pt_array_new();
-		    pt_node_t *qlxoddtemp = pt_array_new();
-		    pt_node_t *taceventemp = pt_array_new();
-		    pt_node_t *tacoddtemp = pt_array_new();
-		    pt_node_t *erroreventemp = pt_array_new();
-		    pt_node_t *erroroddtemp = pt_array_new();
+		    JsonNode *qhleventemp = json_mkarray();
+		    JsonNode *qhloddtemp = json_mkarray();
+		    JsonNode *qhseventemp = json_mkarray();
+		    JsonNode *qhsoddtemp = json_mkarray();
+		    JsonNode *qlxeventemp = json_mkarray();
+		    JsonNode *qlxoddtemp = json_mkarray();
+		    JsonNode *taceventemp = json_mkarray();
+		    JsonNode *tacoddtemp = json_mkarray();
+		    JsonNode *erroreventemp = json_mkarray();
+		    JsonNode *erroroddtemp = json_mkarray();
 		    for (k=0;k<26;k++){
-			pt_array_push_back(qhleventemp,pt_double_new(qhls[i*32+j*2][k]));	
-			pt_array_push_back(qhloddtemp,pt_double_new(qhls[i*32+j*2+1][k]));	
-			pt_array_push_back(qhseventemp,pt_double_new(qhss[i*32+j*2][k]));	
-			pt_array_push_back(qhsoddtemp,pt_double_new(qhss[i*32+j*2+1][k]));	
-			pt_array_push_back(qlxeventemp,pt_double_new(qlxs[i*32+j*2][k]));	
-			pt_array_push_back(qlxoddtemp,pt_double_new(qlxs[i*32+j*2+1][k]));	
-			pt_array_push_back(taceventemp,pt_double_new(tacs[i*32+j*2][k]));	
-			pt_array_push_back(tacoddtemp,pt_double_new(tacs[i*32+j*2+1][k]));	
-			pt_array_push_back(erroreventemp,pt_integer_new(scan_errors[i*32+j*2][k]));	
-			pt_array_push_back(erroroddtemp,pt_integer_new(scan_errors[i*32+j*2+1][k]));	
+			json_append_element(qhleventemp,json_mknumber(qhls[i*32+j*2][k]));	
+			json_append_element(qhloddtemp,json_mknumber(qhls[i*32+j*2+1][k]));	
+			json_append_element(qhseventemp,json_mknumber(qhss[i*32+j*2][k]));	
+			json_append_element(qhsoddtemp,json_mknumber(qhss[i*32+j*2+1][k]));	
+			json_append_element(qlxeventemp,json_mknumber(qlxs[i*32+j*2][k]));	
+			json_append_element(qlxoddtemp,json_mknumber(qlxs[i*32+j*2+1][k]));	
+			json_append_element(taceventemp,json_mknumber(tacs[i*32+j*2][k]));	
+			json_append_element(tacoddtemp,json_mknumber(tacs[i*32+j*2+1][k]));	
+			json_append_element(erroreventemp,json_mknumber((double)scan_errors[i*32+j*2][k]));	
+			json_append_element(erroroddtemp,json_mknumber((double)scan_errors[i*32+j*2+1][k]));	
 		    }
-		    pt_array_push_back(qhl_even,qhleventemp);
-		    pt_array_push_back(qhl_odd,qhloddtemp);
-		    pt_array_push_back(qhs_even,qhseventemp);
-		    pt_array_push_back(qhs_odd,qhsoddtemp);
-		    pt_array_push_back(qlx_even,qlxeventemp);
-		    pt_array_push_back(qlx_odd,qlxoddtemp);
-		    pt_array_push_back(tac_even,taceventemp);
-		    pt_array_push_back(tac_odd,tacoddtemp);
-		    pt_array_push_back(error_even,erroreventemp);
-		    pt_array_push_back(error_odd,erroroddtemp);
+		    json_append_element(qhl_even,qhleventemp);
+		    json_append_element(qhl_odd,qhloddtemp);
+		    json_append_element(qhs_even,qhseventemp);
+		    json_append_element(qhs_odd,qhsoddtemp);
+		    json_append_element(qlx_even,qlxeventemp);
+		    json_append_element(qlx_odd,qlxoddtemp);
+		    json_append_element(tac_even,taceventemp);
+		    json_append_element(tac_odd,tacoddtemp);
+		    json_append_element(error_even,erroreventemp);
+		    json_append_element(error_odd,erroroddtemp);
 		}
-		pt_map_set(newdoc,"type",pt_string_new("chinj_scan"));
-		pt_map_set(newdoc,"QHL_even",qhl_even);
-		pt_map_set(newdoc,"QHL_odd",qhl_odd);
-		pt_map_set(newdoc,"QHS_even",qhs_even);
-		pt_map_set(newdoc,"QHS_odd",qhs_odd);
-		pt_map_set(newdoc,"QLX_even",qlx_even);
-		pt_map_set(newdoc,"QLX_odd",qlx_odd);
-		pt_map_set(newdoc,"TAC_even",tac_even);
-		pt_map_set(newdoc,"TAC_odd",tac_odd);
-		pt_map_set(newdoc,"errors_even",error_even);
-		pt_map_set(newdoc,"errors_odd",error_odd);
+		json_append_member(newdoc,"type",json_mkstring("chinj_scan"));
+		json_append_member(newdoc,"QHL_even",qhl_even);
+		json_append_member(newdoc,"QHL_odd",qhl_odd);
+		json_append_member(newdoc,"QHS_even",qhs_even);
+		json_append_member(newdoc,"QHS_odd",qhs_odd);
+		json_append_member(newdoc,"QLX_even",qlx_even);
+		json_append_member(newdoc,"QLX_odd",qlx_odd);
+		json_append_member(newdoc,"TAC_even",tac_even);
+		json_append_member(newdoc,"TAC_odd",tac_odd);
+		json_append_member(newdoc,"errors_even",error_even);
+		json_append_member(newdoc,"errors_odd",error_odd);
 		if (chinj_err[i] == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test){
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[i]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[i]));	
 		}
 		post_debug_doc(crate,i,newdoc);
 	    }
@@ -536,7 +537,7 @@ int chinj_test(char *buffer)
     int chinj_err = 0;
 
     char *words,*words2;
-    pt_init();
+    ;
 
     // lets get the parameters from command line
     words = strtok(buffer, " ");

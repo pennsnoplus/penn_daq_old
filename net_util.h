@@ -3,12 +3,12 @@
 #include "penn_daq.h"
 
 /*
-__FILE DESCRIPTOR SETS__
-fd_sets are used to keep track of file descriptors (basically integers, but really just
-something that can be written to or read from). In this case, fd_sets are used to
-categorize open sockets so that data can be handled differently depending on what type
-it is. Every time data is received, mac_daq checks which fd_set's the socket the data was
-sent on belongs to; based off of this, the data is handled in different ways.
+   __FILE DESCRIPTOR SETS__
+   fd_sets are used to keep track of file descriptors (basically integers, but really just
+   something that can be written to or read from). In this case, fd_sets are used to
+   categorize open sockets so that data can be handled differently depending on what type
+   it is. Every time data is received, mac_daq checks which fd_set's the socket the data was
+   sent on belongs to; based off of this, the data is handled in different ways.
  */
 fd_set xl3_fdset;			// fd_set for the xl3 boards
 fd_set mtc_fdset;			// fd_set for the SBC/MTC board/server

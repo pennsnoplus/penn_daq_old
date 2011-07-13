@@ -9,73 +9,74 @@
 #include "penn_daq.h"
 #include "fec_util.h"
 #include "net_util.h"
-#include "db.h"
-#include "pillowtalk.h"
+//#include "db.h"
+//#include "pouch.h"
+//#include "json.h"
 
 /*
-int get_cmos_total_count(int crate,int slot,uint32_t* total_count)
-{
-    int errorbit;
-    int errors = 0;
-    int busstop;
-    int i;
-    int howmany;
-    uint32_t done_mask = 0x0;
-    uint32_t results[32];
-    XL3_Packet packet;
-    MultiFC *commands = (MultiFC *) packet.payload;
-    do{
-    howmany = 0;
-    for (i=0;i<32;i++){
-	if (((0x1<<i) & done_mask) == 0x0){
-	    commands->cmd[howmany].address = CMOS_INTERN_TOTAL(i) + FEC_SEL*slot + READ_REG;
-	    commands->cmd[howmany].data = 0x0;
-	    SwapLongBlock(&(commands->cmd[howmany].address),1);
-	    SwapLongBlock(&(commands->cmd[howmany].data),1);
-	    howmany++;
-	}
-    }
-    commands->howmany = howmany;
-    SwapLongBlock(&(commands->howmany),1);
-    packet.cmdHeader.packet_type = FEC_CMD_ID;
-    do_xl3_cmd(&packet,crate);
-    receive_data(howmany,command_number-1,crate,&results);
-    howmany = 0;
-    for (i=0;i<32;i++){
-	if (((0x1<<i) & done_mask) == 0x0){
-	    total_count[i] = results[howmany];
-	    errorbit = (total_count[i] & 0x80000000) ? 1 : 0;
-	    if (errorbit){
-		errors++;
-		printf("there was a cmos total count error\n");
-		if (errors > 320)
-		    return -1;
-	    }else{
-		total_count[i] &= 0x7FFFFFFF;
-		done_mask |= (0x1<<i);
-	    }
-	    howmany++;
-	}
-    }
-    }while(done_mask != 0xFFFFFFFF);
-    return 0;
-}
+   int get_cmos_total_count(int crate,int slot,uint32_t* total_count)
+   {
+   int errorbit;
+   int errors = 0;
+   int busstop;
+   int i;
+   int howmany;
+   uint32_t done_mask = 0x0;
+   uint32_t results[32];
+   XL3_Packet packet;
+   MultiFC *commands = (MultiFC *) packet.payload;
+   do{
+   howmany = 0;
+   for (i=0;i<32;i++){
+   if (((0x1<<i) & done_mask) == 0x0){
+   commands->cmd[howmany].address = CMOS_INTERN_TOTAL(i) + FEC_SEL*slot + READ_REG;
+   commands->cmd[howmany].data = 0x0;
+   SwapLongBlock(&(commands->cmd[howmany].address),1);
+   SwapLongBlock(&(commands->cmd[howmany].data),1);
+   howmany++;
+   }
+   }
+   commands->howmany = howmany;
+   SwapLongBlock(&(commands->howmany),1);
+   packet.cmdHeader.packet_type = FEC_CMD_ID;
+   do_xl3_cmd(&packet,crate);
+   receive_data(howmany,command_number-1,crate,&results);
+   howmany = 0;
+   for (i=0;i<32;i++){
+   if (((0x1<<i) & done_mask) == 0x0){
+   total_count[i] = results[howmany];
+   errorbit = (total_count[i] & 0x80000000) ? 1 : 0;
+   if (errorbit){
+   errors++;
+   printf("there was a cmos total count error\n");
+   if (errors > 320)
+   return -1;
+   }else{
+   total_count[i] &= 0x7FFFFFFF;
+   done_mask |= (0x1<<i);
+   }
+   howmany++;
+   }
+   }
+   }while(done_mask != 0xFFFFFFFF);
+   return 0;
+   }
 
-*/
+ */
 int get_cmos_total_count(int crate,int slot,int channel,uint32_t* total_count)
 {
     int errorbit;
     int busstop;
     int errors = 0;
     do{
-    busstop = xl3_rw(CMOS_INTERN_TOTAL(channel) + FEC_SEL*slot + READ_REG,0x0,total_count,crate);
-    errorbit = (*total_count & 0x80000000) ? 1 : 0;
-    if (errorbit | busstop){
-	errors++;
-	if (errors > 10)
-	    return -1;
-    }
-    *total_count &= 0x7FFFFFFF;
+	busstop = xl3_rw(CMOS_INTERN_TOTAL(channel) + FEC_SEL*slot + READ_REG,0x0,total_count,crate);
+	errorbit = (*total_count & 0x80000000) ? 1 : 0;
+	if (errorbit | busstop){
+	    errors++;
+	    if (errors > 10)
+		return -1;
+	}
+	*total_count &= 0x7FFFFFFF;
     }while(errorbit);
     return 0;
 }
@@ -176,7 +177,7 @@ int zdisc(char *buffer)
     float *MaxRate,*UpperRate,*LowerRate;
     uint8_t *MaxDacSetting,*ZeroDacSetting,*UpperDacSetting,*LowerDacSetting;
 
-    pt_init();
+    ;
 
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
@@ -226,40 +227,41 @@ int zdisc(char *buffer)
 	    if (update_db){
 		printf("updating the database\n");
 		char hextostr[50];
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("zdisc"));
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("zdisc"));
 
-		pt_node_t *maxratenode = pt_array_new();
-		pt_node_t *lowerratenode = pt_array_new();
-		pt_node_t *upperratenode = pt_array_new();
-		pt_node_t *maxdacnode = pt_array_new();
-		pt_node_t *lowerdacnode = pt_array_new();
-		pt_node_t *upperdacnode = pt_array_new();
-		pt_node_t *zerodacnode = pt_array_new();
-		pt_node_t *errorsnode = pt_array_new();
+		JsonNode *maxratenode = json_mkarray();
+		JsonNode *lowerratenode = json_mkarray();
+		JsonNode *upperratenode = json_mkarray();
+		JsonNode *maxdacnode = json_mkarray();
+		JsonNode *lowerdacnode = json_mkarray();
+		JsonNode *upperdacnode = json_mkarray();
+		JsonNode *zerodacnode = json_mkarray();
+		JsonNode *errorsnode = json_mkarray();
 		for (j=0;j<32;j++){
-		    pt_array_push_back(maxratenode,pt_double_new(MaxRate[j]));	
-		    pt_array_push_back(lowerratenode,pt_double_new(LowerRate[j]));	
-		    pt_array_push_back(upperratenode,pt_double_new(UpperRate[j]));	
-		    pt_array_push_back(maxdacnode,pt_integer_new(MaxDacSetting[j]));	
-		    pt_array_push_back(lowerdacnode,pt_integer_new(LowerDacSetting[j]));	
-		    pt_array_push_back(upperdacnode,pt_integer_new(UpperDacSetting[j]));	
-		    pt_array_push_back(zerodacnode,pt_integer_new(ZeroDacSetting[j]));	
-		    pt_array_push_back(errorsnode,pt_integer_new(0));//FIXME	
+		    json_append_element(maxratenode,json_mknumber(MaxRate[j]));	
+		    json_append_element(lowerratenode,json_mknumber(LowerRate[j]));	
+		    json_append_element(upperratenode,json_mknumber(UpperRate[j]));	
+		    json_append_element(maxdacnode,json_mknumber((double)MaxDacSetting[j]));	
+		    json_append_element(lowerdacnode,json_mknumber((double)LowerDacSetting[j]));	
+		    json_append_element(upperdacnode,json_mknumber((double)UpperDacSetting[j]));	
+		    json_append_element(zerodacnode,json_mknumber((double)ZeroDacSetting[j]));	
+		    json_append_element(errorsnode,json_mknumber((double)0));//FIXME	
 		}
-		pt_map_set(newdoc,"Max_rate",maxratenode);
-		pt_map_set(newdoc,"Lower_rate",lowerratenode);
-		pt_map_set(newdoc,"Upper_rate",upperratenode);
-		pt_map_set(newdoc,"Max_Dac_setting",maxdacnode);
-		pt_map_set(newdoc,"Lower_Dac_setting",lowerdacnode);
-		pt_map_set(newdoc,"Upper_Dac_setting",upperdacnode);
-		pt_map_set(newdoc,"Zero_Dac_setting",zerodacnode);
-		pt_map_set(newdoc,"errors",errorsnode);
-		pt_map_set(newdoc,"pass",pt_string_new("yes"));//FIXME
+		json_append_member(newdoc,"Max_rate",maxratenode);
+		json_append_member(newdoc,"Lower_rate",lowerratenode);
+		json_append_member(newdoc,"Upper_rate",upperratenode);
+		json_append_member(newdoc,"Max_Dac_setting",maxdacnode);
+		json_append_member(newdoc,"Lower_Dac_setting",lowerdacnode);
+		json_append_member(newdoc,"Upper_Dac_setting",upperdacnode);
+		json_append_member(newdoc,"Zero_Dac_setting",zerodacnode);
+		json_append_member(newdoc,"errors",errorsnode);
+		json_append_member(newdoc,"pass",json_mkstring("yes"));//FIXME
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[i]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[i]));	
 
 		post_debug_doc(crate_num,i,newdoc);
+		json_delete(newdoc); // Only need to delete the head node);
 	    }
 	} // end loop over slot mask
     } // end loop over slots
@@ -408,52 +410,53 @@ int fec_test(char *buffer)
 	// results layout is : [error flags] [slot 0 discrete] [slot 1 discrete] ... [slot 0 cmos] [slot 1 cmos] ...
 	SwapLongBlock(results,65);
 	int slot;
-	pt_init();
+	;
 	for (slot=0;slot<16;slot++){
 	    if ((0x1<<slot) & slot_mask){
 		printf("updating slot %d\n",slot);
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("fec_test"));
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("fec_test"));
 		if (results[1+slot] & 0x1)
-		    pt_map_set(newdoc,"pedestal",pt_integer_new(1));
+		    json_append_member(newdoc,"pedestal",json_mknumber((double)1));
 		else
-		    pt_map_set(newdoc,"pedestal",pt_integer_new(0));
+		    json_append_member(newdoc,"pedestal",json_mknumber((double)0));
 		if (results[1+slot] & 0x2)
-		    pt_map_set(newdoc,"chip_disable",pt_integer_new(1));
+		    json_append_member(newdoc,"chip_disable",json_mknumber((double)1));
 		else
-		    pt_map_set(newdoc,"chip_disable",pt_integer_new(0));
+		    json_append_member(newdoc,"chip_disable",json_mknumber((double)0));
 		if (results[1+slot] & 0x4)
-		    pt_map_set(newdoc,"lgi_select",pt_integer_new(1));
+		    json_append_member(newdoc,"lgi_select",json_mknumber((double)1));
 		else
-		    pt_map_set(newdoc,"lgi_select",pt_integer_new(0));
+		    json_append_member(newdoc,"lgi_select",json_mknumber((double)0));
 		if (results[1+slot] & 0x8)
-		    pt_map_set(newdoc,"cmos_prog_low",pt_integer_new(1));
+		    json_append_member(newdoc,"cmos_prog_low",json_mknumber((double)1));
 		else
-		    pt_map_set(newdoc,"cmos_prog_low",pt_integer_new(0));
+		    json_append_member(newdoc,"cmos_prog_low",json_mknumber((double)0));
 		if (results[1+slot] & 0x10)
-		    pt_map_set(newdoc,"cmos_prog_high",pt_integer_new(1));
+		    json_append_member(newdoc,"cmos_prog_high",json_mknumber((double)1));
 		else
-		    pt_map_set(newdoc,"cmos_prog_high",pt_integer_new(0));
-		pt_node_t *cmos_test_array = pt_array_new();
+		    json_append_member(newdoc,"cmos_prog_high",json_mknumber((double)0));
+		JsonNode *cmos_test_array = json_mkarray();
 		for (i=0;i<32;i++){
 		    if (results[17+slot] & (0x1<<i))
-			pt_array_push_back(cmos_test_array,pt_integer_new(1));
+			json_append_element(cmos_test_array,json_mknumber((double)1));
 		    else
-			pt_array_push_back(cmos_test_array,pt_integer_new(0));
+			json_append_element(cmos_test_array,json_mknumber((double)0));
 		}
 		if (results[17+slot] == 0x0)
-		    pt_array_push_back(cmos_test_array,pt_integer_new(0));
+		    json_append_element(cmos_test_array,json_mknumber((double)0));
 		else
-		    pt_array_push_back(cmos_test_array,pt_integer_new(1));
-		pt_map_set(newdoc,"cmos_test_reg",cmos_test_array);
+		    json_append_element(cmos_test_array,json_mknumber((double)1));
+		json_append_member(newdoc,"cmos_test_reg",cmos_test_array);
 		if ((results[1+slot] == 0x0) && (results[17+slot] == 0x0)){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
 		post_debug_doc(crate_num,slot,newdoc);
+		json_delete(newdoc); // Only have to delete the head node
 	    }
 	}
     }
@@ -583,27 +586,28 @@ int mem_test(char *buffer)
 	// results layout is : [error flags] [address test bit failures] [pattern test first error location] [expected] [read]
 	SwapLongBlock(results,65);
 	char hextostr[50];
-	pt_init();
-	pt_node_t *newdoc = pt_map_new();
-	pt_map_set(newdoc,"type",pt_string_new("mem_test"));
+	;
+	JsonNode *newdoc = json_mkobject();
+	json_append_member(newdoc,"type",json_mkstring("mem_test"));
 
 	sprintf(hextostr,"%05x",results[1]);
-	pt_map_set(newdoc,"address_test",pt_string_new(hextostr));
-	pt_node_t* patterntest = pt_array_new();
+	json_append_member(newdoc,"address_test",json_mkstring(hextostr));
+	JsonNode* patterntest = json_mkarray();
 	sprintf(hextostr,"%08x",results[2]);
-	pt_array_push_back(patterntest,pt_string_new(hextostr));
+	json_append_element(patterntest,json_mkstring(hextostr));
 	sprintf(hextostr,"%08x",results[3]);
-	pt_array_push_back(patterntest,pt_string_new(hextostr));
+	json_append_element(patterntest,json_mkstring(hextostr));
 	sprintf(hextostr,"%08x",results[4]);
-	pt_array_push_back(patterntest,pt_string_new(hextostr));
-	pt_map_set(newdoc,"pattern_test",patterntest);
+	json_append_element(patterntest,json_mkstring(hextostr));
+	json_append_member(newdoc,"pattern_test",patterntest);
 	if ((results[1] == 0x0) && (results[2] == 0xFFFFFFFF)){
-	    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+	    json_append_member(newdoc,"pass",json_mkstring("yes"));
 	}else{
-	    pt_map_set(newdoc,"pass",pt_string_new("no"));
+	    json_append_member(newdoc,"pass",json_mkstring("no"));
 	}
 
 	post_debug_doc(crate_num,slot_num,newdoc);
+	json_delete(newdoc); // only delete the head node
     }
     return 0;
 }
@@ -694,31 +698,26 @@ int vmon(char *buffer)
     if (update_db){
 	printf("updating the database\n");
 	char hextostr[50];
-	pt_init();
+	;
 	for (slot_num=0;slot_num<16;slot_num++){
 	    if ((0x1<<slot_num) & slot_mask){
 		int fail_flag = 0;
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("vmon"));
-		pt_node_t *verr = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("vmon"));
 		for (j=0;j<21;j++){
-		    pt_map_set(newdoc,v_name[j],pt_double_new((double)voltages[slot_num][j]));
-		    if ((voltages[slot_num][j] < voltages_min[j]) || (voltages[slot_num][j] > voltages_max[j])){
-			pt_array_push_back(verr,pt_integer_new(1));
+		    json_append_member(newdoc,v_name[j],json_mknumber((double)voltages[slot_num][j]));
+		    if ((voltages[slot_num][j] < voltages_min[j]) || (voltages[slot_num][j] > voltages_max[j]))
 			fail_flag = 1;
-		    }else{
-			pt_array_push_back(verr,pt_integer_new(0));
-		    }
 		}
 		if (fail_flag == 0){
-		    pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		    json_append_member(newdoc,"pass",json_mkstring("yes"));
 		}else{
-		    pt_map_set(newdoc,"pass",pt_string_new("no"));
+		    json_append_member(newdoc,"pass",json_mkstring("no"));
 		}
-		pt_map_set(newdoc,"errors",verr);
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot_num]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot_num]));	
 		post_debug_doc(crate_num,slot_num,newdoc);
+		json_delete(newdoc);
 	    }
 	}
     }

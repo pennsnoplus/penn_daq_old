@@ -5,7 +5,6 @@
 
 #include "penn_daq.h"
 #include "fec_util.h"
-#include "pillowtalk.h"
 #include "net_util.h"
 #include "cald_test.h"
 
@@ -47,16 +46,16 @@ int cald_test(char *buffer)
 
 	    }else if (words[1] == 'u'){
 		words2 = strtok(NULL, " ");
-		upper = atoi(words2);
+		upper = strtoul(words2,(char**)NULL,16);
 	    }else if (words[1] == 'l'){
 		words2 = strtok(NULL, " ");
-		lower = atoi(words2);
+		lower = strtoul(words2,(char**)NULL,16);
 	    }else if (words[1] == 'n'){
 		words2 = strtok(NULL, " ");
 		num_points = atoi(words2);
 	    }else if (words[1] == 'S'){
 		words2 = strtok(NULL, " ");
-		samples = strtoul(words2,(char**)NULL,16);
+		samples = atoi(words2);
 	    }else if (words[1] == 'd'){
 		update_db = 1;
 	    }else if (words[1] == '#'){
@@ -87,7 +86,6 @@ int cald_test(char *buffer)
 	    num_slots++;
 	}
     }
-    printf("now doing %d points, %d samples, from %d to %d\n",num_points,samples,upper,lower);
 
     XL3_Packet packet;
     packet.cmdHeader.packet_type = CALD_TEST_ID;
@@ -109,38 +107,38 @@ int cald_test(char *buffer)
     printf("total points received was %d\n",total_points);
 
     if (update_db){
-	pt_init();
 	printf("updating database\n");
 	for (i=0;i<16;i++){
 	    if ((0x1<<i) & slot_mask){
-		pt_node_t *newdoc = pt_map_new();
-		pt_map_set(newdoc,"type",pt_string_new("cald_test"));
-		pt_node_t *points = pt_array_new();
-		pt_node_t *adc0 = pt_array_new();
-		pt_node_t *adc1 = pt_array_new();
-		pt_node_t *adc2 = pt_array_new();
-		pt_node_t *adc3 = pt_array_new();
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("cald_test"));
+		JsonNode *points = json_mkarray();
+		JsonNode *adc0 = json_mkarray();
+		JsonNode *adc1 = json_mkarray();
+		JsonNode *adc2 = json_mkarray();
+		JsonNode *adc3 = json_mkarray();
 		int iter = 0;
 		while(iter<=2000){
 		    if (iter != 0 && point_buf[i*2000+iter] == 0)
 			break;
 		    printf("Slot %d - %u : %4u %4u %4u %4u\n",i,point_buf[i*2000+iter],adc_buf[i*8000+iter*4],adc_buf[i*8000+iter*4+1],adc_buf[i*8000+iter*4+2],adc_buf[i*8000+iter*4+3]);
-		    pt_array_push_back(points,pt_integer_new(point_buf[i*2000+iter]));
-		    pt_array_push_back(adc0,pt_integer_new(adc_buf[i*8000+iter*4]));
-		    pt_array_push_back(adc1,pt_integer_new(adc_buf[i*8000+iter*4+1]));
-		    pt_array_push_back(adc2,pt_integer_new(adc_buf[i*8000+iter*4+2]));
-		    pt_array_push_back(adc3,pt_integer_new(adc_buf[i*8000+iter*4+3]));
+		    json_append_element(points,json_mknumber((double)point_buf[i*2000+iter]));
+		    json_append_element(adc0,json_mknumber((double)adc_buf[i*8000+iter*4]));
+		    json_append_element(adc1,json_mknumber((double)adc_buf[i*8000+iter*4+1]));
+		    json_append_element(adc2,json_mknumber((double)adc_buf[i*8000+iter*4+2]));
+		    json_append_element(adc3,json_mknumber((double)adc_buf[i*8000+iter*4+3]));
 		    iter++;
 		}
-		pt_map_set(newdoc,"dac_value",points);
-		pt_map_set(newdoc,"adc_0",adc0);
-		pt_map_set(newdoc,"adc_1",adc1);
-		pt_map_set(newdoc,"adc_2",adc2);
-		pt_map_set(newdoc,"adc_3",adc3);
-		pt_map_set(newdoc,"pass",pt_string_new("yes"));
+		json_append_member(newdoc,"dac_value",points);
+		json_append_member(newdoc,"adc_0",adc0);
+		json_append_member(newdoc,"adc_1",adc1);
+		json_append_member(newdoc,"adc_2",adc2);
+		json_append_member(newdoc,"adc_3",adc3);
+		json_append_member(newdoc,"pass",json_mkstring("yes"));
 		if (final_test)
-		    pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[i]));	
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[i]));	
 		post_debug_doc(crate_number,i,newdoc);
+		json_delete(newdoc); // only delete the head node
 	    }
 	}
     }

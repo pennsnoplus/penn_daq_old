@@ -1,13 +1,3 @@
-#############
-##  Usage  ##
-#############
-cd into the daq folder
-$: make clean
-$: make
-$: ./penn_daq HOSTNAME [-q or --quiet]
-HOSTNAME: the name of the host the program is running on.
--q or --quiet: turns off log writing
-
 ####################
 ##  Introduction  ##
 ####################

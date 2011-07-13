@@ -18,8 +18,6 @@
 #include "fec_util.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "pillowtalk.h"
-#include "db.h"
 
 
 #define PED_WIDTH 25
@@ -150,7 +148,7 @@ int cmos_m_gtvalid(char *buffer)
 
 
 
-    pt_init();
+    ;
 
     //initialize some constants, DAC address
     dac_isetm[0] = 132;
@@ -215,11 +213,11 @@ int cmos_m_gtvalid(char *buffer)
 		isetm_new[1] = ISETM;
 		for (k=0;k<32;k++){
 		    if (do_twiddle){
-		    tacbits_new[0][k] = 0x7;
-		    tacbits_new[1][k] = 0x7; // enable all tac bits
+			tacbits_new[0][k] = 0x7;
+			tacbits_new[1][k] = 0x7; // enable all tac bits
 		    }else{
-		    tacbits_new[0][k] = 0x0;
-		    tacbits_new[1][k] = 0x0; // disable all tac bits
+			tacbits_new[0][k] = 0x0;
+			tacbits_new[1][k] = 0x0; // disable all tac bits
 		    }
 		}
 		isetm_start[0] = ISETM_START;
@@ -468,44 +466,6 @@ int cmos_m_gtvalid(char *buffer)
 			sprintf(psb+strlen(psb), ">>>Minimum Chan/GTValid TAC1: %d %f \n", chan_min_set[1],gt_min_set[1]);
 			sprintf(psb+strlen(psb), "********************************************\n");
 			print_send(psb, view_fdset);
-
-			//store in DB
-			if (update_db){
-			    printf("updating the database\n");
-			    char hextostr[50];
-			    pt_node_t *newdoc = pt_map_new();
-			    pt_map_set(newdoc,"type",pt_string_new("cmos_m_gtvalid"));
-			    pt_map_set(newdoc,"vmax",pt_integer_new(VMAX));
-			    pt_map_set(newdoc,"TACREF",pt_integer_new(TACREF));
-			    pt_node_t* isetm_new = pt_array_new();
-			    pt_node_t* iseta_new = pt_array_new();
-			    pt_array_push_back(isetm_new,pt_integer_new(isetm_save[0]));
-			    pt_array_push_back(isetm_new,pt_integer_new(isetm_save[1]));
-			    pt_array_push_back(iseta_new,pt_integer_new(ISETA));
-			    pt_array_push_back(iseta_new,pt_integer_new(ISETA));
-			    pt_map_set(newdoc,"isetm",isetm_new);
-			    pt_map_set(newdoc,"iseta",iseta_new);
-			    pt_node_t* tac_shift_new = pt_array_new();
-			    pt_node_t* errors = pt_array_new();
-			    pt_node_t* gtchan0 = pt_array_new();
-			    pt_node_t* gtchan1 = pt_array_new();
-			    for (i=0;i<32;i++){
-				pt_array_push_back(tac_shift_new,pt_integer_new((byte) (tacbits_save[1][i]*16+tacbits_save[0][1])));
-				pt_array_push_back(errors,pt_integer_new(0));//FIXME
-				pt_array_push_back(gtchan0,pt_double_new(gtchan_set[0][i]));
-				pt_array_push_back(gtchan1,pt_double_new(gtchan_set[1][i]));
-			    }
-			    pt_map_set(newdoc,"GTValid_tac0",gtchan0);
-			    pt_map_set(newdoc,"GTValid_tac1",gtchan1);
-			    pt_map_set(newdoc,"tac_shift",tac_shift_new);
-			    pt_map_set(newdoc,"errors",errors);
-			    pt_map_set(newdoc,"pass",pt_string_new("yes"));//FIXME
-			    if (final_test)
-				pt_map_set(newdoc,"final_test_id",pt_string_new(ft_ids[slot]));	
-			    post_debug_doc(cn,slot,newdoc);
-
-
-			}
 		    }// end if wt==1
 
 		}// end if gtvalid != 0
@@ -514,7 +474,58 @@ int cmos_m_gtvalid(char *buffer)
 
 	    xl3_rw(PED_ENABLE_R + select_reg + WRITE_REG,0x0,&temp,cn); // reset pedestals
 	    for (i=0;i<32;i++){
-		printf("slot, chan, GTVALID0/1: %d %d %f %f\n",slot,i,gtchan_set[0][i],gtchan_set[1][i]);
+		sprintf(psb, "%d %d %d %d %d 0x%hx %f %f",
+			cn,j,i,isetm_save[0],isetm_save[1],
+			tacbits_save[1][i]*16 + tacbits_save[0][i],
+			gtchan_set[0][i],gtchan_set[1][i]);
+		if (isetm_save[0] == ISETM || isetm_save[1] == ISETM)
+		    sprintf(psb+strlen(psb), ">>> Warning: isetm not adjusted\n");
+		else
+		    sprintf(psb+strlen(psb), "\n");
+		print_send(psb, view_fdset);
+	    }
+	    sprintf(psb, ">>>Maximum Chan/GTValid TAC0: %d %f \n", chan_max_set[0],gt_max_set[0]);
+	    sprintf(psb+strlen(psb), ">>>Minimum Chan/GTValid TAC0: %d %f \n", chan_min_set[0],gt_min_set[0]);
+	    sprintf(psb+strlen(psb), ">>>Maximum Chan/GTValid TAC1: %d %f \n", chan_max_set[1],gt_max_set[1]);
+	    sprintf(psb+strlen(psb), ">>>Minimum Chan/GTValid TAC1: %d %f \n", chan_min_set[1],gt_min_set[1]);
+	    sprintf(psb+strlen(psb), "********************************************\n");
+	    print_send(psb, view_fdset);
+
+	    //store in DB
+	    if (update_db){
+		printf("updating the database\n");
+		char hextostr[50];
+		JsonNode *newdoc = json_mkobject();
+		json_append_member(newdoc,"type",json_mkstring("cmos_m_gtvalid"));
+		json_append_member(newdoc,"vmax",json_mknumber((double)VMAX));
+		json_append_member(newdoc,"TACREF",json_mknumber((double)TACREF));
+		JsonNode* isetm_new = json_mkarray();
+		JsonNode* iseta_new = json_mkarray();
+		json_append_element(isetm_new,json_mknumber((double)isetm_save[0]));
+		json_append_element(isetm_new,json_mknumber((double)isetm_save[1]));
+		json_append_element(iseta_new,json_mknumber((double)ISETA));
+		json_append_element(iseta_new,json_mknumber((double)ISETA));
+		json_append_member(newdoc,"isetm",isetm_new);
+		json_append_member(newdoc,"iseta",iseta_new);
+		JsonNode* tac_shift_new = json_mkarray();
+		JsonNode* gtchan0 = json_mkarray();
+		JsonNode* gtchan1 = json_mkarray();
+		JsonNode* errors = json_mkarray();
+		for (i=0;i<32;i++){
+		    json_append_element(tac_shift_new,json_mknumber((double)(byte) (tacbits_save[1][i]*16+tacbits_save[0][1])));
+		    json_append_element(gtchan0,json_mknumber((double)(byte) (gtchan_set[0][i])));
+		    json_append_element(gtchan1,json_mknumber((double)(byte) (gtchan_set[1][i])));
+		    json_append_element(errors,json_mknumber((double)0));//FIXME
+		}
+		json_append_member(newdoc,"tac_shift",tac_shift_new);
+		json_append_member(newdoc,"GTValid_tac0",gtchan0);
+		json_append_member(newdoc,"GTValid_tac1",gtchan1);
+		json_append_member(newdoc,"errors",errors);
+		json_append_member(newdoc,"pass",json_mkstring("yes"));//FIXME
+		if (final_test)
+		    json_append_member(newdoc,"final_test_id",json_mkstring(ft_ids[slot]));	
+		post_debug_doc(cn,slot,newdoc);
+		json_delete(newdoc); // only delete the head
 	    }
 
 	}// vv

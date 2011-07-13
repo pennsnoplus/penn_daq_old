@@ -7,7 +7,8 @@
 #include "mtc_util.h"
 #include "net_util.h"
 #include "db.h"
-#include "pillowtalk.h"
+//#include "pouch.h"
+//#include "json.h"
 
 
 int mtc_init(char *buffer)
@@ -55,17 +56,21 @@ int mtc_init(char *buffer)
 	return -1;
     }
 
-    pt_init();
-    pt_response_t* response = NULL;
+    ;
+    pouch_request *response = pr_init();
     char get_db_address[500];
     sprintf(get_db_address,"http://%s:%s/%s/MTC_doc",DB_ADDRESS,DB_PORT,DB_BASE_NAME);
-    response = pt_get(get_db_address);
-    if (response->response_code != 200){
-	printf("Unable to connect to database. error code %d\n",(int)response->response_code);
+    pr_set_method(response, GET);
+    pr_set_url(response, get_db_address);
+    pr_do(response);
+    if (response->httpresponse != 200){
+	printf("Unable to connect to database. error code %d\n",(int)response->httpresponse);
 	return -1;
     }
-    pt_node_t *doc = response->root;
+    JsonNode *doc = json_decode(response->resp.data);
     parse_mtc(doc,mtc);
+    json_delete(doc);
+
 
 
 
@@ -144,7 +149,6 @@ int mtc_init(char *buffer)
     }
 
     print_send("MTC finished initializing\n", view_fdset);
-    pt_free_response(response);
-    pt_cleanup();
+    pr_free(response);
     return 0;
 }

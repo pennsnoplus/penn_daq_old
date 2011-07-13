@@ -50,11 +50,11 @@ int final_test(char *buffer)
 	words = strtok(NULL, " ");
     }
 
-    
-    pt_init();
+
+    ;
     char ft_ids[16][250]; 
     char id_string[16*250];
-    pt_node_t *ft_docs[16];
+    JsonNode *ft_docs[16];
     char command_buffer[100];
     char comments[1000];
     memset(comments, '\0', 1000);
@@ -70,7 +70,7 @@ int final_test(char *buffer)
     sprintf(command_buffer,"crate_init -s %04x -c %d -x",slot_mask,crate_num);
     crate_init(command_buffer);
     printf("-------------------------------------------\n");
-    
+
     printf("now connecting to and initializing mtcd\n");
     connect_to_SBC(SBC_PORT, server);
     printf("-------------------------------------------\n");
@@ -90,7 +90,7 @@ int final_test(char *buffer)
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
 	    get_new_id(ft_ids[i]);
-	    ft_docs[i] = pt_map_new();
+	    ft_docs[i] = json_mkobject();
 	    sprintf(id_string+strlen(id_string),"%s ",ft_ids[i]);
 	    printf(".%s.\n",id_string);
 	}
@@ -100,83 +100,83 @@ int final_test(char *buffer)
     sprintf(command_buffer,"board_id -c %d -s %04x",crate_num,slot_mask);
     board_id(command_buffer);
     printf("-------------------------------------------\n");
-    
+
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
 	    printf("Please enter any comments for slot %i motherboard now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"mb_comments",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"mb_comments",json_mkstring(comments));
 	    printf("Has this slot been refurbished? (y/n)\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"refurbished",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"refurbished",json_mkstring(comments));
 	    printf("Has this slot been cleaned? (y/n)\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"cleaned",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"cleaned",json_mkstring(comments));
 	    printf("Time to measure resistance across analog outs and cmos address lines. For the cmos address lines"
 		    "it's easier if you do it during the fifo mod\n");
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"analog_out_res",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"analog_out_res",json_mkstring(comments));
 	    printf("Please enter any comments for slot %i db 0 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_0_comments",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_0_comments",json_mkstring(comments));
 	    printf("Please enter any comments for slot %i db 1 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_1_comments",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_1_comments",json_mkstring(comments));
 	    printf("Please enter any comments for slot %i db 2 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_2_comments",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_2_comments",json_mkstring(comments));
 	    printf("Please enter any comments for slot %i db 3 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_3_comments",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_3_comments",json_mkstring(comments));
 	    printf("Please enter dark matter measurements for slot %i db 0 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_0_dm",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_0_dm",json_mkstring(comments));
 	    printf("Please enter dark matter measurements for slot %i db 1 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_1_dm",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_1_dm",json_mkstring(comments));
 	    printf("Please enter dark matter measurements for slot %i db 2 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_2_dm",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_2_dm",json_mkstring(comments));
 	    printf("Please enter dark matter measurements for slot %i db 3 now.\n",i);
 	    read_from_tut(comments);
-	    pt_map_set(ft_docs[i],"db_3_dm",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"db_3_dm",json_mkstring(comments));
 	}
     }
-   
+
 
     printf("Enter N100 DC offset\n");
     read_from_tut(comments);
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
-	    pt_map_set(ft_docs[i],"N100_dc_offset",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"N100_dc_offset",json_mkstring(comments));
 	}
     }
     printf("Enter N20 DC offset\n");
     read_from_tut(comments);
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
-	    pt_map_set(ft_docs[i],"N20_dc_offset",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"N20_dc_offset",json_mkstring(comments));
 	}
     }
     printf("Enter esum hi DC offset\n");
     read_from_tut(comments);
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
-	    pt_map_set(ft_docs[i],"esumhi_dc_offset",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"esumhi_dc_offset",json_mkstring(comments));
 	}
     }
     printf("Enter esum lo DC offset\n");
     read_from_tut(comments);
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
-	    pt_map_set(ft_docs[i],"esumlo_dc_offset",pt_string_new(comments));
+	    json_append_member(ft_docs[i],"esumlo_dc_offset",json_mkstring(comments));
 	}
     }
 
     printf("Thank you. Please hit enter to continue with the rest of final test. This may take a while.\n");
     read_from_tut(comments);
 
-    
+
     // starting the tests
     printf("-------------------------------------------\n");
     sprintf(command_buffer,"fec_test -c %d -s %04x -d -# %s",crate_num,slot_mask,id_string);
@@ -221,7 +221,7 @@ int final_test(char *buffer)
     printf("-------------------------------------------\n");
     sprintf(command_buffer,"ped_run -c %d -s %04x -b -d -# %s",crate_num,slot_mask,id_string);
     ped_run(command_buffer);
-    
+
     printf("-------------------------------------------\n");
     sprintf(command_buffer,"chinj_scan -c %d -s %04x -l 0 -u 5000 -w 100 -n 10 -d -# %s",crate_num,slot_mask,id_string);
     chinj_scan(command_buffer);
@@ -294,8 +294,9 @@ int final_test(char *buffer)
     // update the database
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
-	    pt_map_set(ft_docs[i],"type",pt_string_new("final_test"));
+	    json_append_member(ft_docs[i],"type",json_mkstring("final_test"));
 	    post_debug_doc_with_id(crate_num, i, ft_ids[i], ft_docs[i]);
+	    json_delete(ft_docs[i]);
 	}
     }
 

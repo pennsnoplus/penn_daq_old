@@ -145,7 +145,6 @@ int chinj_scan(char *buffer)
 	
 	dacvalue = dac_iter*10;
 
-	wtime = (float) (num_pedestals-1) * NUM_CELLS / frequency; //FIXME hack for mtc latency
 	pmt_buffer = (uint32_t *) malloc( TWOTWENTY*sizeof(u_long));
 	ped = (struct pedestal *) malloc( 32 * sizeof(struct pedestal));
 
@@ -184,7 +183,7 @@ int chinj_scan(char *buffer)
 	default_ch_mask = pattern;
 	setup_chinj(crate,slot_mask,default_ch_mask,dacvalue);
 
-	errors = setup_pedestals(frequency,ped_width,gtdelay,GT_FINE_DELAY);
+	errors = setup_pedestals(0,ped_width,gtdelay,GT_FINE_DELAY);
 	if (errors){
 	    print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
 	    unset_ped_crate_mask(MASKALL);
@@ -202,11 +201,8 @@ int chinj_scan(char *buffer)
 	set_ped_crate_mask(MASKALL);
 	set_gt_crate_mask(MASKALL);
 
-	//wait for pedestals to arrive
-	wtime = (wtime * 1E6); // set this to usec
-	usleep((u_int) wtime);
-
-	disable_pulser();
+	// send the softgts
+	multi_softgt(num_pedestals*NUM_CELLS);
 
 	// LOOP OVER SLOTS
 	for (slot_iter = 0; slot_iter < 16; slot_iter ++){

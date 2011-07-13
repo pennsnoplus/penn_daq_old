@@ -161,6 +161,59 @@ int set_gt_mask_cmd(char *buffer){
     return 0;
 }
 
+int mtc_read(char *buffer){
+    uint32_t address = 0x0;
+    uint32_t data = 0x0;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+	if (words[0] == '-'){
+	    if (words[1] == 'a'){
+		words2 = strtok(NULL, " ");
+		address = strtoul(words2,(char **) NULL,16);
+	    }
+	    if (words[1] == 'h'){
+		sprintf(psb,"Usage: mtc_read -a [address (hex)]\n");
+		print_send(psb, view_fdset);
+		return 0;
+	    }
+	}
+	words = strtok(NULL, " ");
+    }
+    mtc_reg_read(address, &data);
+    printf("Received %08x\n",data);
+    return 0;
+}
+
+
+int mtc_write(char *buffer){
+    uint32_t address = 0x0;
+    uint32_t data = 0x0;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+	if (words[0] == '-'){
+	    if (words[1] == 'd'){
+		words2 = strtok(NULL, " ");
+		data = strtoul(words2,(char **) NULL,16);
+	    }
+	    if (words[1] == 'a'){
+		words2 = strtok(NULL, " ");
+		address = strtoul(words2,(char **) NULL,16);
+	    }
+	    if (words[1] == 'h'){
+		sprintf(psb,"Usage: mtc_write -d [data (hex)] -a [address (hex)]\n");
+		print_send(psb, view_fdset);
+		return 0;
+	    }
+	}
+	words = strtok(NULL, " ");
+    }
+    mtc_reg_write(address, data);
+    printf("wrote %08x\n",data);
+    return 0;
+}
+
 void unset_gt_mask(unsigned long raw_trig_types) {
     uint32_t temp;
     mtc_reg_read(MTCMaskReg, &temp);
@@ -214,6 +267,85 @@ void set_gt_crate_mask(uint32_t crates){
     mtc_reg_read(MTCGmskReg, &temp);
     mtc_reg_write(MTCGmskReg, temp | crates);
     //print_send("Crates have been added to the GT Crate Mask\n", view_fdset);
+}
+
+int set_thresholds(char *buffer){
+    mtc_cons thresholds;
+    int i;
+    for (i=0;i<14;i++){
+	thresholds.mtca_dac_values[i] = -4900; 
+    }
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+	if (words[0] == '-'){
+	    if (words[1] == '0'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[0] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '1'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[1] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '2'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[2] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '3'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[3] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '4'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[4] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '5'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[5] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '6'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[6] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '7'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[7] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '8'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[8] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == '9'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[9] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == 'a'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[10] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == 'b'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[11] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == 'c'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[12] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == 'd'){
+		words2 = strtok(NULL, " ");
+		thresholds.mtca_dac_values[13] = (float) strtod(words2,(char**)NULL)*1000;
+	    }
+	    if (words[1] == 'h'){
+		sprintf(psb,"Usage: set_thresholds -(0..d) [level (float)]\n");
+		print_send(psb, view_fdset);
+		return 0;
+	    }
+	}
+	words = strtok(NULL, " ");
+    }
+    load_mtc_dacs(&thresholds);
+
+    return 0;
 }
 
 

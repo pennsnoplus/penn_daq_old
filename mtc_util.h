@@ -39,6 +39,10 @@
 #define MTCC10_0_31Reg (0x8C)
 #define MTCC10_32_52Reg (0x90)
 
+int set_thresholds(char *buffer);
+
+int mtc_read(char *buffer);
+int mtc_write(char *buffer);
 
 int mtc_xilinxload(void);
 int mtc_init(char *buffer);

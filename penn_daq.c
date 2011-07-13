@@ -542,6 +542,8 @@ int process_command(char *buffer){ //DATABASE
 		change_pulser(buffer);
 	else if (strncmp(buffer, "mtc_init", 8) == 0)
 		mtc_init(buffer);
+	else if (strncmp(buffer, "get_caen_data", 13) == 0)
+		get_caen_data(buffer);
 	else if (strncmp(buffer, "ped_run",7) == 0)
 		ped_run(buffer);
 	else if (strncmp(buffer, "crate_init",10) == 0)
@@ -564,6 +566,10 @@ int process_command(char *buffer){ //DATABASE
 		crate_cbal(buffer);
 	else if (strncmp(buffer, "spec_cmd",8) == 0)
 		spec_cmd(buffer);
+	else if (strncmp(buffer, "mtc_read",8) == 0)
+		mtc_read(buffer);
+	else if (strncmp(buffer, "mtc_write",9) == 0)
+		mtc_write(buffer);
 	else if (strncmp(buffer, "add_cmd",7) == 0)
 		add_cmd(buffer);
 	else if (strncmp(buffer, "zdisc",5) == 0)
@@ -602,6 +608,8 @@ int process_command(char *buffer){ //DATABASE
 		set_gt_mask_cmd(buffer);
 	else if (strncmp(buffer, "unset_gt_mask",11) == 0)
 		unset_gt_mask_cmd(buffer);
+	else if (strncmp(buffer, "set_thresholds",14) == 0)
+		set_thresholds(buffer);
 	else if (strncmp(buffer, "connect_to_SBC", 14) == 0){
 		kill_SBC_process();
 		connect_to_SBC(SBC_PORT, server);

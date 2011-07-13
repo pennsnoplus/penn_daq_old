@@ -819,9 +819,9 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 
     if ((3 * limit) < diff){
 	if ((3*limit)*1.5 < diff){
-	    printf("Memory level much higher than expected, possible fifo overflow\n");
+	    printf("Memory level much higher than expected (%d > %d), possible fifo overflow\n",diff,3*limit);
 	}else{
-	    printf("Memory level over expected\n");
+	    printf("Memory level over expected (%d > %d)\n",diff,3*limit);
 	}
 	diff = 3*limit; // make sure we do not read out more than limit pmt bundles
     }

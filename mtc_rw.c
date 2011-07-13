@@ -249,6 +249,75 @@ int do_mtc_cmd(SBC_Packet *aPacket){
     }
 } 
 
+int get_caen_data(char *buffer)
+{
+
+    if (sbc_is_connected == 0){
+	sprintf(psb,"SBC not connected.\n");
+	print_send(psb, view_fdset);
+	return -1;
+    }
+  
+   printf("starting to go\n");
+
+   SBC_crate_config configStruct; // for both MTC and CAEN
+   int index=0;
+   uint32_t dataId=0xBEEF0000;
+
+   configStruct.total_cards=0x1;
+   configStruct.card_info[index].hw_type_id           = 7;                 //should be unique 
+   configStruct.card_info[index].hw_mask[0]           =  dataId;  //better be unique
+   configStruct.card_info[index].slot                         = 0; //[self slot];
+   configStruct.card_info[index].add_mod                      = 0x29; //[self addressModifier];
+   configStruct.card_info[index].base_add                     = 0x00007000; //[self baseAddress];
+   configStruct.card_info[index].deviceSpecificData[0] = 44; //reg[kMtcBbaReg].addressOffset;
+   configStruct.card_info[index].deviceSpecificData[1] = 40; //reg[kMtcBwrAddOutReg].addressOffset;
+   configStruct.card_info[index].deviceSpecificData[2] = 0x03800000; //[self memBaseAddress];
+   configStruct.card_info[index].deviceSpecificData[3] = 0x09; //[self memAddressModifier];       
+   configStruct.card_info[index].num_Trigger_Indexes = 0; //no children
+   configStruct.card_info[index].next_Card_Index = index + 1;
+
+   index=1; // CAEN time
+
+   configStruct.total_cards++;
+   configStruct.card_info[index].hw_type_id       = 6;//kCaen1720; //should be unique
+   configStruct.card_info[index].hw_mask[0]       = dataId; //better be unique
+   configStruct.card_info[index].slot                     = 0; //[self slot];
+   configStruct.card_info[index].crate            = 0; //[self crateNumber];
+   configStruct.card_info[index].add_mod          = 0x09; //[self addressModifier];
+   configStruct.card_info[index].base_add         = 0x43210000; //[self baseAddress];
+   configStruct.card_info[index].deviceSpecificData[0]    = 0x812C; //reg[kEventStored].addressOffset; //Status buffer
+   configStruct.card_info[index].deviceSpecificData[1]        = 0x814C; //reg[kEventSize].addressOffset; // "next event size" address
+   configStruct.card_info[index].deviceSpecificData[2]        = 0x0000; //reg[kOutputBuffer].addressOffset; // fifo Address
+   configStruct.card_info[index].deviceSpecificData[3]        = 0x0C; // fifo Address Modifier (A32 MBLT supervisory)
+   configStruct.card_info[index].deviceSpecificData[4]        = 0xFFC; // fifo Size
+   configStruct.card_info[index].deviceSpecificData[5]        = 0; //location; location =  (([self crateNumber]&0x01e)<<21) | (([self slot]& 0x0000001f)<<16);
+   configStruct.card_info[index].deviceSpecificData[6]        = 0xEF00; //reg[kVMEControl].addressOffset; // VME Control address
+   configStruct.card_info[index].deviceSpecificData[7]        = 0xEF1C; //reg[kBLTEventNum].addressOffset; // Num of BLT events address
+
+   int isFixedSize=1; // ????
+
+   unsigned sizeOfEvent = 1000; //FIXME  number of uint32_t for DMA transfer
+   configStruct.card_info[index].deviceSpecificData[8]    = sizeOfEvent;  
+   configStruct.card_info[index].num_Trigger_Indexes      = 0;
+   configStruct.card_info[index].next_Card_Index  = index+1;      
+
+   SBC_Packet aPacket;
+
+   aPacket.cmdHeader.destination = 0x1; //kSBC_Process; //FIXME
+   aPacket.cmdHeader.cmdID   =0x4;  // kSBC_LoadConfig; //FIXME
+   aPacket.cmdHeader.numberBytesinPayload  = sizeof(SBC_crate_config); //FIXME
+   memcpy(aPacket.payload,&configStruct,sizeof(SBC_crate_config));
+
+   printf("doing a mtc_cmd\n");
+   printf("the payload is %s\n",aPacket.payload);
+   do_mtc_cmd(&aPacket);
+   printf("did it work?\n");
+
+   return 0;
+
+} 
+
 int do_mtc_xilinx_cmd(SBC_Packet *aPacket){
     int32_t numBytesToSend = aPacket->numBytes;
     char* p = (char*)aPacket;

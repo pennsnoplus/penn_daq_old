@@ -22,5 +22,3 @@ clean:
 depend: $(SRCS)
 	gcc -M $(SRCS) > .depend
 	touch depend
-
-include .depend

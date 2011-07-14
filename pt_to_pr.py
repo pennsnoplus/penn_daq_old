@@ -1,3 +1,4 @@
+# Converts most pillowtalk library calls to pouch calls isntead
 import sys, re
 while 1:
 	line = sys.stdin.readline()

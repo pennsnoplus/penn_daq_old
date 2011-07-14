@@ -1,6 +1,5 @@
 #ifndef PENN_DAQ_H
 #define PENN_DAQ_H
-
 typedef u_char  byte;
 
 // ############### DEFINITIONS ###################	

@@ -49,20 +49,20 @@ struct JsonNode
 
     JsonTag tag;
     union {
-	/* JSON_BOOL */
-	bool bool_;
+        /* JSON_BOOL */
+        bool bool_;
 
-	/* JSON_STRING */
-	char *string_; /* Must be valid UTF-8. */
+        /* JSON_STRING */
+        char *string_; /* Must be valid UTF-8. */
 
-	/* JSON_NUMBER */
-	double number_;
+        /* JSON_NUMBER */
+        double number_;
 
-	/* JSON_ARRAY */
-	/* JSON_OBJECT */
-	struct {
-	    JsonNode *head, *tail;
-	} children;
+        /* JSON_ARRAY */
+        /* JSON_OBJECT */
+        struct {
+            JsonNode *head, *tail;
+        } children;
     };
 };
 
@@ -88,11 +88,12 @@ double json_get_number(JsonNode *node);
 char *json_get_string(JsonNode *node);
 bool json_get_bool(JsonNode *node);
 int json_get_num_mems(JsonNode *node);
+JsonNode *json_mkcopy(JsonNode *head);
 
 #define json_foreach(i, object_or_array)            \
     for ((i) = json_first_child(object_or_array);   \
-	    (i) != NULL;                               \
-	    (i) = (i)->next)
+            (i) != NULL;                               \
+            (i) = (i)->next)
 
 
 

@@ -34,7 +34,7 @@ int mtc_xilinxload(void)
     aPacket.cmdHeader.destination = 0x3;
     aPacket.cmdHeader.cmdID = 0x1;
     aPacket.cmdHeader.numberBytesinPayload = sizeof(SNOMtc_XilinxLoadStruct) + howManybits;
-    printf("numbytes is %d, size is %d\n",aPacket.cmdHeader.numberBytesinPayload,sizeof(SNOMtc_XilinxLoadStruct));
+    printf("numbytes is %d, size is %d\n",(int)aPacket.cmdHeader.numberBytesinPayload,(int)sizeof(SNOMtc_XilinxLoadStruct));
     aPacket.numBytes = aPacket.cmdHeader.numberBytesinPayload+256+16;
     SNOMtc_XilinxLoadStruct *payloadPtr = (SNOMtc_XilinxLoadStruct *)aPacket.payload;
     payloadPtr->baseAddress = 0x7000;

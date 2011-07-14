@@ -8,8 +8,7 @@ LIBS = -lpillowtalk -lm
 all: penn_daq tut vwr
 
 penn_daq: $(OBJS)
-#	gcc $(CFLAGS) -c -o penn_daq.o penn_daq.c
-	gcc -o $@ $(OBJS) $(LIBS)
+	gcc -o $@ $(OBJS) $(LIBS) -g
 
 tut:
 	python tut_gen.py

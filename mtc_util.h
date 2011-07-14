@@ -39,6 +39,7 @@
 #define MTCC10_0_31Reg (0x8C)
 #define MTCC10_32_52Reg (0x90)
 
+int trigger_scan(char *buffer);
 int set_thresholds(char *buffer);
 
 int mtc_read(char *buffer);
@@ -76,6 +77,7 @@ typedef struct {
     float mtca_dac_values[14];
 } mtc_cons;
 
+int load_mtc_dacs_counts(int *counts);
 int load_mtc_dacs(mtc_cons *mtc_cons_ptr);
 /* load_mtc_dacs()
  * Loads all the mtc/a dac thresholds. Values are taken from a file for now.

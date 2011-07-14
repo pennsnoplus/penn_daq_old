@@ -648,6 +648,8 @@ int process_command(char *buffer){ //DATABASE
 	unset_gt_mask_cmd(buffer);
     else if (strncmp(buffer, "set_thresholds",14) == 0)
 	set_thresholds(buffer);
+    else if (strncmp(buffer, "trigger_scan",12) == 0)
+	trigger_scan(buffer);
     else if (strncmp(buffer, "connect_to_SBC", 14) == 0){
 	kill_SBC_process();
 	connect_to_SBC(SBC_PORT, server);

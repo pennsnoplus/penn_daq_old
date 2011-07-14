@@ -3,17 +3,102 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "include/xl_regs.h"
+
 #include "penn_daq.h"
+#include "fec_util.h"
 #include "mtc_util.h"
 #include "net_util.h"
-#include "pouch.h"
-#include "json.h"
 
 static char* getXilinxData(long *howManyBits);
 
 static char xilinxfilename[] = MTC_XILINX_LOCATION;
 
 SBC_Packet aPacket;
+
+int trigger_scan(char *buffer)
+{
+    if (sbc_is_connected == 0){
+	sprintf(psb,"SBC not connected.\n");
+	print_send(psb, view_fdset);
+	return -1;
+    }
+
+    printf("starting a trigger scan\n");
+    int nhit;
+    uint32_t select_reg,pedestals,result,beforegt,aftergt;
+    uint32_t gtdelay = 150;
+    uint16_t ped_width = 25;
+    uint32_t crate_num = 2;
+    int slot_num = 14;
+    
+    int counts[14];
+    int i,j;
+    for (i=0;i<14;i++){
+	counts[i] = 10; 
+    }
+
+    // set up the mtcd to send out softgts
+    int errors = setup_pedestals(0,ped_width,gtdelay,0);
+    if (errors){
+	print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+	unset_ped_crate_mask(MASKALL);
+	unset_gt_crate_mask(MASKALL);
+	return -1;
+    }
+
+    //enable GT/PED only for selected crate
+    unset_ped_crate_mask(MASKALL);
+    unset_gt_crate_mask(MASKALL);
+    //set_ped_crate_mask(0x1<<crate_num);
+    //set_gt_crate_mask(0x1<<crate_num);
+    set_ped_crate_mask(0xFFFFFFFF);
+    set_gt_crate_mask(0xFFFFFFFF);
+    unset_gt_mask(0xFFFFFFFF);
+    set_gt_mask(1);
+
+    select_reg = FEC_SEL*slot_num;
+    pedestals = 0x0;
+    float values[32][150];
+    for (i=0;i<32;i++)
+	for (j=0;j<150;j++)
+	    values[i][j] = -999.;
+
+    int ithresh;
+
+    // now we turn each channel on one at a time
+    for (nhit=0;nhit<32;nhit++){
+	pedestals |= 0x1<<nhit;
+	xl3_rw(PED_ENABLE_R + select_reg + WRITE_REG,pedestals,&result,crate_num);
+
+	// loop over thresholds
+	for (ithresh=0;ithresh<145;ithresh++){
+	    counts[13] = 3950+ithresh;
+	    load_mtc_dacs_counts(counts);
+
+	    // now get current gt count
+	    mtc_reg_read(MTCOcGtReg,&beforegt);
+
+
+	    // send 20 pulses
+	    multi_softgt(500);
+
+	    // now get final gt count
+	    mtc_reg_read(MTCOcGtReg,&aftergt);
+
+	    uint32_t diff = aftergt-beforegt;
+	    values[nhit][ithresh] = (float) diff/500.0;
+	}
+    }
+
+    unset_gt_mask(MASKALL);
+
+    for (i=0;i<32;i++)
+	for (j=0;j<145;j++)
+	    printf("%d %d %f\n",i,j,values[i][j]);
+
+    return 0;
+}
 
 int mtc_xilinxload(void)
 {
@@ -396,6 +481,52 @@ int load_mtc_dacs(mtc_cons *mtc_cons_ptr) {
     for (bi = 11; bi >= 0; bi--) {                     /* shift in 12 bit word for each DAC */
 	for (di = 0; di < 14 ; di++){
 	    if (raw_dacs[di] & (1UL << bi))
+		shift_value |= (1UL << di);
+	    else
+		shift_value &= ~(1UL << di);
+	}
+	mtc_reg_write(MTCDacCntReg,shift_value | DACSEL);
+	mtc_reg_write(MTCDacCntReg,shift_value | DACSEL | DACCLK);
+	mtc_reg_write(MTCDacCntReg,shift_value | DACSEL);
+    }
+    /* unset DASEL */
+    mtc_reg_write(MTCDacCntReg,0x0);
+
+
+    print_send("DAC loading complete\n", view_fdset);
+    return 0;
+}
+
+int load_mtc_dacs_counts(int *counts)
+{
+    print_send("Loading MTC/A threshold DACs...\n", view_fdset);
+    int i,bi,di;
+    uint32_t shift_value;
+    float mv_dacs;
+    char dac_names[][14]={"N100LO","N100MED","N100HI","NHIT20","NH20LB","ESUMHI",
+	"ESUMLO","OWLEHI","OWLELO","OWLN","SPARE1","SPARE2",
+	"SPARE3","SPARE4"};
+
+    for (i=0;i<14;i++){
+	mv_dacs = ((float) counts[i]/2048)*5000.0-5000.0;
+	sprintf(psb, "\t%s\t threshold set to %6.2f mVolts (%d counts)\n",dac_names[i],mv_dacs,counts[i]);
+	print_send(psb, view_fdset);
+    }
+
+    /* set DACSEL */
+    mtc_reg_write(MTCDacCntReg,DACSEL);
+
+    /* shift in raw DAC values */
+
+    for (i = 0; i < 4 ; i++) {
+	mtc_reg_write(MTCDacCntReg,DACSEL | DACCLK); /* shift in 0 to first 4 dummy bits */
+	mtc_reg_write(MTCDacCntReg,DACSEL);
+    }
+
+    shift_value = 0UL;
+    for (bi = 11; bi >= 0; bi--) {                     /* shift in 12 bit word for each DAC */
+	for (di = 0; di < 14 ; di++){
+	    if (counts[di] & (1UL << bi))
 		shift_value |= (1UL << di);
 	    else
 		shift_value &= ~(1UL << di);

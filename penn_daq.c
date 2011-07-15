@@ -768,7 +768,7 @@ void sigint_func(int sig){
             print_send("No log file to close\n", view_fdset);
         }
     }
-    exit(SUCCESS);
+    exit(0);
 }
 
 /* void start_logging (3.M) */

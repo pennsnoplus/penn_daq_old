@@ -2,33 +2,38 @@
 #define PENN_DAQ_H
 typedef u_char  byte;
 
-// ############### DEFINITIONS ###################	
+//_!_DEFINITIONS_!_
+// XL3
+#define MAX_XL3_CON 19
+#define XL3_PORT 44601
+
+// Controller
+#define MAX_CONT_CON 1
+#define CONT_PORT 44600
+
+// Viewer
+#define MAX_VIEW_CON 3
+#define VIEW_PORT 44599
+
+// SBC/MTC
+#define MAX_SBC_CON 1
+#define SBC_PORT 44630
+#define SBC_SERVER "10.0.0.30"
+
+// Xilinx
 #define MTC_XILINX_LOCATION "/home/neutrino/select_DAQ/daq_v3.04_c/data/mtcxilinx.rbt"
 
-#define TRUE  1
-#define FALSE 0
+// CoucHDB
+#define DB_SERVER "http://localhost:5984"
+#define DB_ADDRESS "localhost"
+#define DB_PORT "5984"
+#define DB_BASE_NAME "penndb1"
+#define DB_VIEWDOC "_design/view_doc/_view"
 
-// what to return on failure, success
-#define FAIL -1
-#define SUCCESS 0
-// number of xl3's allowed to be connected at once
-#define MAX_XL3_CON 19
-// number of control boards allowed to be connected at once
-#define MAX_CONT_CON 1
-// number of view clients allowed at once
-#define MAX_VIEW_CON 3
-// number of SBC/MTC boards/servers allowed to be connected at once
-#define MAX_SBC_CON 1
-// the port for XL3 boards to connect to, goes from 44601 for crate 0 to 44619 for crate 18
-#define XL3_PORT 44601
-// the port for the SBC board to connect to
-#define SBC_PORT 44630
-// the server for the sbc
-#define SBC_SERVER "10.0.0.30"
-// the port for a controller client to connect to
-#define CONT_PORT 44600
-// the port for view clients to connect to
-#define VIEW_PORT 44599
+// Maximum request timeouts
+#define SECONDS 20
+#define USECONDS 0
+//_!_END_DEFINTIONS_!_
 // the total number of pending requests (10 is a good guestimate; this number isn't all that important)
 #define MAX_PENDING_CONS 10
 // the number of packet/socket pairs to be stored to be sent out

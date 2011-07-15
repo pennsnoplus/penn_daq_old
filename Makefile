@@ -3,7 +3,7 @@ SRCS = $(OBJS:.o=.c)
 
 CC = gcc
 
-LIBS = -lpillowtalk -lm
+LIBS = -lm
 
 all: penn_daq tut vwr
 

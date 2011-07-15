@@ -58,4 +58,5 @@ void setup_listeners();
 void close_con(int con_fd, char name[]);
 void print_connected(void);
 int accept_connection(int socket, int listener_port);
+int printsend(char *fmt, ... ); 
 int print_send(char *input, fd_set suggested);

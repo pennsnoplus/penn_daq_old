@@ -423,7 +423,7 @@ int ped_run(char *buffer)
                     //json_append_element(qhs,qhltemp);
                     json_append_element(qhs, qhstemp);
                     //json_append_element(qhsrms,qhlrmstemp);
-                    json_append_element(qhsrms, qhlrmstemp);
+                    json_append_element(qhsrms, qhsrmstemp);
                     //json_append_element(qlx,qhltemp);
                     json_append_element(qlx, qlxtemp);
                     //json_append_element(qlxrms,qhlrmstemp);

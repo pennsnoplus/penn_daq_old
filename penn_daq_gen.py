@@ -27,18 +27,19 @@ try:
     for _line in config_lines:
         out = "\n"
         line = _line.strip()
-        if not line:
-            out = "\n"
-        elif line[0] != "#" and line: # comment
-            try:
-                match = re.match(r'(?P<name>.+?)(\s*)=(\s*)(?P<value>.+)', line)
-                out = "#define %s %s\n" % (match.group('name').upper(), match.group('value'))
-            except Exception, err:
-                print "penn_daq_gen: Incorrect formatting in %s on line %d" % (cfgfile, config_lines.index(_line))
-                print "---- %s" % line
-                out = "\n"
-        else:
-            out = re.sub("#", "//", line)+"\n"
+        if line:
+            if line[0] == '#': #comment
+                out = re.sub("#", "//", line)+"\n"
+            elif line[0:2] == "__": #global variable
+                out = line[2:]+";"
+            else:
+                try:
+                    match = re.match(r'(?P<name>.+?)(\s*)=(\s*)(?P<value>.+)', line)
+                    out = "#define %s %s\n" % (match.group('name').upper(), match.group('value'))
+                except Exception, err:
+                    print "penn_daq_gen: Incorrect formatting in %s on line %d" % (cfgfile, config_lines.index(_line))
+                    print "---- %s" % line
+                    out = "\n"
         penn_daq_lines.insert(count, out)
         count += 1
 

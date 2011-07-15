@@ -258,7 +258,7 @@ int accept_connection(int socket, int listener_port){
 
     if (newfd == -1) {
         print_send("accept error in accept_connection\n", view_fdset);
-        return FAIL;
+        return -1;
     } 
     else {
         if(newfd > 0){
@@ -318,7 +318,7 @@ int accept_connection(int socket, int listener_port){
                     print_send("could not send test packet to SBC\n new_daq: SBC/MTC connection denied\n",
                             view_fdset);
                     //reject_connection(listener_port, "SBC/MTC");
-                    return FAIL;
+                    return -1;
                 }
 
                 sprintf(psb, "new_daq: SBC/MTC connected (port %d, socket %d)\n", SBC_PORT, newfd);
@@ -347,7 +347,7 @@ int accept_connection(int socket, int listener_port){
         }
         else{
             print_send("new_daq: failed to accept connection\n", view_fdset);
-            return FAIL;
+            return -1;
         }
     }
 }

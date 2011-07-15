@@ -31,5 +31,5 @@ typedef struct {
     uint32_t header;
     uint32_t total_cards;                   // total sum of all cards
     SBC_card_info
-	card_info[2]; // Only 2 cards to read from, MTC and CAEN add more if needed
+        card_info[2]; // Only 2 cards to read from, MTC and CAEN add more if needed
 } SBC_crate_config;

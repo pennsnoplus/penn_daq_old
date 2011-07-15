@@ -37,52 +37,52 @@ int main(int argc, char *argv[]){
     write_log = 0;
     int c;
     while (1){
-	static struct option long_options[] = 
-	{
-	    /* These options set a flag. */
-	    /* These options don't set a flag. */
-	    {"log", no_argument, 0, 'l'},
-	    {"help", no_argument, 0, 'h'},
-	    {"penn", no_argument, 0, 'p'},
-	    {"aboveground", no_argument, 0, 'a'},
-	    {"underground", no_argument, 0, 'u'},
-	    {0, 0, 0, 0}
-	};
-	/* getopt_long stores the option index here. */
-	int option_index = 0;
-	c = getopt_long(argc, argv, "lhpau", long_options, &option_index);
-	/* Detect the end of options. */
-	if (c == -1)
-	    break;
-	switch (c){
-	    case 0:
-		break;
-	    case 'l':
-		printf("Starting to log!\n");
-		start_logging();
-		break;
-	    case 'h':
-		printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
-		printf("            or\n");
-		printf("       %s [-h/--help]\n", argv[0]);
-		printf("For more help, read the README\n");
-		exit(0);
-		break;
-	    case 'p':
-		current_location = 2;
-		break;
-	    case 'a':
-		current_location = 0;
-		break;
-	    case 'u':
-		current_location = 1;
-		break;
-	    case '?':
-		/* getopt_long already printed an error message. */
-		break;
-	    default:
-		abort();
-	}
+        static struct option long_options[] = 
+        {
+            /* These options set a flag. */
+            /* These options don't set a flag. */
+            {"log", no_argument, 0, 'l'},
+            {"help", no_argument, 0, 'h'},
+            {"penn", no_argument, 0, 'p'},
+            {"aboveground", no_argument, 0, 'a'},
+            {"underground", no_argument, 0, 'u'},
+            {0, 0, 0, 0}
+        };
+        /* getopt_long stores the option index here. */
+        int option_index = 0;
+        c = getopt_long(argc, argv, "lhpau", long_options, &option_index);
+        /* Detect the end of options. */
+        if (c == -1)
+            break;
+        switch (c){
+            case 0:
+                break;
+            case 'l':
+                printf("Starting to log!\n");
+                start_logging();
+                break;
+            case 'h':
+                printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+                printf("            or\n");
+                printf("       %s [-h/--help]\n", argv[0]);
+                printf("For more help, read the README\n");
+                exit(0);
+                break;
+            case 'p':
+                current_location = 2;
+                break;
+            case 'a':
+                current_location = 0;
+                break;
+            case 'u':
+                current_location = 1;
+                break;
+            case '?':
+                /* getopt_long already printed an error message. */
+                break;
+            default:
+                abort();
+        }
     }
     /* print any remaining command line arguments (not options). */
     //if (optind < argc){
@@ -130,26 +130,26 @@ int main(int argc, char *argv[]){
     sbc_is_connected = 0;
     current_hv_level = 0x0;
     for (a=0;a<19;a++){
-	for(t=0;t<16;t++){
-	    crate_config[a][t].mb_id = 0x0000;
-	    crate_config[a][t].dc_id[0] = 0x0000;
-	    crate_config[a][t].dc_id[1] = 0x0000;
-	    crate_config[a][t].dc_id[2] = 0x0000;
-	    crate_config[a][t].dc_id[3] = 0x0000;
-	}
+        for(t=0;t<16;t++){
+            crate_config[a][t].mb_id = 0x0000;
+            crate_config[a][t].dc_id[0] = 0x0000;
+            crate_config[a][t].dc_id[1] = 0x0000;
+            crate_config[a][t].dc_id[2] = 0x0000;
+            crate_config[a][t].dc_id[3] = 0x0000;
+        }
     }
 
     //clear the print_send buffer (char psb[])
     memset(psb, '\0', sizeof(psb));
 
     for (a=0;a<MAX_XL3_CON;a++){
-	connected_xl3s[a] = -999;
+        connected_xl3s[a] = -999;
     }
 
     // set the universal timeout value
     set_delay_values(SECONDS, USECONDS);
     sprintf(psb, "delay_value set to %d.%d seconds\n", (int)delay_value.tv_sec,
-	    ((int)delay_value.tv_usec)/100000);
+            ((int)delay_value.tv_usec)/100000);
     print_send(psb, view_fdset);
 
 
@@ -158,12 +158,12 @@ int main(int argc, char *argv[]){
     pr = db_get(pr, DB_SERVER, DB_BASE_NAME);
     pr_do(pr);
     if(pr->httpresponse != 200){
-	printf("Unable to connect to database. error code %d\n",(int)pr->httpresponse);
-	printf("CURL error code: %d\n", pr->curlcode);
-	//exit(0);
+        printf("Unable to connect to database. error code %d\n",(int)pr->httpresponse);
+        printf("CURL error code: %d\n", pr->curlcode);
+        //exit(0);
     }
     else{
-	printf("Connected to database: http response code %d\n",(int)pr->httpresponse);
+        printf("Connected to database: http response code %d\n",(int)pr->httpresponse);
     }
     pr_free(pr);
 
@@ -194,203 +194,203 @@ int main(int argc, char *argv[]){
     /////////////////////////////////////////////////////
 
     while(1){
-	readable_fdset = all_fdset;
-	writeable_fdset = all_fdset;
-	/*
-	   select() looks at all of the fd's up to /fdmax+1/ and copies all of those that are readable
-	   to the /readable_fset/, all of those that are writeable to the /writeable_fdset/, excluding
-	   no fd's (/NULL/) with a timeout of /0/. Because the timeout is 0 and select is called in
-	   an infinite loop, the program is effectively polling all of the sockets for data as fast
-	   as possible. In this way, the program responds to data nearly instantaneously, but does
-	   take up a fair amount of processing power. It is more efficient than fork()ing a new child
-	   process everytime data is received, though.
-	 */
-	select_return = select(fdmax+1, &readable_fdset, &writeable_fdset, NULL, 0);
-	if (select_return == -1){
+        readable_fdset = all_fdset;
+        writeable_fdset = all_fdset;
+        /*
+           select() looks at all of the fd's up to /fdmax+1/ and copies all of those that are readable
+           to the /readable_fset/, all of those that are writeable to the /writeable_fdset/, excluding
+           no fd's (/NULL/) with a timeout of /0/. Because the timeout is 0 and select is called in
+           an infinite loop, the program is effectively polling all of the sockets for data as fast
+           as possible. In this way, the program responds to data nearly instantaneously, but does
+           take up a fair amount of processing power. It is more efficient than fork()ing a new child
+           process everytime data is received, though.
+         */
+        select_return = select(fdmax+1, &readable_fdset, &writeable_fdset, NULL, 0);
+        if (select_return == -1){
 
-	    sprintf(psb, "select error in main loop\n");
-	    print_send(psb, view_fdset);
-	    sigint_func(SIGINT);
-	}
-	else if(select_return > 0){		// if there were file descriptors to be read/written to
-	    /*
+            sprintf(psb, "select error in main loop\n");
+            print_send(psb, view_fdset);
+            sigint_func(SIGINT);
+        }
+        else if(select_return > 0){		// if there were file descriptors to be read/written to
+            /*
 ################################
 ## Read Incoming Data (2.3) ##
 ################################
-	     */
-	    for(a = 0; a <= fdmax; a ++){
-		// the integer 'a' is the socket being checked
-		if (FD_ISSET(a, &readable_fdset)){	// if it's a socket with data to be read
-		    // clear the command packet so that nothing weird happens to the received data
-		    memset(c_packet, '\0', MAX_PACKET_SIZE);
-		    /*
+             */
+            for(a = 0; a <= fdmax; a ++){
+                // the integer 'a' is the socket being checked
+                if (FD_ISSET(a, &readable_fdset)){	// if it's a socket with data to be read
+                    // clear the command packet so that nothing weird happens to the received data
+                    memset(c_packet, '\0', MAX_PACKET_SIZE);
+                    /*
 #############################################
 ## Accept/Reject New Connections (2.3.1) ##
 #############################################
-		     */
-		    if(FD_ISSET(a, &listener_fdset)){	// if it's a listener socket
-			/* XL3 request (2.3.1.1) */
-			if(get_xl3_location(a, xl3_listener_array) >= 0){
-			    if (get_xl3_location(a, connected_xl3s) >= 0){
-				/*
-				   note-
-				   if the XL3 is already connected, because XL3's do
-				   not send a close connection signal on exit, if there
-				   is an XL3 connecting on the same port that we already
-				   have one connected assume that the old one quit and close it
-				   - (Peter Downs, 8/9/10)
-				 */
-				close_con(a, "XL3");
-			    }
-			    // accept the connection and print all of the connected xl3's
-			    new_fd = accept_connection(a, get_xl3_location(a, xl3_listener_array)+XL3_PORT);
-			    print_connected();
-			}
-			/* Controller request (2.3.1.2) */
-			else if(a == cont_listener){
-			    t = num_fds(cont_fdset, fdmax);
-			    // if we haven't filled the maximum number of controllers, connect another
-			    // otherwise, reject the connection
-			    if (t < MAX_CONT_CON+1){	// you have to account for the listener
-				new_fd = accept_connection(cont_listener, CONT_PORT);
-			    }
-			    else{
-				reject_connection(cont_listener, CONT_PORT, t-1, MAX_CONT_CON, "CONTROLLER");
-			    }
-			}
-			/* Viewer request (2.3.1.3) */
-			else if(a == view_listener){	// you have to account for the listener
-			    t = num_fds(view_fdset, fdmax);
-			    // if we haven't filled the maximum number of viewers, connect another
-			    // otherwise, reject the connection
-			    if (t < MAX_VIEW_CON+1){
-				new_fd = accept_connection(view_listener, VIEW_PORT);
-			    }
-			    else{
-				reject_connection(view_listener, VIEW_PORT, t-1, MAX_VIEW_CON, "VIEWER");
-			    }
-			}
-			/* SBC/MTC request (2.3.1.4) */
-			else if(a == sbc_listener){
-			    /*
-			       note-
-			       It would be incredibly strange for there to be a connection on the SBC/MTC
-			       port. The SBC/MTC is connected to manually, with this program (mac_daq) requesting
-			       the connection, not vice versa. Still, in case things change, this code is being
-			       left in here. - (Peter Downs, 8/9/10);
-			     */
-			    t = num_fds(mtc_fdset, fdmax);
-			    // if we haven't filled the maximum number of SBC/MTC's, connect another
-			    // otherwise, reject the connection
-			    if (t < MAX_SBC_CON+1){
-				new_fd = accept_connection(sbc_listener, SBC_PORT);
-			    }
-			    else{
-				reject_connection(sbc_listener, SBC_PORT, t-1, MAX_CONT_CON, "SBC/MTC");
-			    }
-			}
-		    } // End Accept/Reject New Connection
-		    /*
+                     */
+                    if(FD_ISSET(a, &listener_fdset)){	// if it's a listener socket
+                        /* XL3 request (2.3.1.1) */
+                        if(get_xl3_location(a, xl3_listener_array) >= 0){
+                            if (get_xl3_location(a, connected_xl3s) >= 0){
+                                /*
+                                   note-
+                                   if the XL3 is already connected, because XL3's do
+                                   not send a close connection signal on exit, if there
+                                   is an XL3 connecting on the same port that we already
+                                   have one connected assume that the old one quit and close it
+                                   - (Peter Downs, 8/9/10)
+                                 */
+                                close_con(a, "XL3");
+                            }
+                            // accept the connection and print all of the connected xl3's
+                            new_fd = accept_connection(a, get_xl3_location(a, xl3_listener_array)+XL3_PORT);
+                            print_connected();
+                        }
+                        /* Controller request (2.3.1.2) */
+                        else if(a == cont_listener){
+                            t = num_fds(cont_fdset, fdmax);
+                            // if we haven't filled the maximum number of controllers, connect another
+                            // otherwise, reject the connection
+                            if (t < MAX_CONT_CON+1){	// you have to account for the listener
+                                new_fd = accept_connection(cont_listener, CONT_PORT);
+                            }
+                            else{
+                                reject_connection(cont_listener, CONT_PORT, t-1, MAX_CONT_CON, "CONTROLLER");
+                            }
+                        }
+                        /* Viewer request (2.3.1.3) */
+                        else if(a == view_listener){	// you have to account for the listener
+                            t = num_fds(view_fdset, fdmax);
+                            // if we haven't filled the maximum number of viewers, connect another
+                            // otherwise, reject the connection
+                            if (t < MAX_VIEW_CON+1){
+                                new_fd = accept_connection(view_listener, VIEW_PORT);
+                            }
+                            else{
+                                reject_connection(view_listener, VIEW_PORT, t-1, MAX_VIEW_CON, "VIEWER");
+                            }
+                        }
+                        /* SBC/MTC request (2.3.1.4) */
+                        else if(a == sbc_listener){
+                            /*
+                               note-
+                               It would be incredibly strange for there to be a connection on the SBC/MTC
+                               port. The SBC/MTC is connected to manually, with this program (mac_daq) requesting
+                               the connection, not vice versa. Still, in case things change, this code is being
+                               left in here. - (Peter Downs, 8/9/10);
+                             */
+                            t = num_fds(mtc_fdset, fdmax);
+                            // if we haven't filled the maximum number of SBC/MTC's, connect another
+                            // otherwise, reject the connection
+                            if (t < MAX_SBC_CON+1){
+                                new_fd = accept_connection(sbc_listener, SBC_PORT);
+                            }
+                            else{
+                                reject_connection(sbc_listener, SBC_PORT, t-1, MAX_CONT_CON, "SBC/MTC");
+                            }
+                        }
+                    } // End Accept/Reject New Connection
+                    /*
 ################################
 ## Process New Data (2.3.2) ##
 ################################
-		     */
-		    /* XL3 data (2.3.2.1) */
-		    else if(FD_ISSET(a, &xl3_fdset)){
-			numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
-			// if the XL3 closes the connection, which will never happen but has
-			// to be handled just in case, close the connection from this side
-			if (numbytes == 0){
-			    close_con(a, "XL3");
-			}
-			// if there is an error with receiving the data, close the connection
-			else if (numbytes < 0){
+                     */
+                    /* XL3 data (2.3.2.1) */
+                    else if(FD_ISSET(a, &xl3_fdset)){
+                        numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
+                        // if the XL3 closes the connection, which will never happen but has
+                        // to be handled just in case, close the connection from this side
+                        if (numbytes == 0){
+                            close_con(a, "XL3");
+                        }
+                        // if there is an error with receiving the data, close the connection
+                        else if (numbytes < 0){
 
-			    sprintf(psb, "new_daq: error receiving data from XL3 #%d\n",
-				    get_xl3_location(a, connected_xl3s));
-			    print_send(psb, view_fdset);
-			    close_con(a, "XL3");
-			}
-			else{
-			    XL3_Packet *tmp_xl3_pkt = (XL3_Packet *)c_packet;
-			    SwapShortBlock(&(tmp_xl3_pkt->cmdHeader.packet_num),1);
-			    proc_xl3_rslt(tmp_xl3_pkt, get_xl3_location(a, connected_xl3s),
-				    numbytes);
-			}
-			memset(c_packet, '\0', MAX_PACKET_SIZE);
-		    } // End XL3 data
-		    /* Controller data (2.3.2.2) */
-		    else if(FD_ISSET(a, &cont_fdset)){
-			numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
-			// if the controller closes the connection, close the connection on our side
-			if (numbytes == 0){
-			    close_con(a, "CONTROLLER");
-			}
-			// if there's an error in the connection, throw an error and close the connection
-			else if ( numbytes < 0){
-			    print_send("receive error: receiving controller data\n", view_fdset);
-			    close_con(a, "CONTROLLER");
-			}
-			else{
+                            sprintf(psb, "new_daq: error receiving data from XL3 #%d\n",
+                                    get_xl3_location(a, connected_xl3s));
+                            print_send(psb, view_fdset);
+                            close_con(a, "XL3");
+                        }
+                        else{
+                            XL3_Packet *tmp_xl3_pkt = (XL3_Packet *)c_packet;
+                            SwapShortBlock(&(tmp_xl3_pkt->cmdHeader.packet_num),1);
+                            proc_xl3_rslt(tmp_xl3_pkt, get_xl3_location(a, connected_xl3s),
+                                    numbytes);
+                        }
+                        memset(c_packet, '\0', MAX_PACKET_SIZE);
+                    } // End XL3 data
+                    /* Controller data (2.3.2.2) */
+                    else if(FD_ISSET(a, &cont_fdset)){
+                        numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
+                        // if the controller closes the connection, close the connection on our side
+                        if (numbytes == 0){
+                            close_con(a, "CONTROLLER");
+                        }
+                        // if there's an error in the connection, throw an error and close the connection
+                        else if ( numbytes < 0){
+                            print_send("receive error: receiving controller data\n", view_fdset);
+                            close_con(a, "CONTROLLER");
+                        }
+                        else{
 
-			    sprintf(psb, "CONTROLLER (socket %d): %s\n", a, c_packet);
-			    print_send(psb, view_fdset);
-			    if(process_command(c_packet) == -1){
-				sigint_func(SIGINT);
-			    }
+                            sprintf(psb, "CONTROLLER (socket %d): %s\n", a, c_packet);
+                            print_send(psb, view_fdset);
+                            if(process_command(c_packet) == -1){
+                                sigint_func(SIGINT);
+                            }
 
-			    if(FD_ISSET(a, &writeable_fdset)){
-				write(a, COMACK, strlen(COMACK));
-			    }
+                            if(FD_ISSET(a, &writeable_fdset)){
+                                write(a, COMACK, strlen(COMACK));
+                            }
 
-			    else{
-				print_send("could not send response - check connection\n",
-					view_fdset);
-			    }
+                            else{
+                                print_send("could not send response - check connection\n",
+                                        view_fdset);
+                            }
 
-			    memset(c_packet, '\0', MAX_PACKET_SIZE);
-			}
+                            memset(c_packet, '\0', MAX_PACKET_SIZE);
+                        }
 
-		    } // End Controller data
-		    /* SBC/MTC data (2.3.2.3) */
-		    else if(FD_ISSET(a, &mtc_fdset)){
-			numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
-			// if the SBC/MTC closes the connection, close the connection on our side
-			if (numbytes == 0){
-			    close_con(a, "SBC/MTC");
-			    sbc_is_connected = 0;
-			}
-			// if there's an error in the connection, throw an error and close the connection
-			else if( numbytes < 0){
-			    print_send("new_daq: error receiving SBC data\n", view_fdset);
-			    close_con(a, "SBC/MTC");
-			    sbc_is_connected = 0;
-			}
-			else{
+                    } // End Controller data
+                    /* SBC/MTC data (2.3.2.3) */
+                    else if(FD_ISSET(a, &mtc_fdset)){
+                        numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
+                        // if the SBC/MTC closes the connection, close the connection on our side
+                        if (numbytes == 0){
+                            close_con(a, "SBC/MTC");
+                            sbc_is_connected = 0;
+                        }
+                        // if there's an error in the connection, throw an error and close the connection
+                        else if( numbytes < 0){
+                            print_send("new_daq: error receiving SBC data\n", view_fdset);
+                            close_con(a, "SBC/MTC");
+                            sbc_is_connected = 0;
+                        }
+                        else{
 
-			    sprintf(psb, "SBC/MTC (socket %d): %s\n", a, c_packet);
-			    print_send(psb, view_fdset);
-			}
-		    } // End SBC/MTC data
-		    /* Viewer data 21.3.2.4) */
-		    // this should only be zero, telling us that the client has disconnected
-		    else{
-			numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
-			// if the viewer closed the connection, close it on our side
-			if (numbytes == 0){
-			    close_con(a, "VIEWER");
-			}
-			// if there was an error receiving data (which should never happen because
-			// the viewer should never be sending data other than telling us that it quit)
-			// show that there was an error and close the connection
-			else if(numbytes < 0){
-			    print_send("error receiving viewer data\n", view_fdset);
-			    close_con(a, "VIEWER");
-			}
-		    } // End viewer data
-		} // End process new data
-	    } // End Read incoming data
-	} // End Select()
+                            sprintf(psb, "SBC/MTC (socket %d): %s\n", a, c_packet);
+                            print_send(psb, view_fdset);
+                        }
+                    } // End SBC/MTC data
+                    /* Viewer data 21.3.2.4) */
+                    // this should only be zero, telling us that the client has disconnected
+                    else{
+                        numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
+                        // if the viewer closed the connection, close it on our side
+                        if (numbytes == 0){
+                            close_con(a, "VIEWER");
+                        }
+                        // if there was an error receiving data (which should never happen because
+                        // the viewer should never be sending data other than telling us that it quit)
+                        // show that there was an error and close the connection
+                        else if(numbytes < 0){
+                            print_send("error receiving viewer data\n", view_fdset);
+                            close_con(a, "VIEWER");
+                        }
+                    } // End viewer data
+                } // End process new data
+            } // End Read incoming data
+        } // End Select()
     } // End MAIN LOOP
     sigint_func(SIGINT);
 } // End of main()
@@ -410,133 +410,133 @@ int main(int argc, char *argv[]){
 /* void proc_xl3_rslt (3.O) */
 void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
     switch (packet->cmdHeader.packet_type){
-	// here crate number goes from 0 to 18
-	// acknowledge that we received different commands
-	case CHANGE_MODE_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): CHANGE_MODE_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case XL3_TEST_CMD_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): XL3_TEST_CMD_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case SINGLE_CMD_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): SINGLE_CMD_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case DAQ_QUIT_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): DAQ_QUIT_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case FEC_CMD_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): FEC_CMD_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case FEC_TEST_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): FEC_TEST_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case MEM_TEST_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): MEM_TEST_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case CRATE_INIT_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): CRATE_INIT_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case VMON_START_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): VMON_START_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case BOARD_ID_READ_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): BOARD_ID_READ_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case ZERO_DISCRIMINATOR_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): ZERO_DISCRIMINATOR_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case FEC_LOAD_CRATE_ADD_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): FEC_LOAD_CRATE_ADD_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case SET_CRATE_PEDESTALS_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): SET_CRATE_PEDESTALS_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case DESELECT_FECS_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): DESELECT_FECS_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case BUILD_CRATE_CONFIG_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): BUILD_CRATE_CONFIG_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case LOADSDAC_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): LOADSDAC_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case CALD_TEST_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): CALD_TEST_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case STATE_MACHINE_RESET_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): STATE_MACHINE_RESET_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
-	case MULTI_CMD_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): MULTI_CMD_ID\n",
-		    crate_number, crate_number+XL3_PORT);
-	    print_send(psb, view_fdset);
-	    break;
+        // here crate number goes from 0 to 18
+        // acknowledge that we received different commands
+        case CHANGE_MODE_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): CHANGE_MODE_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case XL3_TEST_CMD_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): XL3_TEST_CMD_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case SINGLE_CMD_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): SINGLE_CMD_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case DAQ_QUIT_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): DAQ_QUIT_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case FEC_CMD_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): FEC_CMD_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case FEC_TEST_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): FEC_TEST_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case MEM_TEST_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): MEM_TEST_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case CRATE_INIT_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): CRATE_INIT_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case VMON_START_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): VMON_START_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case BOARD_ID_READ_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): BOARD_ID_READ_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case ZERO_DISCRIMINATOR_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): ZERO_DISCRIMINATOR_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case FEC_LOAD_CRATE_ADD_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): FEC_LOAD_CRATE_ADD_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case SET_CRATE_PEDESTALS_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): SET_CRATE_PEDESTALS_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case DESELECT_FECS_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): DESELECT_FECS_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case BUILD_CRATE_CONFIG_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): BUILD_CRATE_CONFIG_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case LOADSDAC_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): LOADSDAC_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case CALD_TEST_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): CALD_TEST_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case STATE_MACHINE_RESET_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): STATE_MACHINE_RESET_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
+        case MULTI_CMD_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): MULTI_CMD_ID\n",
+                    crate_number, crate_number+XL3_PORT);
+            print_send(psb, view_fdset);
+            break;
 
 
 
 
-	    // THESE BELOW ARE THE ONLY ONES YOU SHOULD SEE AND
-	    // DO SOMETHING ABOUT
-	case MESSAGE_ID:
-	    sprintf(psb, "XL3 (crate %d, port %d): MESSAGE: %s\n",
-		    crate_number, crate_number+XL3_PORT,packet->payload);
-	    print_send(psb, view_fdset);
-	    break;
-	case MEGA_BUNDLE_ID:
-	    store_mega_bundle(packet->cmdHeader.num_bundles);
-	    break;
-	case CMD_ACK_ID:
-	    // something with CMD_ACK_ID //FIXME
-	    break;
-	case STATUS_ID:
-	    // something with STATUS_ID //FIXME
-	    break;
-	case PING_ID:
-	    send_pong(crate_number);
-	    break;
-	default:
-	    printf("STRANGE PACKET:\n");
-	    sprintf(psb, "XL3 (crate %d, port %d): OTHER: %d (%08x)\n",
-		    crate_number, crate_number+XL3_PORT,
-		    (int)packet->cmdHeader.packet_type,*(uint32_t *) &(packet->cmdHeader));
-	    print_send(psb, view_fdset);
-	    break;
+            // THESE BELOW ARE THE ONLY ONES YOU SHOULD SEE AND
+            // DO SOMETHING ABOUT
+        case MESSAGE_ID:
+            sprintf(psb, "XL3 (crate %d, port %d): MESSAGE: %s\n",
+                    crate_number, crate_number+XL3_PORT,packet->payload);
+            print_send(psb, view_fdset);
+            break;
+        case MEGA_BUNDLE_ID:
+            store_mega_bundle(packet->cmdHeader.num_bundles);
+            break;
+        case CMD_ACK_ID:
+            // something with CMD_ACK_ID //FIXME
+            break;
+        case STATUS_ID:
+            // something with STATUS_ID //FIXME
+            break;
+        case PING_ID:
+            send_pong(crate_number);
+            break;
+        default:
+            printf("STRANGE PACKET:\n");
+            sprintf(psb, "XL3 (crate %d, port %d): OTHER: %d (%08x)\n",
+                    crate_number, crate_number+XL3_PORT,
+                    (int)packet->cmdHeader.packet_type,*(uint32_t *) &(packet->cmdHeader));
+            print_send(psb, view_fdset);
+            break;
     }
 }
 
@@ -547,122 +547,122 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
 int process_command(char *buffer){ //DATABASE
     //_!_begin_commands_!_
     if (strncmp(buffer, "exit", 4) == 0){ // quit
-	print_send("new_daq: exiting\n", view_fdset);
-	return -1;
+        print_send("new_daq: exiting\n", view_fdset);
+        return -1;
     }
     else if (strncmp(buffer, "print_connected", 10) == 0)
-	print_connected();
+        print_connected();
     else if (strncmp(buffer, "stop_logging", 12) == 0)
-	stop_logging();
+        stop_logging();
     else if (strncmp(buffer, "start_logging", 13) == 0)
-	start_logging();
+        start_logging();
     else if (strncmp(buffer, "debugging_on",12)==0)
-	debugging_mode(buffer,0x1);
+        debugging_mode(buffer,0x1);
     else if (strncmp(buffer, "debugging_off",13)==0)
-	debugging_mode(buffer,0x0);
+        debugging_mode(buffer,0x0);
     else if (strncmp(buffer, "set_location",12) == 0)
-	set_location(buffer);
+        set_location(buffer);
     else if (strncmp(buffer, "final_test",10) == 0)
-	final_test(buffer);
+        final_test(buffer);
     else if (strncmp(buffer, "change_mode",11)==0)
-	change_mode(buffer);
+        change_mode(buffer);
     else if (strncmp(buffer, "readout_test",12) == 0)
-	readout_test(buffer);
+        readout_test(buffer);
     else if (strncmp(buffer, "readout_add_crate",17) == 0)
-	readout_add_crate(buffer);
+        readout_add_crate(buffer);
     else if (strncmp(buffer, "end_readout",11) == 0)
-	end_readout(buffer);
+        end_readout(buffer);
     else if (strncmp(buffer, "readout_add_mtc",15) == 0)
-	readout_add_mtc(buffer);
+        readout_add_mtc(buffer);
     else if (strncmp(buffer, "stop_pulser",11) == 0)
-	stop_pulser(buffer);
+        stop_pulser(buffer);
     else if (strncmp(buffer, "change_pulser",13) == 0)
-	change_pulser(buffer);
+        change_pulser(buffer);
     else if (strncmp(buffer, "mtc_init", 8) == 0)
-	mtc_init(buffer);
+        mtc_init(buffer);
     else if (strncmp(buffer, "get_caen_data", 13) == 0)
-	get_caen_data(buffer);
+        get_caen_data(buffer);
     else if (strncmp(buffer, "ped_run",7) == 0)
-	ped_run(buffer);
+        ped_run(buffer);
     else if (strncmp(buffer, "crate_init",10) == 0)
-	crate_init(buffer);
+        crate_init(buffer);
     else if (strncmp(buffer, "fec_test",8) == 0)
-	fec_test(buffer);
+        fec_test(buffer);
     else if (strncmp(buffer, "get_ttot",8) == 0)
-	get_ttot(buffer);
+        get_ttot(buffer);
     else if (strncmp(buffer, "set_ttot",8) == 0)
-	set_ttot(buffer);
+        set_ttot(buffer);
     else if (strncmp(buffer, "load_relays",8) == 0)
-	load_relays(buffer);
+        load_relays(buffer);
     else if (strncmp(buffer, "mem_test",8) == 0)
-	mem_test(buffer);
+        mem_test(buffer);
     else if (strncmp(buffer, "vmon",4) == 0)
-	vmon(buffer);
+        vmon(buffer);
     else if (strncmp(buffer, "board_id",8) == 0)
-	board_id(buffer);
+        board_id(buffer);
     else if (strncmp(buffer, "crate_cbal",10) == 0)
-	crate_cbal(buffer);
+        crate_cbal(buffer);
     else if (strncmp(buffer, "spec_cmd",8) == 0)
-	spec_cmd(buffer);
+        spec_cmd(buffer);
     else if (strncmp(buffer, "mtc_read",8) == 0)
-	mtc_read(buffer);
+        mtc_read(buffer);
     else if (strncmp(buffer, "mtc_write",9) == 0)
-	mtc_write(buffer);
+        mtc_write(buffer);
     else if (strncmp(buffer, "add_cmd",7) == 0)
-	add_cmd(buffer);
+        add_cmd(buffer);
     else if (strncmp(buffer, "zdisc",5) == 0)
-	zdisc(buffer);
+        zdisc(buffer);
     else if (strncmp(buffer, "cgt_test_1",10) == 0)
-	cgt_test_1(buffer);
+        cgt_test_1(buffer);
     else if (strncmp(buffer, "fifo_test",9) == 0)
-	fifo_test(buffer);
+        fifo_test(buffer);
     else if (strncmp(buffer, "cmos_m_gtvalid",14) == 0)
-	cmos_m_gtvalid(buffer);
+        cmos_m_gtvalid(buffer);
     else if (strncmp(buffer, "send_softgt",11) == 0)
-	send_softgt();
+        send_softgt();
     else if (strncmp(buffer, "multi_softgt",11) == 0)
-	multi_softgt(1000);
+        multi_softgt(1000);
     else if (strncmp(buffer, "read_bundle",11) == 0)
-	read_bundle(buffer);
+        read_bundle(buffer);
     else if (strncmp(buffer, "cald_test",9) == 0)
-	cald_test(buffer);
+        cald_test(buffer);
     else if (strncmp(buffer, "change_delay",12) == 0)
-	changedelay(buffer);
+        changedelay(buffer);
     else if (strncmp(buffer, "sm_reset",8) == 0)
-	sm_reset(buffer);
+        sm_reset(buffer);
     else if (strncmp(buffer, "read_local_voltage",18) == 0)
-	read_local_voltage(buffer);
+        read_local_voltage(buffer);
     else if (strncmp(buffer, "ramp_voltage",12) == 0)
-	ramp_voltage(buffer);
+        ramp_voltage(buffer);
     else if (strncmp(buffer, "hv_readback",11) == 0)
-	hv_readback(buffer);
+        hv_readback(buffer);
     else if (strncmp(buffer, "hv_ramp_map",11) == 0)
-	hv_ramp_map(buffer);
+        hv_ramp_map(buffer);
     else if (strncmp(buffer, "mb_stability_test",17) == 0)
-	mb_stability_test(buffer);
+        mb_stability_test(buffer);
     else if (strncmp(buffer, "chinj_scan", 10) == 0)
-	chinj_scan(buffer);
+        chinj_scan(buffer);
     else if (strncmp(buffer, "set_gt_mask",11) == 0)
-	set_gt_mask_cmd(buffer);
+        set_gt_mask_cmd(buffer);
     else if (strncmp(buffer, "unset_gt_mask",11) == 0)
-	unset_gt_mask_cmd(buffer);
+        unset_gt_mask_cmd(buffer);
     else if (strncmp(buffer, "set_thresholds",14) == 0)
-	set_thresholds(buffer);
+        set_thresholds(buffer);
     else if (strncmp(buffer, "trigger_scan",12) == 0)
-	trigger_scan(buffer);
+        trigger_scan(buffer);
     else if (strncmp(buffer, "connect_to_SBC", 14) == 0){
-	kill_SBC_process();
-	connect_to_SBC(SBC_PORT, server);
+        kill_SBC_process();
+        connect_to_SBC(SBC_PORT, server);
     }
     else if (strncmp(buffer, "kill_SBC_process", 16) == 0)
-	kill_SBC_process();
+        kill_SBC_process();
     else if (strncmp(buffer, "clear_screen", 12) == 0){
-	system("clear");
-	print_send("new_daq: cleared screen\n", view_fdset);
+        system("clear");
+        print_send("new_daq: cleared screen\n", view_fdset);
     }
     //_!_end_commands_!_
     else
-	print_send("not a valid command\n", view_fdset);
+        print_send("not a valid command\n", view_fdset);
 
     return 0;
 }
@@ -675,9 +675,9 @@ int store_mega_bundle(int nbundles){ // a mega_bundle
     uint32_t *bundle;
     gettimeofday(&tv,0);
     if(count_d==0){
-	start_time = tv.tv_sec*1000000+tv.tv_usec;
-	rec_bytes=0;
-	rec_fake_bytes=0;
+        start_time = tv.tv_sec*1000000+tv.tv_usec;
+        rec_bytes=0;
+        rec_fake_bytes=0;
     }
     gettimeofday(&tv2,0);
     new_time = (tv2.tv_sec*1000000+tv2.tv_usec);
@@ -686,13 +686,13 @@ int store_mega_bundle(int nbundles){ // a mega_bundle
     rec_bytes+=nbundles*12;
     rec_fake_bytes+=(120-nbundles)*12;
     if(count_d%Nprint==0) {
-	dt= new_time-old_time;
-	old_time=new_time;
-	sprintf(psb, "recv %i \t %i \t %i \t %i \t ave %8.2f Mb/s \t d/dt %8.2f Mb/s (%.1f %% fake)\n",
-		count_d,nbundles,(int)rec_bytes,(int)delta_t,(float)(rec_bytes*8/(float)delta_t),
-		(float)(nbundles*12*8*Nprint/(float)dt),rec_fake_bytes/(float)(Nprint*120*12)*100.0);
-	print_send(psb, view_fdset);
-	rec_fake_bytes=0;
+        dt= new_time-old_time;
+        old_time=new_time;
+        sprintf(psb, "recv %i \t %i \t %i \t %i \t ave %8.2f Mb/s \t d/dt %8.2f Mb/s (%.1f %% fake)\n",
+                count_d,nbundles,(int)rec_bytes,(int)delta_t,(float)(rec_bytes*8/(float)delta_t),
+                (float)(nbundles*12*8*Nprint/(float)dt),rec_fake_bytes/(float)(Nprint*120*12)*100.0);
+        print_send(psb, view_fdset);
+        rec_fake_bytes=0;
     }
 }
 
@@ -718,9 +718,9 @@ int get_xl3_location(int value, int array[]){
      */
     int z;
     for(z = 0; z <= MAX_XL3_CON; z++){
-	if (array[z] == value){
-	    return z;
-	}
+        if (array[z] == value){
+            return z;
+        }
     }
     return -1;
 }
@@ -754,19 +754,19 @@ void sigint_func(int sig){
     print_send("new_daq: closing connections\n", view_fdset);
     int u;
     for(u = 0; u <= fdmax; u++){
-	if(FD_ISSET(u, &all_fdset)){
-	    close(u);
-	}
+        if(FD_ISSET(u, &all_fdset)){
+            close(u);
+        }
     }
     stop_logging();
     if(write_log){
-	print_send("new_daq: closing log\n", view_fdset);
-	if(ps_log_file){
-	    stop_logging();
-	}
-	else{
-	    print_send("No log file to close\n", view_fdset);
-	}
+        print_send("new_daq: closing log\n", view_fdset);
+        if(ps_log_file){
+            stop_logging();
+        }
+        else{
+            print_send("No log file to close\n", view_fdset);
+        }
     }
     exit(SUCCESS);
 }
@@ -783,22 +783,22 @@ void start_logging(){
        to /daq/LOGS.
      */
     if(!write_log){
-	write_log = 1;
-	char log_name[256] = {'\0'};	// random size, it's a pretty nice number though.
-	time_t curtime = time(NULL);
-	struct timeval moretime;
-	gettimeofday(&moretime,0);
-	struct tm *loctime = localtime(&curtime);
+        write_log = 1;
+        char log_name[256] = {'\0'};	// random size, it's a pretty nice number though.
+        time_t curtime = time(NULL);
+        struct timeval moretime;
+        gettimeofday(&moretime,0);
+        struct tm *loctime = localtime(&curtime);
 
-	strftime(log_name, 256, "%Y_%m_%d_%H_%M_%S_", loctime);
-	sprintf(log_name+strlen(log_name), "%d.log", (int)moretime.tv_usec);
-	ps_log_file = fopen(log_name, "a+");
-	sprintf(psb, "Enabled logging\n");
-	sprintf(psb+strlen(psb), "Opened log file: %s\n", log_name);
-	print_send(psb, view_fdset);
+        strftime(log_name, 256, "%Y_%m_%d_%H_%M_%S_", loctime);
+        sprintf(log_name+strlen(log_name), "%d.log", (int)moretime.tv_usec);
+        ps_log_file = fopen(log_name, "a+");
+        sprintf(psb, "Enabled logging\n");
+        sprintf(psb+strlen(psb), "Opened log file: %s\n", log_name);
+        print_send(psb, view_fdset);
     }
     else{
-	print_send("Logging already enabled\n", view_fdset);
+        print_send("Logging already enabled\n", view_fdset);
     }
 }
 
@@ -811,19 +811,19 @@ void stop_logging(){
        /daq/LOGS
      */
     if(write_log){
-	write_log = 0;
-	print_send("Disabled logging\n", view_fdset);
-	if(ps_log_file){
-	    print_send("Closed log file\n", view_fdset);
-	    fclose(ps_log_file);
-	    system("mv *.log ./logs");
-	}
-	else{
-	    print_send("\tNo log file to close\n", view_fdset);
-	}
+        write_log = 0;
+        print_send("Disabled logging\n", view_fdset);
+        if(ps_log_file){
+            print_send("Closed log file\n", view_fdset);
+            fclose(ps_log_file);
+            system("mv *.log ./logs");
+        }
+        else{
+            print_send("\tNo log file to close\n", view_fdset);
+        }
     }
     else{
-	print_send("Logging is already disabled\n", view_fdset);
+        print_send("Logging is already disabled\n", view_fdset);
     }
 }
 
@@ -832,12 +832,12 @@ void SwapLongBlock(void* p, int32_t n){
     int32_t* lp = (int32_t*)p;
     int32_t i;
     for(i=0;i<n;i++){
-	int32_t x = *lp;
-	*lp = (((x) & 0x000000FF) << 24) |
-	    (((x) & 0x0000FF00) << 8) |
-	    (((x) & 0x00FF0000) >> 8) |
-	    (((x) & 0xFF000000) >> 24);
-	lp++;
+        int32_t x = *lp;
+        *lp = (((x) & 0x000000FF) << 24) |
+            (((x) & 0x0000FF00) << 8) |
+            (((x) & 0x00FF0000) >> 8) |
+            (((x) & 0xFF000000) >> 24);
+        lp++;
     }
 #endif
 }
@@ -846,10 +846,10 @@ void SwapShortBlock(void* p, int32_t n){
     int16_t* sp = (int16_t*)p;
     int32_t i;
     for(i=0;i<n;i++){
-	int16_t x = *sp;
-	*sp = ((x & 0x00FF) << 8) |
-	    ((x & 0xFF00) >> 8) ;
-	sp++;
+        int16_t x = *sp;
+        *sp = ((x & 0x00FF) << 8) |
+            ((x & 0xFF00) >> 8) ;
+        sp++;
     }
 #endif
 }

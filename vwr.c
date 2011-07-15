@@ -27,7 +27,7 @@ pid_t pid;
 void *get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) {
-	return &(((struct sockaddr_in*)sa)->sin_addr);
+        return &(((struct sockaddr_in*)sa)->sin_addr);
     }
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
     char s[INET6_ADDRSTRLEN];
 
     if (argc != 3) {
-	fprintf(stderr,"takes two arguments: hostname port\n");
-	leave(SIGINT);
+        fprintf(stderr,"takes two arguments: hostname port\n");
+        leave(SIGINT);
     }
 
     memset(&hints, 0, sizeof hints);
@@ -57,34 +57,34 @@ int main(int argc, char *argv[])
     hints.ai_socktype = SOCK_STREAM;
 
     if ((rv = getaddrinfo(argv[1], argv[2], &hints, &servinfo)) != 0) {
-	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-	leave(SIGINT);
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+        leave(SIGINT);
     }
 
     // loop through all the results and connect to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
-	if ((sockfd = socket(p->ai_family, p->ai_socktype,
-			p->ai_protocol)) == -1) {
-	    perror("VWR: socket");
-	    continue;
-	}
+        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                        p->ai_protocol)) == -1) {
+            perror("VWR: socket");
+            continue;
+        }
 
-	if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-	    close(sockfd);
-	    perror("VWR: connect");
-	    continue;
-	}
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            perror("VWR: connect");
+            continue;
+        }
 
-	break;
+        break;
     }
 
     if (p == NULL) {
-	fprintf(stderr, "VWR: failed to connect\n");
-	leave(SIGINT);
+        fprintf(stderr, "VWR: failed to connect\n");
+        leave(SIGINT);
     }
 
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
-	    s, sizeof s);
+            s, sizeof s);
     printf("VWR: a simple VieWeR program\n");
     printf("CONNECTED TO  %s:%s\n", s, argv[2]);
     printf("******************************\n");
@@ -93,19 +93,19 @@ int main(int argc, char *argv[])
 
     char response[MAXDATASIZE];
     while(1){
-	memset(response, '\0', MAXDATASIZE);	// clear the response buffer
-	numbytes = recv(sockfd, response, MAXDATASIZE-1, 0);
-	if (numbytes > 0){
-	    if(strncmp(response, "new_daq: cleared screen", 23) == 0){
-		system("clear");
-	    }
-	    write(1, response, MAXDATASIZE);
-	    //write(1, "\n", 1);
-	}
-	else if (numbytes == 0){
-	    printf("VWR: connection closed by server\n");
-	    break;
-	}
+        memset(response, '\0', MAXDATASIZE);	// clear the response buffer
+        numbytes = recv(sockfd, response, MAXDATASIZE-1, 0);
+        if (numbytes > 0){
+            if(strncmp(response, "new_daq: cleared screen", 23) == 0){
+                system("clear");
+            }
+            write(1, response, MAXDATASIZE);
+            //write(1, "\n", 1);
+        }
+        else if (numbytes == 0){
+            printf("VWR: connection closed by server\n");
+            break;
+        }
     }
     leave(SIGINT);
     return 0;

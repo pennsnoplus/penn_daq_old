@@ -150,11 +150,11 @@ void reset_memory();
 
 
 int setup_pedestals(float pulser_freq, uint32_t pedestal_width, /* in ns */
-	uint32_t coarse_delay, uint32_t fine_delay);
+        uint32_t coarse_delay, uint32_t fine_delay);
 
 
 int prepare_mtc_pedestals(float pulser_freq, /* in Hz */
-	uint16_t pedestal_width, uint16_t coarse_delay, uint16_t fine_delay /* in ns */);
+        uint16_t pedestal_width, uint16_t coarse_delay, uint16_t fine_delay /* in ns */);
 
 void enable_pedestal();
 void disable_pedestal();

@@ -105,5 +105,5 @@ FEC32PMTBundle MakeBundleFromData(uint32_t *buffer);
 int ExtPulser(unsigned long NumPulses);
 
 unsigned int sGetBits(unsigned long value, unsigned int bit_start,
-	unsigned int num_bits);
+        unsigned int num_bits);
 

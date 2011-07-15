@@ -19,7 +19,7 @@ int get_new_id(char* newid)
     json_delete(newerid);
     pr_free(pr);
     if (ret){
-	return 0;
+        return 0;
     }
     return 1;
 }
@@ -49,25 +49,25 @@ int parse_mtc(JsonNode* value,mtc_t* mtc)
     mtc->mtcd.control_mask = strtoul(json_get_string(json_find_member(mtcd,"control_mask")),(char**) NULL, 16);
 
     for (i=0;i<6;i++){
-	sprintf(mtc->mtca.triggers[i].id,"%s",json_get_string(json_find_element(json_find_member(nhit,"id"),i)));
-	mtc->mtca.triggers[i].threshold = (int)json_get_number(json_find_element(json_find_member(nhit,"threshold"),i));
-	mtc->mtca.triggers[i].mv_per_adc = (int)json_get_number(json_find_element(json_find_member(nhit,"mv_per_adc"),i));
-	mtc->mtca.triggers[i].mv_per_hit = (int)json_get_number(json_find_element(json_find_member(nhit,"mv_per_hit"),i));
-	mtc->mtca.triggers[i].dc_offset = (int)json_get_number(json_find_element(json_find_member(nhit,"dc_offset"),i));
+        sprintf(mtc->mtca.triggers[i].id,"%s",json_get_string(json_find_element(json_find_member(nhit,"id"),i)));
+        mtc->mtca.triggers[i].threshold = (int)json_get_number(json_find_element(json_find_member(nhit,"threshold"),i));
+        mtc->mtca.triggers[i].mv_per_adc = (int)json_get_number(json_find_element(json_find_member(nhit,"mv_per_adc"),i));
+        mtc->mtca.triggers[i].mv_per_hit = (int)json_get_number(json_find_element(json_find_member(nhit,"mv_per_hit"),i));
+        mtc->mtca.triggers[i].dc_offset = (int)json_get_number(json_find_element(json_find_member(nhit,"dc_offset"),i));
     }
     for (i=0;i<4;i++){
-	sprintf(mtc->mtca.triggers[i+6].id,"%s",json_get_string(json_find_element(json_find_member(esum,"id"),i)));
-	mtc->mtca.triggers[i+6].threshold = (int)json_get_number(json_find_element(json_find_member(esum,"threshold"),i));
-	mtc->mtca.triggers[i+6].mv_per_adc = (int)json_get_number(json_find_element(json_find_member(esum,"mv_per_adc"),i));
-	mtc->mtca.triggers[i+6].mv_per_hit = (int)json_get_number(json_find_element(json_find_member(esum,"mv_per_hit"),i));
-	mtc->mtca.triggers[i+6].dc_offset = (int)json_get_number(json_find_element(json_find_member(esum,"dc_offset"),i));
+        sprintf(mtc->mtca.triggers[i+6].id,"%s",json_get_string(json_find_element(json_find_member(esum,"id"),i)));
+        mtc->mtca.triggers[i+6].threshold = (int)json_get_number(json_find_element(json_find_member(esum,"threshold"),i));
+        mtc->mtca.triggers[i+6].mv_per_adc = (int)json_get_number(json_find_element(json_find_member(esum,"mv_per_adc"),i));
+        mtc->mtca.triggers[i+6].mv_per_hit = (int)json_get_number(json_find_element(json_find_member(esum,"mv_per_hit"),i));
+        mtc->mtca.triggers[i+6].dc_offset = (int)json_get_number(json_find_element(json_find_member(esum,"dc_offset"),i));
     }
     for (i=0;i<4;i++){
-	sprintf(mtc->mtca.triggers[i+10].id,"%s",json_get_string(json_find_element(json_find_member(spare,"id"),i)));
-	mtc->mtca.triggers[i+10].threshold = (int)json_get_number(json_find_element(json_find_member(spare,"threshold"),i));
-	mtc->mtca.triggers[i+10].mv_per_adc = (int)json_get_number(json_find_element(json_find_member(spare,"mv_per_adc"),i));
-	mtc->mtca.triggers[i+10].mv_per_hit = (int)json_get_number(json_find_element(json_find_member(spare,"mv_per_hit"),i));
-	mtc->mtca.triggers[i+10].dc_offset = (int)json_get_number(json_find_element(json_find_member(spare,"dc_offset"),i));
+        sprintf(mtc->mtca.triggers[i+10].id,"%s",json_get_string(json_find_element(json_find_member(spare,"id"),i)));
+        mtc->mtca.triggers[i+10].threshold = (int)json_get_number(json_find_element(json_find_member(spare,"threshold"),i));
+        mtc->mtca.triggers[i+10].mv_per_adc = (int)json_get_number(json_find_element(json_find_member(spare,"mv_per_adc"),i));
+        mtc->mtca.triggers[i+10].mv_per_hit = (int)json_get_number(json_find_element(json_find_member(spare,"mv_per_hit"),i));
+        mtc->mtca.triggers[i+10].dc_offset = (int)json_get_number(json_find_element(json_find_member(spare,"dc_offset"),i));
     }
     return 0;
 }
@@ -76,16 +76,16 @@ int parse_test(JsonNode* test,mb_t* mb,int cbal,int zdisc,int all)
 {
     int j,k;
     if (cbal == 1 || all == 1){
-	for (j=0;j<2;j++){
-	    for (k=0;k<32;k++){
-		mb->vbal[j][k] = (int)json_get_number(json_find_element(json_find_element(json_find_member(test,"vbal"),j),k)); 
-	    }
-	}
+        for (j=0;j<2;j++){
+            for (k=0;k<32;k++){
+                mb->vbal[j][k] = (int)json_get_number(json_find_element(json_find_element(json_find_member(test,"vbal"),j),k)); 
+            }
+        }
     }
     if (zdisc == 1 || all == 1){
-	for (k=0;k<32;k++){
-	    mb->vthr[k] = (int)json_get_number(json_find_element(json_find_member(test,"vthr"),k)); 
-	}
+        for (k=0;k<32;k++){
+            mb->vthr[k] = (int)json_get_number(json_find_element(json_find_member(test,"vthr"),k)); 
+        }
     }
     return 0;
 }
@@ -94,53 +94,53 @@ int parse_fec_debug(JsonNode* value,mb_t* mb)
 {
     int j,k;
     for (j=0;j<2;j++){
-	for (k=0;k<32;k++){
-	    mb->vbal[j][k] = (int)json_get_number(json_find_element(json_find_element(json_find_member(value,"vbal"),j),k)); 
-	    //printf("[%d,%d] - %d\n",j,k,mb->vbal[j][k]);
-	}
+        for (k=0;k<32;k++){
+            mb->vbal[j][k] = (int)json_get_number(json_find_element(json_find_element(json_find_member(value,"vbal"),j),k)); 
+            //printf("[%d,%d] - %d\n",j,k,mb->vbal[j][k]);
+        }
     }
     for (k=0;k<32;k++){
-	mb->vthr[k] = (int)json_get_number(json_find_element(json_find_member(value,"vthr"),k)); 
-	//printf("[%d] - %d\n",k,mb->vthr[k]);
+        mb->vthr[k] = (int)json_get_number(json_find_element(json_find_member(value,"vthr"),k)); 
+        //printf("[%d] - %d\n",k,mb->vthr[k]);
     }
     for (j=0;j<8;j++){
-	mb->tdisc.rmp[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"rmp"),j));	
-	mb->tdisc.rmpup[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"rmpup"),j));	
-	mb->tdisc.vsi[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"vsi"),j));	
-	mb->tdisc.vli[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"vli"),j));	
-	//printf("[%d] - %d %d %d %d\n",j,mb->tdisc.rmp[j],mb_consts->tdisc.rmpup[j],mb_consts->tdisc.vsi[j],mb_consts->tdisc.vli[j]);
+        mb->tdisc.rmp[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"rmp"),j));	
+        mb->tdisc.rmpup[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"rmpup"),j));	
+        mb->tdisc.vsi[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"vsi"),j));	
+        mb->tdisc.vli[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tdisc"),"vli"),j));	
+        //printf("[%d] - %d %d %d %d\n",j,mb->tdisc.rmp[j],mb_consts->tdisc.rmpup[j],mb_consts->tdisc.vsi[j],mb_consts->tdisc.vli[j]);
     }
     mb->tcmos.vmax = (int)json_get_number(json_find_member(json_find_member(value,"tcmos"),"vmax"));
     mb->tcmos.tacref = (int)json_get_number(json_find_member(json_find_member(value,"tcmos"),"tacref"));
     //printf("%d %d\n",mb->tcmos.vmax,mb_consts->tcmos.tacref);
     for (j=0;j<2;j++){
-	mb->tcmos.isetm[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tcmos"),"isetm"),j));
-	mb->tcmos.iseta[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tcmos"),"iseta"),j));
-	//printf("[%d] - %d %d\n",j,mb->tcmos.isetm[j],mb_consts->tcmos.iseta[j]);
+        mb->tcmos.isetm[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tcmos"),"isetm"),j));
+        mb->tcmos.iseta[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tcmos"),"iseta"),j));
+        //printf("[%d] - %d %d\n",j,mb->tcmos.isetm[j],mb_consts->tcmos.iseta[j]);
     }
     for (j=0;j<32;j++){
-	mb->tcmos.tac_shift[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tcmos"),"tac_shift"),j));
-	//printf("[%d] - %d\n",j,mb->tcmos.tac_shift[j]);
+        mb->tcmos.tac_shift[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tcmos"),"tac_shift"),j));
+        //printf("[%d] - %d\n",j,mb->tcmos.tac_shift[j]);
     }
     mb->vint = (int)json_get_number(json_find_member(value,"vint"));
     mb->hvref = (int)json_get_number(json_find_member(value,"hvref"));
     //printf("%d %d\n",mb->vres,mb_consts->hvref);
     for (j=0;j<32;j++){
-	mb->tr100.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr100"),"mask"),j));
-	mb->tr100.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr100"),"delay"),j));
-	mb->tr20.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr20"),"mask"),j));
-	mb->tr20.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr20"),"delay"),j));
-	mb->tr20.twidth[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr20"),"width"),j));
-	//printf("[%d] - %d %d %d %d %d\n",j,mb->tr100.mask[j],mb_consts->tr100.tdelay[j],mb_consts->tr20.tdelay[j],mb_consts->tr20.twidth[j]);
+        mb->tr100.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr100"),"mask"),j));
+        mb->tr100.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr100"),"delay"),j));
+        mb->tr20.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr20"),"mask"),j));
+        mb->tr20.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr20"),"delay"),j));
+        mb->tr20.twidth[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(value,"tr20"),"width"),j));
+        //printf("[%d] - %d %d %d %d %d\n",j,mb->tr100.mask[j],mb_consts->tr100.tdelay[j],mb_consts->tr20.tdelay[j],mb_consts->tr20.twidth[j]);
     }
     for (j=0;j<32;j++){
-	mb->scmos[j] = (int)json_get_number(json_find_element(json_find_member(value,"scmos"),j));
-	//printf("[%d] - %d\n",j,mb->scmos[j]);
+        mb->scmos[j] = (int)json_get_number(json_find_element(json_find_member(value,"scmos"),j));
+        //printf("[%d] - %d\n",j,mb->scmos[j]);
     }
     mb->disable_mask = 0x0;
     for (j=0;j<32;j++){
-	if ((int)json_get_number(json_find_element(json_find_member(value,"chan_disable"),j)) != 0)
-	    mb->disable_mask |= (0x1<<j);
+        if ((int)json_get_number(json_find_element(json_find_member(value,"chan_disable"),j)) != 0)
+            mb->disable_mask |= (0x1<<j);
     }
 
     return 0;
@@ -159,53 +159,53 @@ int parse_fec_hw(JsonNode* value,mb_t* mb)
     mb->dc_id[3] = strtoul(json_get_string(json_find_member(json_find_member(hw,"id"),"db3")),(char**)NULL,16);
     //printf("%04x,%04x,%04x,%04x\n",mb->mb_id,mb_consts->dc_id[0],mb_consts->dc_id[1],mb_consts->dc_id[2],mb_consts->dc_id[3]);
     for (j=0;j<2;j++){
-	for (k=0;k<32;k++){
-	    mb->vbal[j][k] = (int)json_get_number(json_find_element(json_find_element(json_find_member(hw,"vbal"),j),k)); 
-	    //printf("[%d,%d] - %d\n",j,k,mb->vbal[j][k]);
-	}
+        for (k=0;k<32;k++){
+            mb->vbal[j][k] = (int)json_get_number(json_find_element(json_find_element(json_find_member(hw,"vbal"),j),k)); 
+            //printf("[%d,%d] - %d\n",j,k,mb->vbal[j][k]);
+        }
     }
     for (k=0;k<32;k++){
-	mb->vthr[k] = (int)json_get_number(json_find_element(json_find_member(hw,"vthr"),k)); 
-	//printf("[%d] - %d\n",k,mb->vthr[k]);
+        mb->vthr[k] = (int)json_get_number(json_find_element(json_find_member(hw,"vthr"),k)); 
+        //printf("[%d] - %d\n",k,mb->vthr[k]);
     }
     for (j=0;j<8;j++){
-	mb->tdisc.rmp[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"rmp"),j));	
-	mb->tdisc.rmpup[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"rmpup"),j));	
-	mb->tdisc.vsi[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"vsi"),j));	
-	mb->tdisc.vli[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"vli"),j));	
-	//printf("[%d] - %d %d %d %d\n",j,mb->tdisc.rmp[j],mb_consts->tdisc.rmpup[j],mb_consts->tdisc.vsi[j],mb_consts->tdisc.vli[j]);
+        mb->tdisc.rmp[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"rmp"),j));	
+        mb->tdisc.rmpup[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"rmpup"),j));	
+        mb->tdisc.vsi[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"vsi"),j));	
+        mb->tdisc.vli[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tdisc"),"vli"),j));	
+        //printf("[%d] - %d %d %d %d\n",j,mb->tdisc.rmp[j],mb_consts->tdisc.rmpup[j],mb_consts->tdisc.vsi[j],mb_consts->tdisc.vli[j]);
     }
     mb->tcmos.vmax = (int)json_get_number(json_find_member(json_find_member(hw,"tcmos"),"vmax"));
     mb->tcmos.tacref = (int)json_get_number(json_find_member(json_find_member(hw,"tcmos"),"tacref"));
     //printf("%d %d\n",mb->tcmos.vmax,mb_consts->tcmos.tacref);
     for (j=0;j<2;j++){
-	mb->tcmos.isetm[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tcmos"),"isetm"),j));
-	mb->tcmos.iseta[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tcmos"),"iseta"),j));
-	//printf("[%d] - %d %d\n",j,mb->tcmos.isetm[j],mb_consts->tcmos.iseta[j]);
+        mb->tcmos.isetm[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tcmos"),"isetm"),j));
+        mb->tcmos.iseta[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tcmos"),"iseta"),j));
+        //printf("[%d] - %d %d\n",j,mb->tcmos.isetm[j],mb_consts->tcmos.iseta[j]);
     }
     for (j=0;j<32;j++){
-	mb->tcmos.tac_shift[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tcmos"),"tac_shift"),j));
-	//printf("[%d] - %d\n",j,mb->tcmos.tac_shift[j]);
+        mb->tcmos.tac_shift[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tcmos"),"tac_shift"),j));
+        //printf("[%d] - %d\n",j,mb->tcmos.tac_shift[j]);
     }
     mb->vint = (int)json_get_number(json_find_member(hw,"vint"));
     mb->hvref = (int)json_get_number(json_find_member(hw,"hvref"));
     //printf("%d %d\n",mb->vres,mb_consts->hvref);
     for (j=0;j<32;j++){
-	mb->tr100.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr100"),"mask"),j));
-	mb->tr100.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr100"),"delay"),j));
-	mb->tr20.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr20"),"mask"),j));
-	mb->tr20.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr20"),"delay"),j));
-	mb->tr20.twidth[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr20"),"width"),j));
-	//printf("[%d] - %d %d %d %d %d\n",j,mb->tr100.mask[j],mb_consts->tr100.tdelay[j],mb_consts->tr20.tdelay[j],mb_consts->tr20.twidth[j]);
+        mb->tr100.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr100"),"mask"),j));
+        mb->tr100.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr100"),"delay"),j));
+        mb->tr20.mask[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr20"),"mask"),j));
+        mb->tr20.tdelay[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr20"),"delay"),j));
+        mb->tr20.twidth[j] = (int)json_get_number(json_find_element(json_find_member(json_find_member(hw,"tr20"),"width"),j));
+        //printf("[%d] - %d %d %d %d %d\n",j,mb->tr100.mask[j],mb_consts->tr100.tdelay[j],mb_consts->tr20.tdelay[j],mb_consts->tr20.twidth[j]);
     }
     for (j=0;j<32;j++){
-	mb->scmos[j] = (int)json_get_number(json_find_element(json_find_member(hw,"scmos"),j));
-	//printf("[%d] - %d\n",j,mb->scmos[j]);
+        mb->scmos[j] = (int)json_get_number(json_find_element(json_find_member(hw,"scmos"),j));
+        //printf("[%d] - %d\n",j,mb->scmos[j]);
     }
     mb->disable_mask = 0x0;
     for (j=0;j<32;j++){
-	if ((int)json_get_number(json_find_element(json_find_member(hw,"chan_disable"),j)) != 0)
-	    mb->disable_mask |= (0x1<<j);
+        if ((int)json_get_number(json_find_element(json_find_member(hw,"chan_disable"),j)) != 0)
+            mb->disable_mask |= (0x1<<j);
     }
     return 0;
 
@@ -257,12 +257,12 @@ int post_debug_doc(int crate, int card, JsonNode* doc)
     pr_do(post_response);
     int ret = 0;
     if (post_response->httpresponse != 201){
-	printf("error code %d\n",(int)post_response->httpresponse);
-	ret = -1;
+        printf("error code %d\n",(int)post_response->httpresponse);
+        ret = -1;
     }
     pr_free(post_response);
     if(*data){
-	free(data);
+        free(data);
     }
     return ret;
 };
@@ -304,12 +304,12 @@ int post_debug_doc_with_id(int crate, int card, char *id, JsonNode* doc)
     pr_do(post_response);
     int ret = 0;
     if (post_response->httpresponse != 201){
-	printf("error code %d\n",(int)post_response->httpresponse);
-	ret = -1;
+        printf("error code %d\n",(int)post_response->httpresponse);
+        ret = -1;
     }
     pr_free(post_response);
     if(*data){
-	free(data);
+        free(data);
     }
     return 0;
 };

@@ -26,16 +26,16 @@ char *combine(char **out, char *f, char *s, char *sep){
     length += strlen(f);
     length += strlen(s);
     if(sep)
-	length += strlen(sep);
+        length += strlen(sep);
     length++; // must have room for terminating \0
     char buf[length];
     if(sep)
-	sprintf(buf, "%s%s%s", f, sep, s);
+        sprintf(buf, "%s%s%s", f, sep, s);
     else
-	sprintf(buf, "%s%s", f, s);
+        sprintf(buf, "%s%s", f, s);
     buf[length-1] = '\0'; // null terminate
     if(*out){
-	free(*out);
+        free(*out);
     }
     *out = (char *)malloc(length);
     memcpy(*out, buf, length);
@@ -75,7 +75,7 @@ pouch_request *pr_set_method(pouch_request *pr, char *method){
      */
     size_t length = strlen(method)+1; // include '\0' terminator
     if (pr->method)
-	free(pr->method);
+        free(pr->method);
     pr->method = (char *)malloc(length); // allocate space
     memcpy(pr->method, method, length);	 // copy the method
     return pr;
@@ -87,7 +87,7 @@ pouch_request *pr_set_url(pouch_request *pr, char *url){
      */
     size_t length = strlen(url)+1; // include '\0' terminator
     if (pr->url)	// if there is an older url, get rid of it
-	free(pr->url);
+        free(pr->url);
     pr->url = (char *)malloc(length); // allocate space
     memcpy(pr->url, url, length);	  // copy the new url
 
@@ -103,7 +103,7 @@ pouch_request *pr_set_data(pouch_request *pr, char *str){
      */
     size_t length = strlen(str);
     if (pr->req.data){	// free older data
-	free(pr->req.data);
+        free(pr->req.data);
     }
     pr->req.data = (char *)malloc(length+1);	// allocate space, include '\0'
     memset(pr->req.data, '\0', length+1);		// write nulls to the new space
@@ -119,7 +119,7 @@ pouch_request *pr_set_data(pouch_request *pr, char *str){
 }
 pouch_request *pr_set_bdata(pouch_request *pr, void *dat, size_t length){
     if (pr->req.data){
-	free(pr->req.data);
+        free(pr->req.data);
     }
     pr->req.data = (char *)malloc(length);
     memcpy(pr->req.data, dat, length);
@@ -139,17 +139,17 @@ void pr_free(pouch_request *pr){
        leaks secret documents.
      */
     if (pr->resp.data){			// free response
-	free(pr->resp.data);
+        free(pr->resp.data);
     }if (pr->req.data){
-	free(pr->req.data);		// free request
+        free(pr->req.data);		// free request
     }if (pr->method){			// free method string
-	free(pr->method);
+        free(pr->method);
     }if (pr->url){				// free URL string
-	free(pr->url);
+        free(pr->url);
     }if (pr->headers){
-	curl_slist_free_all(pr->headers);	// free headers
+        curl_slist_free_all(pr->headers);	// free headers
     }if (pr->usrpwd){
-	free(pr->usrpwd);
+        free(pr->usrpwd);
     }
     free(pr);				// free structure
 }
@@ -160,8 +160,8 @@ pouch_request *pr_clear_data(pouch_request *pr){
        data buffer, if it exists.
      */
     if (pr->req.data){
-	free(pr->req.data);
-	pr->req.data = NULL;
+        free(pr->req.data);
+        pr->req.data = NULL;
     }
     pr->req.size = 0;
     return pr;
@@ -176,12 +176,12 @@ size_t recv_data_callback(char *ptr, size_t size, size_t nmemb, void *data){
     pouch_request *pr = (pouch_request *)data;
     pr->resp.data = (char *)realloc(pr->resp.data, pr->resp.size + ptrsize +1);
     if (pr->resp.data){	// realloc was successful
-	memcpy(&(pr->resp.data[pr->resp.size]), ptr, ptrsize); // append new data
-	pr->resp.size += ptrsize;
-	pr->resp.data[pr->resp.size] = '\0'; // null terminate the new data
+        memcpy(&(pr->resp.data[pr->resp.size]), ptr, ptrsize); // append new data
+        pr->resp.size += ptrsize;
+        pr->resp.data[pr->resp.size] = '\0'; // null terminate the new data
     }
     else { // realloc was NOT successful
-	fprintf(stderr, "recv_data_callback: realloc failed\n");
+        fprintf(stderr, "recv_data_callback: realloc failed\n");
     }
     return ptrsize; // theoretically, this is the amount of processed data
 }
@@ -194,15 +194,15 @@ size_t send_data_callback(void *ptr, size_t size, size_t nmemb, void *data){
      */
     size_t maxcopysize = nmemb*size;
     if (maxcopysize < 1){
-	return 0;
+        return 0;
     }
     pouch_request *pr = (pouch_request *)data;
     if (pr->req.size > 0){ // only send data if there's data to send
-	size_t tocopy = (pr->req.size > maxcopysize) ? maxcopysize : pr->req.size;
-	memcpy(ptr, pr->req.offset, tocopy);
-	pr->req.offset += tocopy;	// advance our offset by the number of bytes already sent
-	pr->req.size -= tocopy;	//next time there are tocopy fewer bytes to copy
-	return tocopy;
+        size_t tocopy = (pr->req.size > maxcopysize) ? maxcopysize : pr->req.size;
+        memcpy(ptr, pr->req.offset, tocopy);
+        pr->req.offset += tocopy;	// advance our offset by the number of bytes already sent
+        pr->req.size -= tocopy;	//next time there are tocopy fewer bytes to copy
+        return tocopy;
     }
     return 0;
 }
@@ -213,7 +213,7 @@ pouch_request *pr_do(pouch_request *pr){
 
     // empty the response buffer
     if (pr->resp.data){
-	free(pr->resp.data);
+        free(pr->resp.data);
     }
     pr->resp.data = NULL;
     pr->resp.size = 0;
@@ -221,65 +221,65 @@ pouch_request *pr_do(pouch_request *pr){
     // initialize the CURL object
     curl = curl_easy_init();
     if (curl){
-	// Print the request
-	//printf("%s : %s\n", pr->method, pr->url);
+        // Print the request
+        //printf("%s : %s\n", pr->method, pr->url);
 
-	// setup the CURL object/request
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, "pouch/0.1");				// add user-agent
-	curl_easy_setopt(curl, CURLOPT_URL, pr->url);						// where to send this request
-	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2);					// Timeouts
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2);
-	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, recv_data_callback);	// where to store the response
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)pr);
-	if(pr->usrpwd){	// if there's a valid auth string, use it
-	    curl_easy_setopt(curl, CURLOPT_USERPWD, pr->usrpwd);
-	}
+        // setup the CURL object/request
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "pouch/0.1");				// add user-agent
+        curl_easy_setopt(curl, CURLOPT_URL, pr->url);						// where to send this request
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2);					// Timeouts
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 2);
+        curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, recv_data_callback);	// where to store the response
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)pr);
+        if(pr->usrpwd){	// if there's a valid auth string, use it
+            curl_easy_setopt(curl, CURLOPT_USERPWD, pr->usrpwd);
+        }
 
-	if (pr->req.data && pr->req.size > 0){ // check for data upload
-	    //printf("--> %s\n", pr->req.data);
-	    // let CURL know what data to send
-	    curl_easy_setopt(curl, CURLOPT_READFUNCTION, send_data_callback);
-	    curl_easy_setopt(curl, CURLOPT_READDATA, (void *)pr);
-	}
+        if (pr->req.data && pr->req.size > 0){ // check for data upload
+            //printf("--> %s\n", pr->req.data);
+            // let CURL know what data to send
+            curl_easy_setopt(curl, CURLOPT_READFUNCTION, send_data_callback);
+            curl_easy_setopt(curl, CURLOPT_READDATA, (void *)pr);
+        }
 
-	if (!strncmp(pr->method, PUT, 3)){ // PUT-specific option
-	    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
-	    // Note: Content-Type: application/json is automatically assumed
-	}
-	else if (!strncmp(pr->method, POST, 4)){ // POST-specific options
-	    curl_easy_setopt(curl, CURLOPT_POST, 1);
-	    pr_add_header(pr, "Content-Type: application/json");
-	}
+        if (!strncmp(pr->method, PUT, 3)){ // PUT-specific option
+            curl_easy_setopt(curl, CURLOPT_UPLOAD, 1);
+            // Note: Content-Type: application/json is automatically assumed
+        }
+        else if (!strncmp(pr->method, POST, 4)){ // POST-specific options
+            curl_easy_setopt(curl, CURLOPT_POST, 1);
+            pr_add_header(pr, "Content-Type: application/json");
+        }
 
-	if (!strncmp(pr->method, HEAD, 4)){ // HEAD-specific options
-	    curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
-	    curl_easy_setopt(curl, CURLOPT_HEADER, 1);
-	}
-	else {
-	    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, pr->method);
-	} // THIS FIXED HEAD REQUESTS
+        if (!strncmp(pr->method, HEAD, 4)){ // HEAD-specific options
+            curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
+            curl_easy_setopt(curl, CURLOPT_HEADER, 1);
+        }
+        else {
+            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, pr->method);
+        } // THIS FIXED HEAD REQUESTS
 
-	// add the custom headers
-	pr_add_header(pr, "Transfer-Encoding: chunked");
-	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, pr->headers);
+        // add the custom headers
+        pr_add_header(pr, "Transfer-Encoding: chunked");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, pr->headers);
 
-	// make the request and store the response
-	pr->curlcode = curl_easy_perform(curl);
+        // make the request and store the response
+        pr->curlcode = curl_easy_perform(curl);
     }
     else{
-	// if we were unable to initialize a CURL object
-	pr->curlcode = 2;
+        // if we were unable to initialize a CURL object
+        pr->curlcode = 2;
     }
     // clean up
     if (pr->headers){
-	curl_slist_free_all(pr->headers);	// free headers
-	pr->headers = NULL;
+        curl_slist_free_all(pr->headers);	// free headers
+        pr->headers = NULL;
     }
     if (!pr->curlcode){
-	pr->curlcode = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &pr->httpresponse);
-	if (pr->curlcode != CURLE_OK)
-	    pr->httpresponse = 500;
+        pr->curlcode = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &pr->httpresponse);
+        if (pr->curlcode != CURLE_OK)
+            pr->httpresponse = 500;
     }
     curl_easy_cleanup(curl);		// clean up the curl object
 
@@ -296,12 +296,12 @@ pouch_request *pr_add_param(pouch_request *pr, char *key, char *value){
        regardless of whether or not other parameters already exist.
      */
     pr->url = (char *)realloc(pr->url, // 3: new ? or &, new =, new '\0'
-	    strlen(pr->url) + 3 + sizeof(char)*(strlen(key)+strlen(value)));
+            strlen(pr->url) + 3 + sizeof(char)*(strlen(key)+strlen(value)));
     if (strchr(pr->url, '?') == NULL){
-	strcat(pr->url, "?");
+        strcat(pr->url, "?");
     }
     else{
-	strcat(pr->url, "&");
+        strcat(pr->url, "&");
     }
     strcat(pr->url, key);
     strcat(pr->url, "=");
@@ -316,12 +316,12 @@ pouch_request *pr_clear_params(pouch_request *pr){
      */
     char *div;
     if ( (div = strchr(pr->url, '?')) != NULL){ // if there are any params
-	char *temp = &pr->url[strlen(pr->url)]; // end of the string
-	while (*temp != '?'){
-	    *temp = '\0'; // wipe out the old character
-	    temp--;	// move back another character
-	}
-	*temp = '\0'; // get rid of the ?
+        char *temp = &pr->url[strlen(pr->url)]; // end of the string
+        while (*temp != '?'){
+            *temp = '\0'; // wipe out the old character
+            temp--;	// move back another character
+        }
+        *temp = '\0'; // get rid of the ?
     }
     return pr;
 }
@@ -535,7 +535,7 @@ pouch_request *doc_copy(pouch_request *pr, char *server, char *db, char *id, cha
     char *headerstr = NULL;
     headerstr = combine(&headerstr, "Destination: ", newid, NULL);
     if (revision != NULL) {
-	headerstr = combine(&headerstr, headerstr, revision, "?rev=");
+        headerstr = combine(&headerstr, headerstr, revision, "?rev=");
     }
     pr_add_header(pr, headerstr);
     free(headerstr);
@@ -583,13 +583,13 @@ pouch_request *doc_add_attachment(pouch_request *pr, char *server, char *db, cha
     struct stat file_info;
     int fd = open(filename, O_RDONLY);
     if (!fd) {
-	fprintf(stderr, "doc_upload_attachment: could not open file %s\n", filename);
+        fprintf(stderr, "doc_upload_attachment: could not open file %s\n", filename);
     }
     if (lstat(filename, &file_info) != 0){
-	fprintf(stderr, "doc_upload_attachment: could not lstat file %s\n", filename);
-	return pr;
-	// TODO: include an "error" integer in each pouch_request, to be set
-	//		 by different wrapper functions
+        fprintf(stderr, "doc_upload_attachment: could not lstat file %s\n", filename);
+        return pr;
+        // TODO: include an "error" integer in each pouch_request, to be set
+        //		 by different wrapper functions
     }
     // read file into buffer
     size_t fd_len = file_info.st_size;
@@ -608,12 +608,12 @@ pouch_request *doc_add_attachment(pouch_request *pr, char *server, char *db, cha
     // store the mime type to a buffer
     char *mtype;
     if ( (mtype = strchr(comdet, ' ')) == NULL){
-	fprintf(stderr, "could not get mimetype\n");
+        fprintf(stderr, "could not get mimetype\n");
     }
     mtype++;
     char *endmtype;
     if ( (endmtype = strchr(mtype, '\n')) == NULL){
-	fprintf(stderr, "could not get end of mimetype\n");
+        fprintf(stderr, "could not get end of mimetype\n");
     }
     char ct[strlen("Content-Type: ")+(endmtype-mtype)+1];
     snprintf(ct, strlen("Content-Type: ")+(size_t)(endmtype-mtype)+1, "Content-Type: %s", mtype);
@@ -636,9 +636,9 @@ pouch_request *doc_add_attachment(pouch_request *pr, char *server, char *db, cha
     return pr;
 }
     pouch_request *pr_add_usrpwd(pouch_request *pr, char *usrpwd, size_t length){
-	if (pr->usrpwd)
-	    free(pr->usrpwd);
-	pr->usrpwd = (char *)malloc(length);
-	memcpy(pr->usrpwd, usrpwd, length);
-	return pr;
+        if (pr->usrpwd)
+            free(pr->usrpwd);
+        pr->usrpwd = (char *)malloc(length);
+        memcpy(pr->usrpwd, usrpwd, length);
+        return pr;
     }

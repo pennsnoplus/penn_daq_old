@@ -24,7 +24,7 @@ int trigger_scan(char *buffer)
         return -1;
     }
 
-    printf("starting a trigger scan\n");
+   printsend("starting a trigger scan\n");
     int nhit;
     uint32_t select_reg,pedestals,result,beforegt,aftergt;
     uint32_t gtdelay = 150;
@@ -95,7 +95,7 @@ int trigger_scan(char *buffer)
 
     for (i=0;i<32;i++)
         for (j=0;j<145;j++)
-            printf("%d %d %f\n",i,j,values[i][j]);
+           printsend("%d %d %f\n",i,j,values[i][j]);
 
     return 0;
 }
@@ -119,7 +119,7 @@ int mtc_xilinxload(void)
     aPacket.cmdHeader.destination = 0x3;
     aPacket.cmdHeader.cmdID = 0x1;
     aPacket.cmdHeader.numberBytesinPayload = sizeof(SNOMtc_XilinxLoadStruct) + howManybits;
-    printf("numbytes is %d, size is %d\n",(int)aPacket.cmdHeader.numberBytesinPayload,(int)sizeof(SNOMtc_XilinxLoadStruct));
+   printsend("numbytes is %d, size is %d\n",(int)aPacket.cmdHeader.numberBytesinPayload,(int)sizeof(SNOMtc_XilinxLoadStruct));
     aPacket.numBytes = aPacket.cmdHeader.numberBytesinPayload+256+16;
     SNOMtc_XilinxLoadStruct *payloadPtr = (SNOMtc_XilinxLoadStruct *)aPacket.payload;
     payloadPtr->baseAddress = 0x7000;
@@ -267,7 +267,7 @@ int mtc_read(char *buffer){
         words = strtok(NULL, " ");
     }
     mtc_reg_read(address, &data);
-    printf("Received %08x\n",data);
+   printsend("Received %08x\n",data);
     return 0;
 }
 
@@ -296,7 +296,7 @@ int mtc_write(char *buffer){
         words = strtok(NULL, " ");
     }
     mtc_reg_write(address, data);
-    printf("wrote %08x\n",data);
+   printsend("wrote %08x\n",data);
     return 0;
 }
 
@@ -754,7 +754,7 @@ float set_fine_delay(float delay) {
     pr_set_url(response, get_db_address);
     pr_do(response);
     if (response->httpresponse != 200){
-        printf("Unable to connect to database. error code %d\n",(int)response->httpresponse);
+       printsend("Unable to connect to database. error code %d\n",(int)response->httpresponse);
         return -1;
     }
     JsonNode *doc = json_decode(response->resp.data);
@@ -947,7 +947,7 @@ float set_gt_delay(float gtdel)
     fdelay_set = set_fine_delay(fine_delay);
     total_delay = ((float) coarse_delay + fdelay_set + (float)(18.35));
 
-    //SNO_printf(9,MTC_FAC,"\tPULSE_GT total delay has been set to %f\n", total_delay);
+    //SNOprintsend(9,MTC_FAC,"\tPULSE_GT total delay has been set to %f\n", total_delay);
     return total_delay;
 }
 

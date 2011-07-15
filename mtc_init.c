@@ -44,7 +44,7 @@ int mtc_init(char *buffer)
         word = strtok(NULL, " ");
     }
 
-    printf("made it here fine\n");
+   printsend("made it here fine\n");
     if (x_init == 1)
         mtc_xilinxload();
 
@@ -64,7 +64,7 @@ int mtc_init(char *buffer)
     pr_set_url(response, get_db_address);
     pr_do(response);
     if (response->httpresponse != 200){
-        printf("Unable to connect to database. error code %d\n",(int)response->httpresponse);
+       printsend("Unable to connect to database. error code %d\n",(int)response->httpresponse);
         return -1;
     }
     JsonNode *doc = json_decode(response->resp.data);

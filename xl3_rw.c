@@ -72,7 +72,7 @@ int receive_cald(int xl3_num, uint16_t *point_buf, uint16_t *adc_buf)
                         adc_buf[current_slot*8000+current_point*4+1] = response->adc1[i];
                         adc_buf[current_slot*8000+current_point*4+2] = response->adc2[i];
                         adc_buf[current_slot*8000+current_point*4+3] = response->adc3[i];
-                        //printf("slot %d: point %d, %4u %4u %4u %4u\n",current_slot,response->point[i],response->adc0[i],response->adc1[i],response->adc2[i],response->adc3[i]);
+                        //printsend("slot %d: point %d, %4u %4u %4u %4u\n",current_slot,response->point[i],response->adc0[i],response->adc1[i],response->adc2[i],response->adc3[i]);
                         current_point++;
                         point_count++;
                     }
@@ -82,10 +82,10 @@ int receive_cald(int xl3_num, uint16_t *point_buf, uint16_t *adc_buf)
                 return point_count;
             }else{
                 int r;
-                printf("wait_while_messages: unknown packet:\n");
+               printsend("wait_while_messages: unknown packet:\n");
                 for (r=0;r<5;r++)
-                    printf("wait_while_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
-                printf("\n");
+                   printsend("wait_while_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+               printsend("\n");
             }
         }else{	// if the data coming in was not from an xl3
             int z;
@@ -157,8 +157,8 @@ return 1;
  }else{
  int r;
  for (r=0;r<5;r++)
- printf("sleep_with_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
- printf("\n");
+printsend("sleep_with_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+printsend("\n");
  }
  }else{	// if the data coming in was not from an xl3
  int z;
@@ -251,7 +251,7 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
             *aPacket = *(XL3_Packet*)p;
             SwapShortBlock(&(aPacket->cmdHeader.packet_num),1);
             if (aPacket->cmdHeader.packet_type == MESSAGE_ID)
-                printf("%s",aPacket->payload);
+               printsend("%s",aPacket->payload);
             //print_send(aPacket->payload, view_fdset); // we loop around again
             else if (aPacket->cmdHeader.packet_type == CMD_ACK_ID){
                 // read in cmds and add to buffer, then loop again unless read in num_cmds cmds
@@ -266,7 +266,7 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
                     if (commands.cmd[i].packet_num == packet_num){
                         if (commands.cmd[i].cmd_num == current_num){
                             if (commands.cmd[i].flags == 0){
-                                //printf("read in %08x\n",commands.cmd[i].data);
+                                //printsend("read in %08x\n",commands.cmd[i].data);
                                 *(buffer + current_num) = commands.cmd[i].data;
                             }else{
                                 sprintf(psb,"Bus error in receive data, %02x, command # %d\n",commands.cmd[i].flags,i);
@@ -293,12 +293,12 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
                     return 0; // we got all our results, otherwise go around again
                 }
             }else{
-                //printf("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
-                //printf("%d bytes: .%s.\n",n,aPacket->payload);
+                //printsend("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
+                //printsend("%d bytes: .%s.\n",n,aPacket->payload);
                 int r;
                 for (r=0;r<5;r++)
-                    printf("receive_data: %08x ",*(uint32_t *) (aPacket->payload+4*r));
-                printf("\n");
+                   printsend("receive_data: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+               printsend("\n");
             }
         }else{	// if the data coming in was not from an xl3
             int z;
@@ -384,7 +384,7 @@ int do_xl3_cmd(XL3_Packet *aPacket, int xl3_num){
                     if (this_packet_type == CALD_TEST_ID){
                         fprintf(cald_test_file, "%s", aPacket->payload);
                     }
-                    printf("%s",aPacket->payload);
+                   printsend("%s",aPacket->payload);
 
                     //print_send(aPacket->payload, view_fdset); // we loop around again
                 }else if (aPacket->cmdHeader.packet_type == this_packet_type){
@@ -400,12 +400,12 @@ int do_xl3_cmd(XL3_Packet *aPacket, int xl3_num){
                 }else if (aPacket->cmdHeader.packet_type == MEGA_BUNDLE_ID){
                     store_mega_bundle(aPacket->cmdHeader.num_bundles);
                 }else{
-                    //printf("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
-                    //printf("%d bytes: .%s.\n",n,aPacket->payload);
+                    //printsend("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
+                    //printsend("%d bytes: .%s.\n",n,aPacket->payload);
                     int r;
                     for (r=0;r<5;r++)
-                        printf("do_xl3_cmd: %08x ",*(uint32_t *) (aPacket->payload+4*r));
-                    printf("\n");
+                       printsend("do_xl3_cmd: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+                   printsend("\n");
                 }
             }else{	// if the data coming in was not from an xl3
                 int z;

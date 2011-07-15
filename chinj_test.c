@@ -112,7 +112,7 @@ int chinj_scan(char *buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                printf("usage: chinj_test -c [crate num] -s [slot mask] + other stuff\n");
+               printsend("usage: chinj_test -c [crate num] -s [slot mask] + other stuff\n");
                 return -1;
             }
         }
@@ -166,15 +166,15 @@ int chinj_scan(char *buffer)
         errors = 0;
         errors += fec_load_crateadd(crate, slot_mask);
         if (ped_on == 1){
-            //printf("not enabling pedestals.\n");
+            //printsend("not enabling pedestals.\n");
         }else if (ped_on == 0){
-            //printf("enabling pedestals.\n");
+            //printsend("enabling pedestals.\n");
             errors += set_crate_pedestals(crate, slot_mask, pattern);
         }
         deselect_fecs(crate);
 
         if (errors){
-            printf("error setting up FEC crate for pedestals. Exiting.\n");
+           printsend("error setting up FEC crate for pedestals. Exiting.\n");
             free(pmt_buffer);
             free(ped);
             return 1;
@@ -330,7 +330,7 @@ int chinj_scan(char *buffer)
                 sprintf(psb+strlen(psb),"########################################################\n");
                 //print_send(psb, view_fdset);
                 for (i = 0; i<32; i++){
-                    //printf("Ch Cell  #   Qhl         Qhs         Qlx         TAC\n");
+                    //printsend("Ch Cell  #   Qhl         Qhs         Qlx         TAC\n");
                     for (j=0;j<16;j++){
                         if (j == 0){
                             scan_errors[slot_iter*32+i*2][dac_iter] = 0;
@@ -350,7 +350,7 @@ int chinj_scan(char *buffer)
                             if (ped[i].thiscell[j].qhlbar < chinj_lower ||
                                     ped[i].thiscell[j].qhlbar > chinj_upper) {
                                 chinj_err[slot_iter]++;
-                                //printf(">>>>>Qhl Extreme Value<<<<<\n");
+                                //printsend(">>>>>Qhl Extreme Value<<<<<\n");
                                 if (j%2 == 0)
                                     scan_errors[slot_iter*32+i*2][dac_iter]++;
                                 else
@@ -361,7 +361,7 @@ int chinj_scan(char *buffer)
                             if (ped[i].thiscell[j].qhsbar < chinj_lower ||
                                     ped[i].thiscell[j].qhsbar > chinj_upper) {
                                 chinj_err[slot_iter]++;
-                                //printf(">>>>>Qhs Extreme Value<<<<<\n");
+                                //printsend(">>>>>Qhs Extreme Value<<<<<\n");
                                 if (j%2 == 0)
                                     scan_errors[slot_iter*32+i*2][dac_iter]++;
                                 else
@@ -372,7 +372,7 @@ int chinj_scan(char *buffer)
                             if (ped[i].thiscell[j].qlxbar < chinj_lower ||
                                     ped[i].thiscell[j].qlxbar > chinj_upper) {
                                 chinj_err[slot_iter]++;
-                                //printf(">>>>>Qlx Extreme Value<<<<<\n");
+                                //printsend(">>>>>Qlx Extreme Value<<<<<\n");
                                 if (j%2 == 0)
                                     scan_errors[slot_iter*32+i*2][dac_iter]++;
                                 else
@@ -394,16 +394,16 @@ int chinj_scan(char *buffer)
 
         /*
            if (q_select == 0){
-           printf("Qhl lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-           printf("Number of Qhl overflows = %d\n",chinj_err[slot_iter]);
+          printsend("Qhl lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+          printsend("Number of Qhl overflows = %d\n",chinj_err[slot_iter]);
            }
            else if (q_select == 1){
-           printf("Qhs lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-           printf("Number of Qhs overflows = %d\n",chinj_err[slot_iter]);
+          printsend("Qhs lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+          printsend("Number of Qhs overflows = %d\n",chinj_err[slot_iter]);
            }
            else if (q_select == 2){
-           printf("Qlx lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-           printf("Number of Qlx overflows = %d\n",chinj_err[slot_iter]);
+          printsend("Qlx lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+          printsend("Number of Qlx overflows = %d\n",chinj_err[slot_iter]);
            }
          */
 
@@ -423,7 +423,7 @@ int chinj_scan(char *buffer)
 
     // lets update this database
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         for (i=0;i<16;i++)
         {
             if ((0x1<<i) & slot_mask){
@@ -582,7 +582,7 @@ int chinj_test(char *buffer)
                 words2 = strtok(NULL, " ");
                 ped_on = (uint16_t) atoi(words2);
             }else if (words[1] == 'h'){
-                printf("usage: chinj_test -c [crate num] -s [slot mask] + other stuff\n");
+               printsend("usage: chinj_test -c [crate num] -s [slot mask] + other stuff\n");
                 return -1;
             }
         }
@@ -621,15 +621,15 @@ int chinj_test(char *buffer)
     errors = 0;
     errors += fec_load_crateadd(crate, slot_mask);
     if (ped_on == 1){
-        printf("not enabling pedestals.\n");
+       printsend("not enabling pedestals.\n");
     }else if (ped_on == 0){
-        printf("enabling pedestals.\n");
+       printsend("enabling pedestals.\n");
         errors += set_crate_pedestals(crate, slot_mask, pattern);
     }
     deselect_fecs(crate);
 
     if (errors){
-        printf("error setting up FEC crate for pedestals. Exiting.\n");
+       printsend("error setting up FEC crate for pedestals. Exiting.\n");
         return 1;
     }
 
@@ -789,27 +789,27 @@ int chinj_test(char *buffer)
             sprintf(psb+strlen(psb),"########################################################\n");
             print_send(psb, view_fdset);
             for (i = 0; i<32; i++){
-                printf("Ch Cell  #   Qhl         Qhs         Qlx         TAC\n");
+               printsend("Ch Cell  #   Qhl         Qhs         Qlx         TAC\n");
                 for (j=0;j<16;j++){
                     if (q_select == 0){
                         if (ped[i].thiscell[j].qhlbar < chinj_lower ||
                                 ped[i].thiscell[j].qhlbar > chinj_upper) {
                             chinj_err++;
-                            printf(">>>>>Qhl Extreme Value<<<<<\n");
+                           printsend(">>>>>Qhl Extreme Value<<<<<\n");
                         }
                     }
                     else if (q_select == 1){
                         if (ped[i].thiscell[j].qhsbar < chinj_lower ||
                                 ped[i].thiscell[j].qhsbar > chinj_upper) {
                             chinj_err++;
-                            printf(">>>>>Qhs Extreme Value<<<<<\n");
+                           printsend(">>>>>Qhs Extreme Value<<<<<\n");
                         }
                     }
                     else if (q_select == 2){
                         if (ped[i].thiscell[j].qlxbar < chinj_lower ||
                                 ped[i].thiscell[j].qlxbar > chinj_upper) {
                             chinj_err++;
-                            printf(">>>>>Qlx Extreme Value<<<<<\n");
+                           printsend(">>>>>Qlx Extreme Value<<<<<\n");
                         }
                     }
                     sprintf(psb,"%2d %3d %4d %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f\n",
@@ -829,16 +829,16 @@ int chinj_test(char *buffer)
     } // end loop over slots
 
     if (q_select == 0){
-        printf("Qhl lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-        printf("Number of Qhl overflows = %d\n",chinj_err);
+       printsend("Qhl lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+       printsend("Number of Qhl overflows = %d\n",chinj_err);
     }
     else if (q_select == 1){
-        printf("Qhs lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-        printf("Number of Qhs overflows = %d\n",chinj_err);
+       printsend("Qhs lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+       printsend("Number of Qhs overflows = %d\n",chinj_err);
     }
     else if (q_select == 2){
-        printf("Qlx lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
-        printf("Number of Qlx overflows = %d\n",chinj_err);
+       printsend("Qlx lower, Upper bounds = %f %f\n",chinj_lower,chinj_upper);
+       printsend("Number of Qlx overflows = %d\n",chinj_err);
     }
 
 
@@ -894,7 +894,7 @@ int setup_chinj(int crate, uint16_t slot_mask, uint32_t default_ch_mask, uint16_
             // now set the dac
             error = loadsDac(HV_HVREF_DAC,dacvalue,crate,select_reg);
             if (error){
-                printf("setup_chinj: error loading charge injection dac\n");
+               printsend("setup_chinj: error loading charge injection dac\n");
             }
         } // end if slot_mask
     } // end loop over slots

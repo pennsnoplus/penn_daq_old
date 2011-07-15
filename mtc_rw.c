@@ -258,7 +258,7 @@ int get_caen_data(char *buffer)
         return -1;
     }
 
-    printf("starting to go\n");
+   printsend("starting to go\n");
 
     SBC_crate_config configStruct; // for both MTC and CAEN
     int index=0;
@@ -309,10 +309,10 @@ int get_caen_data(char *buffer)
     aPacket.cmdHeader.numberBytesinPayload  = sizeof(SBC_crate_config); //FIXME
     memcpy(aPacket.payload,&configStruct,sizeof(SBC_crate_config));
 
-    printf("doing a mtc_cmd\n");
-    printf("the payload is %s\n",aPacket.payload);
+   printsend("doing a mtc_cmd\n");
+   printsend("the payload is %s\n",aPacket.payload);
     do_mtc_cmd(&aPacket);
-    printf("did it work?\n");
+   printsend("did it work?\n");
 
     return 0;
 

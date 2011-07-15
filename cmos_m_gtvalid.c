@@ -193,7 +193,7 @@ int cmos_m_gtvalid(char *buffer)
                         print_send("Error in setting up TAC voltages, exiting...\n",view_fdset);
                         return 1;
                     }
-                    printf("Dacs loaded.\n");
+                   printsend("Dacs loaded.\n");
                     //load cmos shift register to enable twiddle bits
                     packet.cmdHeader.packet_type = LOADTACBITS_ID;
                     *pl = cn;
@@ -205,7 +205,7 @@ int cmos_m_gtvalid(char *buffer)
                     SwapLongBlock(packet.payload,2);
                     SwapShortBlock(packet.payload+8,32);
                     do_xl3_cmd(&packet,cn);
-                    printf("Tac bits loaded.\n");
+                   printsend("Tac bits loaded.\n");
                 }
 
                 // some board level initialization
@@ -443,7 +443,7 @@ int cmos_m_gtvalid(char *buffer)
 
                         // print out results
                         if (!do_twiddle){
-                            printf(">>>ISETA0/1 = 0, no TAC twiddle bits set.\n");
+                           printsend(">>>ISETA0/1 = 0, no TAC twiddle bits set.\n");
                         }
                         sprintf(psb, "GTVALID setup results for Crate/Slot %d %d: \n", cn, j);
                         sprintf(psb+strlen(psb), "VMAX, TACREF, ISETA = %hu %hu %hu\n",VMAX,TACREF,ISETA);
@@ -493,7 +493,7 @@ int cmos_m_gtvalid(char *buffer)
 
             //store in DB
             if (update_db){
-                printf("updating the database\n");
+               printsend("updating the database\n");
                 char hextostr[50];
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("cmos_m_gtvalid"));
@@ -538,7 +538,7 @@ int cmos_m_gtvalid(char *buffer)
 
 int get_gtdelay(uint16_t crate_num, int wt, float *get_gtchan, uint16_t isetm0, uint16_t isetm1, uint32_t select_reg)
 {
-    printf(".");
+   printsend(".");
     fflush(stdout);
 
     float upper_limit, lower_limit, current_delay;
@@ -594,7 +594,7 @@ int get_gtdelay(uint16_t crate_num, int wt, float *get_gtchan, uint16_t isetm0, 
         num_read = (temp & 0x000FFFFF)/3UL;
         //if (error != 0)
         //    return -1;
-        //printf("delay %f, num %d\n",current_delay,num_read);
+        //printsend("delay %f, num %d\n",current_delay,num_read);
         // now check to see if we saw the right number of events
         if (num_read < (NGTVALID)*0.75)
             upper_limit = current_delay;
@@ -634,12 +634,12 @@ int get_gtdelay(uint16_t crate_num, int wt, float *get_gtchan, uint16_t isetm0, 
         //num_read = *(uint32_t *) (packet.payload+4);
         xl3_rw(FIFO_WRITE_PTR_R + select_reg + READ_REG,0x0,&temp,crate_num);
         num_read = (temp & 0x000FFFFF)/3UL;
-        //printf("check, num %d\n",num_read);
+        //printsend("check, num %d\n",num_read);
         //if (error != 0)
         //    return -1;
         // now check to see if we saw the right number of events
         if (num_read < (NGTVALID)*0.75){
-            printf("Uh oh, still not all the events\n");
+           printsend("Uh oh, still not all the events\n");
             //return -1;
         }
         *get_gtchan = upper_limit;

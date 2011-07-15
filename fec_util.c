@@ -48,7 +48,7 @@
    errorbit = (total_count[i] & 0x80000000) ? 1 : 0;
    if (errorbit){
    errors++;
-   printf("there was a cmos total count error\n");
+  printsend("there was a cmos total count error\n");
    if (errors > 320)
    return -1;
    }else{
@@ -206,26 +206,26 @@ int zdisc(char *buffer)
 
 
             // printout stuff/////////
-            printf("channel    max rate,       lower,       upper\n\r");
-            printf("------------------------------------------\n\r");
+           printsend("channel    max rate,       lower,       upper\n\r");
+           printsend("------------------------------------------\n\r");
             for (j=0;j<32;j++)
             {
-                printf("ch (%2d)   %5.2f(MHz)  %6.1f(KHz)  %6.1f(KHz)\n\r",j,(float) MaxRate[j]/1E6,(float) LowerRate[j]/1E3,(float) UpperRate[j]/1E3);
+               printsend("ch (%2d)   %5.2f(MHz)  %6.1f(KHz)  %6.1f(KHz)\n\r",j,(float) MaxRate[j]/1E6,(float) LowerRate[j]/1E3,(float) UpperRate[j]/1E3);
             }
-            printf("Dac Settings\n\r");
-            printf("channel     Max   Lower   Upper   U+L/2\n\r");
+           printsend("Dac Settings\n\r");
+           printsend("channel     Max   Lower   Upper   U+L/2\n\r");
             for (j=0;j<32;j++)
             {
-                printf("ch (%2i)   %5hu   %5hu   %5hu   %5hu\n", j, MaxDacSetting[j],LowerDacSetting[j],UpperDacSetting[j],ZeroDacSetting[j]);
+               printsend("ch (%2i)   %5hu   %5hu   %5hu   %5hu\n", j, MaxDacSetting[j],LowerDacSetting[j],UpperDacSetting[j],ZeroDacSetting[j]);
                 if (LowerDacSetting[j] > MaxDacSetting[j])
                 {
-                    printf(" <- lower > max! (MaxRate(MHz):%5.2f, lowrate(KHz):%5.2f\n",(float) MaxRate[j]/1E6,(float) LowerRate[j]/1000.0);
+                   printsend(" <- lower > max! (MaxRate(MHz):%5.2f, lowrate(KHz):%5.2f\n",(float) MaxRate[j]/1E6,(float) LowerRate[j]/1000.0);
                 }
             }
 
             // update the database
             if (update_db){
-                printf("updating the database\n");
+               printsend("updating the database\n");
                 char hextostr[50];
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("zdisc"));
@@ -405,7 +405,7 @@ int fec_test(char *buffer)
     do_xl3_cmd(&packet,crate_num);
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         uint32_t* results = (uint32_t*) packet.payload;
         // results layout is : [error flags] [slot 0 discrete] [slot 1 discrete] ... [slot 0 cmos] [slot 1 cmos] ...
         SwapLongBlock(results,65);
@@ -413,7 +413,7 @@ int fec_test(char *buffer)
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
-                printf("updating slot %d\n",slot);
+               printsend("updating slot %d\n",slot);
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("fec_test"));
                 if (results[1+slot] & 0x1)
@@ -581,7 +581,7 @@ int mem_test(char *buffer)
     do_xl3_cmd(&packet,crate_num);
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         uint32_t* results = (uint32_t*) packet.payload;
         // results layout is : [error flags] [address test bit failures] [pattern test first error location] [expected] [read]
         SwapLongBlock(results,65);
@@ -683,20 +683,20 @@ int vmon(char *buffer)
     // now lets print out the results
     int k;
     for (k=0;k<2;k++){
-        printf("slot             %2d     %2d     %2d     %2d     %2d     %2d     %2d     %2d\n",k*8,k*8+1,k*8+2,k*8+3,k*8+4,k*8+5,k*8+6,k*8+7);
+       printsend("slot             %2d     %2d     %2d     %2d     %2d     %2d     %2d     %2d\n",k*8,k*8+1,k*8+2,k*8+3,k*8+4,k*8+5,k*8+6,k*8+7);
         for (i=0;i<21;i++){
-            printf("%10s   ",v_name[i]);
+           printsend("%10s   ",v_name[i]);
             for (j=0;j<8;j++){
-                printf("%6.2f ",voltages[j+k*8][i]);
+               printsend("%6.2f ",voltages[j+k*8][i]);
             }
-            printf("\n");
+           printsend("\n");
         }
-        printf("\n");
+       printsend("\n");
     }
 
     // update the database
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         char hextostr[50];
         ;
         for (slot_num=0;slot_num<16;slot_num++){
@@ -818,9 +818,9 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 
     if ((3 * limit) < diff){
         if ((3*limit)*1.5 < diff){
-            printf("Memory level much higher than expected (%d > %d), possible fifo overflow\n",diff,3*limit);
+           printsend("Memory level much higher than expected (%d > %d), possible fifo overflow\n",diff,3*limit);
         }else{
-            printf("Memory level over expected (%d > %d)\n",diff,3*limit);
+           printsend("Memory level over expected (%d > %d)\n",diff,3*limit);
         }
         diff = 3*limit; // make sure we do not read out more than limit pmt bundles
     }
@@ -838,7 +838,7 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 
     // lets use the new function!
     // first we attempt to load up the xl3 with 'diff' # of reads to memory
-    printf("attempting to read %d bundles\n",diff/3);
+   printsend("attempting to read %d bundles\n",diff/3);
     packet.cmdHeader.packet_type = READ_PEDESTALS_ID;
     *(uint32_t *) packet.payload = slot;
     int reads_left = diff;
@@ -1171,6 +1171,6 @@ void dump_pmt_verbose(int n, uint32_t *pmt_buf, char* msg_buf)
                 (uint32_t) UNPK_BOARD_ID(pmt_buf+i));
     }
     sprintf(msg_buf+strlen(msg_buf),"%s",msg);
-    printf("%s",msg);
+   printsend("%s",msg);
     return;
 }

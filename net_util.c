@@ -8,6 +8,7 @@
 #include <stdlib.h> 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "penn_daq.h"
 #include "net_util.h"
@@ -437,11 +438,47 @@ void print_connected(void){
         print_send("\tno connected boards\n", view_fdset);
     }
 }
+int printsend(char *fmt, ... ){
+    int ret;
+    va_list arg;
+    char psb[5000];
+    va_start(arg, fmt);
+    ret = vsprintf(psb, fmt, arg);
+    fputs(psb, stdout);
+
+    fd_set outset;
+    FD_ZERO(&outset);
+
+    int i, count=0;
+    for(i = 0; i <= fdmax; i++){
+        if (FD_ISSET(i, &view_fdset)){
+            count++;
+        }
+    }
+    
+    int select_return, x;
+    if(count > 1){ // always 1: view listener
+        outset = view_fdset;
+        select_return = select(fdmax+1, NULL, &outset, NULL, 0);
+        // if there were writeable file descriptors
+        if(select_return > 0){
+            for(x = 0; x <= fdmax; x++){
+                if(FD_ISSET(x, &outset)){
+                    write(x, psb, ret);
+                }
+            }
+        }
+    }
+    if (write_log && ps_log_file){
+        fprintf(ps_log_file, "%s", psb);
+    }
+    return ret;
+}
 
 /* int print_send (3.K) */
 int print_send(char *input, fd_set suggested){
     /*
-       This is a printf() replacement function that:
+       This is aprintsend() replacement function that:
        1. prints the given string(/input/)
        2. attempts to send the given string(/input/) to all of
        the file descriptors in fd_set /suggested/.
@@ -470,7 +507,7 @@ int print_send(char *input, fd_set suggested){
     FD_ZERO(&outset);
 
     // print input to the screen
-    printed_bytes = printf("%s", input);
+    printed_bytes =printsend("%s", input);
 
     // make sure that there is a writeable file descriptor
     // in the suggested fd_set other than the view listener

@@ -18,15 +18,15 @@ int set_location(char *buffer)
     while (words != NULL){
         if (words[0] == '-'){
             if (words[1] == 'p'){
-                printf("location set to penn test stand\n");
+               printsend("location set to penn test stand\n");
                 current_location = 2;
             }
             if (words[1] == 'u'){
-                printf("location set to underground\n");
+               printsend("location set to underground\n");
                 current_location = 1;
             }
             if (words[1] == 'a'){
-                printf("location set to above ground test stand\n");
+               printsend("location set to above ground test stand\n");
                 current_location = 0;
             }
             if (words[1] == 'h'){
@@ -126,9 +126,9 @@ int add_cmd(char *buffer)
 
     packet.cmdHeader.packet_type = FEC_CMD_ID;
     do_xl3_cmd(&packet,crate_num);
-    printf("going into receive data\n");
+   printsend("going into receive data\n");
     receive_data(1,command_number-1,crate_num,&result);
-    printf("result was %08x\n",result);
+   printsend("result was %08x\n",result);
 
     return 0;
 }
@@ -296,10 +296,10 @@ int hv_readback(char *buffer)
     current_a /= (float) nt;
     current_b /= (float) nt;
     if (supply_select != 2){
-        printf("Supply A - Voltage: %6.3f volts, Current: %6.4f ma\n",voltage_a*300.0,current_a*10.0);
+       printsend("Supply A - Voltage: %6.3f volts, Current: %6.4f ma\n",voltage_a*300.0,current_a*10.0);
     }
     if (supply_select > 1){
-        printf("Supply B - Voltage: %6.3f volts, Current: %6.4f ma\n",voltage_a*300.0,current_a*10.0);
+       printsend("Supply B - Voltage: %6.3f volts, Current: %6.4f ma\n",voltage_a*300.0,current_a*10.0);
     }
     return 0;
 }
@@ -374,7 +374,7 @@ int hv_ramp_map(char *buffer)
         if (0x1*i < 0xb01){
             xl3_rw(0x02000009,0x1*i,&result,crate_num);
         }else{
-            printf("too high!\n");
+           printsend("too high!\n");
         }
         for (j=0;j<20;j++)
             usleep(5000);
@@ -385,7 +385,7 @@ int hv_ramp_map(char *buffer)
         current[i] = *(p+2);
     }
     for (i=0;i<2817;i+=256){
-        printf("%d %6.3f %6.3f\n",i,voltage[i]*300.,current[i]*10.);
+       printsend("%d %6.3f %6.3f\n",i,voltage[i]*300.,current[i]*10.);
     }
     xl3_rw(0x02000009,0x800,&result,crate_num);
     xl3_rw(0x02000009,0x500,&result,crate_num);

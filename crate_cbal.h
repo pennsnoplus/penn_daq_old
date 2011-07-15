@@ -23,7 +23,7 @@ int crate_cbal(char *buffer);
 #define ISETMDACOFFSET  131
 #define TACREFDAC       133     // number of TACREF dac
 #define VMAXDAC         134     // number of VMAX dac
-#define DEBUG           0       //turn on/off printf debug statements
+#define DEBUG           0       //turn on/offprintsend debug statements
 #define HOWMANY         350     //number of DB entries
 #define FECSLOTS        16
 

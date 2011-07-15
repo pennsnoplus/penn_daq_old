@@ -221,8 +221,8 @@ int crate_cbal(char * buffer)
             // set VSI, VLI to a long time during test.
             // see variable section above for details.
             if (DEBUG){
-                printf(SNTR_TOOLS_DIALOG_DIVIDER);
-                printf("Setting up timing for test.\n");
+               printsend(SNTR_TOOLS_DIALOG_DIVIDER);
+               printsend("Setting up timing for test.\n");
             }
             for (i=0;i<8;i++){
                 theDACs[num_dacs] = d_rmp[i];
@@ -386,7 +386,7 @@ int crate_cbal(char * buffer)
                         // i.e. they both have the same sign on first run
                         if (((f1[j] * f2[j]) > 0.0) && (iterations == 1)) {	 
                             if (DEBUG) {
-                                printf("Error:  Ch(%2i) does not appear"
+                               printsend("Error:  Ch(%2i) does not appear"
                                         " balanceable.\n", j);
                                 //SNO_printerr(5, INIT_FAC, err_str);
                             }
@@ -480,7 +480,7 @@ int crate_cbal(char * buffer)
                         //SNO_printerr(7, INIT_FAC, err_str);
                     }
                     if (getPedestal(tmp_ch, ChParams, crate,select_reg) != 0) {
-                        printf(PED_ERROR_MESSAGE);
+                       printsend(PED_ERROR_MESSAGE);
                         //SNO_printerr(5, INIT_FAC, err_str);
                         free(pmt_buf);
                         return PED_ERROR;
@@ -896,7 +896,7 @@ int crate_cbal(char * buffer)
 
             //now lets update the database entry for this slot
             if (update_db){
-                printf("updating the database\n");
+               printsend("updating the database\n");
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("crate_cbal"));
                 JsonNode* vbal_high_new = json_mkarray();
@@ -1001,7 +1001,7 @@ short getPedestal(struct pedestal *pedestals,
     Max_RMS_TAC = 3.0;
     NumPulses = 25 * 16; //want a multiple of number of cells (16)
 
-    printf(".");
+   printsend(".");
     fflush(stdout);
 
     Min_num_words = (NumPulses - 25) * 3UL * 32UL; //check number of bundles

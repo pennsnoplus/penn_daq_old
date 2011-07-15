@@ -76,24 +76,24 @@ int get_ttot(char * buffer)
 
     result = disc_m_ttot(crate,slot_mask,150,times);
 
-    printf("crate\t slot\t channel\t time\n");
+   printsend("crate\t slot\t channel\t time\n");
 
     for (i=0;i<16;i++){
         if ((0x1<<i) & slot_mask){
             for(j=0;j<32;j++){
                 tot_errors[i][j] = 0;
-                printf("%d\t %d\t %d\t %d",crate,i,j,times[i*32+j]);
+               printsend("%d\t %d\t %d\t %d",crate,i,j,times[i*32+j]);
                 if (targettime > times[i*32+j]){
-                    printf(">>>Warning: time less than %d nsec",targettime);
+                   printsend(">>>Warning: time less than %d nsec",targettime);
                     tot_errors[i][j] = 1;
                 }
-                printf("\n");
+               printsend("\n");
             }
         }
     }
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
@@ -130,7 +130,7 @@ int get_ttot(char * buffer)
 
 int set_ttot(char * buffer)
 {
-    printf(".%s.\n",buffer);
+   printsend(".%s.\n",buffer);
     if (sbc_is_connected == 0){
         sprintf(psb,"SBC not connected.\n");
         print_send(psb, view_fdset);
@@ -191,7 +191,7 @@ int set_ttot(char * buffer)
     disc_s_ttot(crate,slot_mask,targettime,allrmps,allvsis,alltimes,tot_errors);
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
@@ -275,7 +275,7 @@ int disc_s_ttot(int crate, uint32_t slot_mask, int goal_time, uint16_t *allrmps,
             }
             multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,FEC_SEL*i);
 
-            printf("Working on crate/board %d %d, target time %d\n",crate,i,goal_time);
+           printsend("Working on crate/board %d %d, target time %d\n",crate,i,goal_time);
             chips_not_finished = 0xFF; // none finished
 
             while (chips_not_finished){
@@ -288,7 +288,7 @@ int disc_s_ttot(int crate, uint32_t slot_mask, int goal_time, uint16_t *allrmps,
                     if ((diff[4*j+0] > 0) && (diff[4*j+1] > 0) && (diff[4*j+2] > 0) && (diff[4*j+3] > 0)
                             && (chips_not_finished & (0x1<<j))){ // if diffs all positive
                         chips_not_finished &= ~(0x1<<j); // that chip is finished
-                        printf("Fit Ch(%d) (RMP/VSI %d %d) Times:\t%d\t%d\t%d\t%d\n",j,rmp[j],vsi[j],times[i*32+j*4+0],times[i*32+j*4+1],times[i*32+j*4+2],times[i*32+j*4+3]);
+                       printsend("Fit Ch(%d) (RMP/VSI %d %d) Times:\t%d\t%d\t%d\t%d\n",j,rmp[j],vsi[j],times[i*32+j*4+0],times[i*32+j*4+1],times[i*32+j*4+2],times[i*32+j*4+3]);
                         allrmps[i*8+j] = rmp[j];
                         allvsis[i*8+j] = vsi[j];
                     }else{ // if not done, adjust DACs
@@ -301,12 +301,12 @@ int disc_s_ttot(int crate, uint32_t slot_mask, int goal_time, uint16_t *allrmps,
                         }
                         if ((vsi[j] <= MIN_VSI_VALUE) && (chips_not_finished & (0x1<<j))){
                             // out of bounds, end loop with error
-                            printf("RMP/VSI is too big for disc chip %d! (%d %d)\n",j,rmp[j],vsi[j]);
-                            printf("Aborting slot %d setup.\n",i);
+                           printsend("RMP/VSI is too big for disc chip %d! (%d %d)\n",j,rmp[j],vsi[j]);
+                           printsend("Aborting slot %d setup.\n",i);
                             errors[i*8+j] = 1;
                             for (l=0;l<8;l++){
                                 if (chips_not_finished & (0x1<<l)){
-                                    printf("Slot %d Chip %d\tRMP/VSI: %d %d <- unfinished\n",i,j,rmp[l],vsi[l]);
+                                   printsend("Slot %d Chip %d\tRMP/VSI: %d %d <- unfinished\n",i,j,rmp[l],vsi[l]);
                                 }
                             }
                             goto end; // oh the horror!

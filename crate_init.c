@@ -84,13 +84,13 @@ int crate_init(char *buffer)
         pr_set_url(hw_response, get_db_address);
         pr_do(hw_response);
         if (hw_response->httpresponse != 200){
-            printf("Unable to connect to database. error code %d\n",(int)hw_response->httpresponse);
+           printsend("Unable to connect to database. error code %d\n",(int)hw_response->httpresponse);
             return -1;
         }
         JsonNode *hw_doc = json_decode(hw_response->resp.data);
         JsonNode* totalrows = json_find_member(hw_doc,"total_rows");
         if ((int)json_get_number(totalrows) != 16){
-            printf("Database error: not enough FEC entries\n");
+           printsend("Database error: not enough FEC entries\n");
             return -1;
         }
         hw_rows = json_find_member(hw_doc,"rows");
@@ -102,7 +102,7 @@ int crate_init(char *buffer)
         pr_set_url(debug_response, get_db_address);
         pr_do(debug_response);
         if (debug_response->httpresponse != 200){
-            printf("Unable to connect to database. error code %d\n",(int)debug_response->httpresponse);
+           printsend("Unable to connect to database. error code %d\n",(int)debug_response->httpresponse);
             return -1;
         }
         debug_doc = json_decode(debug_response->resp.data);
@@ -133,7 +133,7 @@ int crate_init(char *buffer)
             crate = (int)json_get_number(json_find_element(key,0));
             card = (int)json_get_number(json_find_element(key,1));
             if (crate != crate_num || card != i){
-                printf("Database error : incorrect crate or card num (%d,%d)\n",crate,card);
+               printsend("Database error : incorrect crate or card num (%d,%d)\n",crate,card);
                 return -1;
             }
             parse_fec_hw(value,mb_consts);
@@ -147,7 +147,7 @@ int crate_init(char *buffer)
 
         if ((use_cbal || use_all) && ((0x1<<i) & slot_mask)){
             if (crate_config[crate_num][i].mb_id == 0x0000){
-                printf("Warning: mb_id unknown. Using default values. Make sure to load xilinx before attempting to use debug db values.\n");
+               printsend("Warning: mb_id unknown. Using default values. Make sure to load xilinx before attempting to use debug db values.\n");
             }else{
                 char config_string[500];
                 sprintf(config_string,"\"%04x\",\"%04x\",\"%04x\",\"%04x\",\"%04x\"",crate_config[crate_num][i].mb_id,crate_config[crate_num][i].dc_id[0],crate_config[crate_num][i].dc_id[1],crate_config[crate_num][i].dc_id[2],crate_config[crate_num][i].dc_id[3]);
@@ -157,14 +157,14 @@ int crate_init(char *buffer)
                 pr_set_url(cbal_response, get_db_address);
                 pr_do(cbal_response);
                 if (cbal_response->httpresponse != 200){
-                    printf("Unable to connect to database. error code %d\n",(int)cbal_response->httpresponse);
+                   printsend("Unable to connect to database. error code %d\n",(int)cbal_response->httpresponse);
                     return -1;
                 }
                 JsonNode *viewdoc = json_decode(cbal_response->resp.data);
                 JsonNode* viewrows = json_find_member(viewdoc,"rows");
                 int n = json_get_num_mems(viewrows);
                 if (n == 0){
-                    printf("No crate_cbal documents for this configuration (%s). Continuing with default values.\n",config_string);
+                   printsend("No crate_cbal documents for this configuration (%s). Continuing with default values.\n",config_string);
                 }else{
                     // these next three JSON nodes are pointers to the structure of viewrows; no need to delete
                     JsonNode* cbal_doc = json_find_member(json_find_element(viewrows,0),"value");
@@ -191,14 +191,14 @@ int crate_init(char *buffer)
                 pr_set_url(zdisc_response, get_db_address);
                 pr_do(zdisc_response);
                 if (zdisc_response->httpresponse != 200){
-                    printf("Unable to connect to database. error code %d\n",(int)zdisc_response->httpresponse);
+                   printsend("Unable to connect to database. error code %d\n",(int)zdisc_response->httpresponse);
                     return -1;
                 }
                 JsonNode *viewdoc = json_decode(zdisc_response->resp.data);
                 JsonNode* viewrows = json_find_member(viewdoc,"rows");
                 int n = json_get_num_mems(viewrows);
                 if (n == 0){
-                    printf("No zdisc documents for this configuration (%s). Continuing with default values.\n",config_string);
+                   printsend("No zdisc documents for this configuration (%s). Continuing with default values.\n",config_string);
                 }else{
                     JsonNode* zdisc_doc = json_find_member(json_find_element(viewrows,0),"value");
                     JsonNode* vthr = json_find_member(zdisc_doc,"Zero_Dac_setting");
@@ -214,7 +214,7 @@ int crate_init(char *buffer)
 
         if ((use_ttot || use_all) && ((0x1<<i) & slot_mask)){
             if (crate_config[crate_num][i].mb_id == 0x0000){
-                printf("Warning: mb_id unknown. Using default values. Make sure to load xilinx before attempting to use debug db values.\n");
+               printsend("Warning: mb_id unknown. Using default values. Make sure to load xilinx before attempting to use debug db values.\n");
             }else{
                 char config_string[500];
                 sprintf(config_string,"\"%04x\",\"%04x\",\"%04x\",\"%04x\",\"%04x\"",crate_config[crate_num][i].mb_id,crate_config[crate_num][i].dc_id[0],crate_config[crate_num][i].dc_id[1],crate_config[crate_num][i].dc_id[2],crate_config[crate_num][i].dc_id[3]);
@@ -224,14 +224,14 @@ int crate_init(char *buffer)
                 pr_set_url(ttot_response, get_db_address);
                 pr_do(ttot_response);
                 if (ttot_response->httpresponse != 200){
-                    printf("Unable to connect to database. error code %d\n",(int)ttot_response->httpresponse);
+                   printsend("Unable to connect to database. error code %d\n",(int)ttot_response->httpresponse);
                     return -1;
                 }
                 JsonNode *viewdoc = json_decode(ttot_response->resp.data);
                 JsonNode* viewrows = json_find_member(viewdoc,"rows");
                 int n = json_get_num_mems(viewrows);
                 if (n == 0){
-                    printf("No set_ttot documents for this configuration (%s). Continuing with default values.\n",config_string);
+                   printsend("No set_ttot documents for this configuration (%s). Continuing with default values.\n",config_string);
                 }else{
                     JsonNode* ttot_doc = json_find_member(json_find_element(viewrows,0),"value");
                     JsonNode* rmp = json_find_member(ttot_doc,"rmp");
@@ -266,7 +266,7 @@ int crate_init(char *buffer)
     pr_set_url(ctc_response, ctc_address);
     pr_do(ctc_response);
     if (ctc_response->httpresponse != 200){
-        printf("Error getting ctc document, error code %d\n",(int)ctc_response->httpresponse);
+       printsend("Error getting ctc document, error code %d\n",(int)ctc_response->httpresponse);
         return -1;
     }
     JsonNode *ctc_doc = json_decode(ctc_response->resp.data);

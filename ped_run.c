@@ -356,7 +356,7 @@ int ped_run(char *buffer)
                             ped[i].thiscell[j].qhsbar > ped_high ||
                             ped[i].thiscell[j].qlxbar < ped_low ||
                             ped[i].thiscell[j].qlxbar > ped_high) error_flag[i] = 1;
-                    //printf("%d %d %d %d\n",ped[i].thiscell[j].qhlbar,ped[i].thiscell[j].qhsbar,ped[i].thiscell[j].qlxbar,ped[i].thiscell[j].tacbar);
+                    //printsend("%d %d %d %d\n",ped[i].thiscell[j].qhlbar,ped[i].thiscell[j].qhsbar,ped[i].thiscell[j].qlxbar,ped[i].thiscell[j].tacbar);
                 }
                 if (error_flag[i] == 1){
                     if(file != stdout){
@@ -384,7 +384,7 @@ int ped_run(char *buffer)
             /////////////////////
 
             if (update_db){
-                printf("updating the database\n");
+               printsend("updating the database\n");
                 JsonNode *newdoc = json_mkobject();
                 JsonNode *num = json_mkarray();
                 JsonNode *qhl = json_mkarray();

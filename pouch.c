@@ -222,7 +222,7 @@ pouch_request *pr_do(pouch_request *pr){
     curl = curl_easy_init();
     if (curl){
         // Print the request
-        //printf("%s : %s\n", pr->method, pr->url);
+        //printsend("%s : %s\n", pr->method, pr->url);
 
         // setup the CURL object/request
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "pouch/0.1");				// add user-agent
@@ -237,7 +237,7 @@ pouch_request *pr_do(pouch_request *pr){
         }
 
         if (pr->req.data && pr->req.size > 0){ // check for data upload
-            //printf("--> %s\n", pr->req.data);
+            //printsend("--> %s\n", pr->req.data);
             // let CURL know what data to send
             curl_easy_setopt(curl, CURLOPT_READFUNCTION, send_data_callback);
             curl_easy_setopt(curl, CURLOPT_READDATA, (void *)pr);
@@ -284,9 +284,9 @@ pouch_request *pr_do(pouch_request *pr){
     curl_easy_cleanup(curl);		// clean up the curl object
 
     // Print the response
-    //printf("Received %d bytes, status = %d\n",
+    //printsend("Received %d bytes, status = %d\n",
     //		(int)pr->resp.size, pr->curlcode);
-    //printf("--> %s\n", pr->resp.data);
+    //printsend("--> %s\n", pr->resp.data);
     return pr;
 }
 

@@ -58,14 +58,14 @@ int main(int argc, char *argv[]){
             case 0:
                 break;
             case 'l':
-                printf("Starting to log!\n");
+                printsend("Starting to log!\n");
                 start_logging();
                 break;
             case 'h':
-                printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
-                printf("            or\n");
-                printf("       %s [-h/--help]\n", argv[0]);
-                printf("For more help, read the README\n");
+                printsend("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+                printsend("            or\n");
+                printsend("       %s [-h/--help]\n", argv[0]);
+                printsend("For more help, read the README\n");
                 exit(0);
                 break;
             case 'p':
@@ -86,17 +86,17 @@ int main(int argc, char *argv[]){
     }
     /* print any remaining command line arguments (not options). */
     //if (optind < argc){
-    //printf("Hostname: %s\n", argv[optind]);
+    ///printsend("Hostname: %s\n", argv[optind]);
     //}
     //else{
-    //printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
-    //printf("            or\n");
-    //printf("       %s [-h/--help]\n", argv[0]);
-    //printf("For more help, read the README\n");
+    ///printsend("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+    ///printsend("            or\n");
+    ///printsend("       %s [-h/--help]\n", argv[0]);
+    ///printsend("For more help, read the README\n");
     //exit(0);
     //}
 
-    printf("current location is %d\n",current_location);
+    printsend("current location is %d\n",current_location);
 
     // ############ INITIALIZE VARIABLES #############
 
@@ -158,12 +158,12 @@ int main(int argc, char *argv[]){
     pr = db_get(pr, DB_SERVER, DB_BASE_NAME);
     pr_do(pr);
     if(pr->httpresponse != 200){
-        printf("Unable to connect to database. error code %d\n",(int)pr->httpresponse);
-        printf("CURL error code: %d\n", pr->curlcode);
+        printsend("Unable to connect to database. error code %d\n",(int)pr->httpresponse);
+        printsend("CURL error code: %d\n", pr->curlcode);
         //exit(0);
     }
     else{
-        printf("Connected to database: http response code %d\n",(int)pr->httpresponse);
+        printsend("Connected to database: http response code %d\n",(int)pr->httpresponse);
     }
     pr_free(pr);
 
@@ -531,7 +531,7 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
             send_pong(crate_number);
             break;
         default:
-            printf("STRANGE PACKET:\n");
+            printsend("STRANGE PACKET:\n");
             sprintf(psb, "XL3 (crate %d, port %d): OTHER: %d (%08x)\n",
                     crate_number, crate_number+XL3_PORT,
                     (int)packet->cmdHeader.packet_type,*(uint32_t *) &(packet->cmdHeader));

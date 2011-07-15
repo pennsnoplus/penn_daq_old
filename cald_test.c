@@ -77,7 +77,7 @@ int cald_test(char *buffer)
     }	
 
     if (num_points*samples > 2000){
-        printf("not enough space! ask Richie to increase the malloc size!\n");
+       printsend("not enough space! ask Richie to increase the malloc size!\n");
         return -1;
     }
 
@@ -104,10 +104,10 @@ int cald_test(char *buffer)
     adc_buf = (uint16_t *) malloc(16*2000*4*sizeof(uint16_t));
 
     total_points = receive_cald(crate_number,point_buf,adc_buf);
-    printf("total points received was %d\n",total_points);
+   printsend("total points received was %d\n",total_points);
 
     if (update_db){
-        printf("updating database\n");
+       printsend("updating database\n");
         for (i=0;i<16;i++){
             if ((0x1<<i) & slot_mask){
                 JsonNode *newdoc = json_mkobject();
@@ -121,7 +121,7 @@ int cald_test(char *buffer)
                 while(iter<=2000){
                     if (iter != 0 && point_buf[i*2000+iter] == 0)
                         break;
-                    printf("Slot %d - %u : %4u %4u %4u %4u\n",i,point_buf[i*2000+iter],adc_buf[i*8000+iter*4],adc_buf[i*8000+iter*4+1],adc_buf[i*8000+iter*4+2],adc_buf[i*8000+iter*4+3]);
+                   printsend("Slot %d - %u : %4u %4u %4u %4u\n",i,point_buf[i*2000+iter],adc_buf[i*8000+iter*4],adc_buf[i*8000+iter*4+1],adc_buf[i*8000+iter*4+2],adc_buf[i*8000+iter*4+3]);
                     json_append_element(points,json_mknumber((double)point_buf[i*2000+iter]));
                     json_append_element(adc0,json_mknumber((double)adc_buf[i*8000+iter*4]));
                     json_append_element(adc1,json_mknumber((double)adc_buf[i*8000+iter*4+1]));
@@ -203,8 +203,8 @@ int cald_pushed_from_xl3(int xl3_num)
             }else{
                 int r;
                 for (r=0;r<5;r++)
-                    printf("%08x ",*(uint32_t *) (aPacket->payload+4*r));
-                printf("\n");
+                   printsend("%08x ",*(uint32_t *) (aPacket->payload+4*r));
+               printsend("\n");
             }
         }else{	// if the data coming in was not from an xl3
             int z;

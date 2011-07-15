@@ -68,8 +68,8 @@ int disc_check(char *buffer)
         words = strtok(NULL, " ");
     }
 
-    printf("************************************************\n");
-    printf("Starting discriminator check for crate: %d\n",crate_num);
+   printsend("************************************************\n");
+   printsend("Starting discriminator check for crate: %d\n",crate_num);
     setup_softgt(crate_num);
     setup_crate(crate_num,slot_mask);
 
@@ -92,7 +92,7 @@ int disc_check(char *buffer)
             i=0;
         }
         if (i%50000 == 0)
-            printf("%d\n",i);
+           printsend("%d\n",i);
     }
 
     // get final data
@@ -110,7 +110,7 @@ int disc_check(char *buffer)
                 chan_diff[i][j] = 0;
                 cdiff = count_f[i][j]-count_i[i][j];
                 if (cdiff != nped){
-                    printf("cmos_count != nped for slot %d chan %d. Nped: %d, cdiff: %d\n",i,j,nped,cdiff);
+                   printsend("cmos_count != nped for slot %d chan %d. Nped: %d, cdiff: %d\n",i,j,nped,cdiff);
                     chan_errors[i][j] = 1;
                     chan_diff[i][j] = cdiff-nped;
                     errors++;
@@ -121,7 +121,7 @@ int disc_check(char *buffer)
 
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
@@ -153,7 +153,7 @@ int disc_check(char *buffer)
 
 
 
-    printf("****************************************\n");
+   printsend("****************************************\n");
     return errors;
 }
 

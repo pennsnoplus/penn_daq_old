@@ -65,7 +65,7 @@ int connect_to_SBC(int portno, struct hostent *server){
         return -1;
     }
     else {
-        printf("trying to connect with screen!\n");
+       printsend("trying to connect with screen!\n");
         system(bash_command);
     }
     bzero((char *) &serv_addr, sizeof(serv_addr));

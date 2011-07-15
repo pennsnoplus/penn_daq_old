@@ -178,7 +178,7 @@ int readout_test(char *buffer)
     uint32_t *p = (uint32_t *) packet.payload;
     for (i=0;i<19;i++){
         if (((0x1<<i)&crate_mask) && (connected_xl3s[i] != -999)){
-            printf("starting readout on crate %d\n",i);
+           printsend("starting readout on crate %d\n",i);
             packet.cmdHeader.packet_type = CHANGE_MODE_ID;
             *p = 0x1;
             SwapLongBlock(p,1);

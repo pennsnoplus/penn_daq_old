@@ -27,7 +27,7 @@ int fit_caldac()
             for (i=0;i<4;i++){
                 endpoint[i] = 4096;
             }
-            printf("slot = %d\n",slot);
+           printsend("slot = %d\n",slot);
             for (i=-1;i<numpoints;i++){
                 fin >> adccount >> s >> adc[0] >> adc[1] >> adc[2] >> adc[3];
                 if (i>=0){
@@ -60,7 +60,7 @@ int fit_caldac()
     for (slot=0;slot<16;slot++){
         if ((0x1<<slot) & slot_mask){
             for (i=0;i<4;i++){
-                printf("For slot %d adc %d, fit %6.2f + %6.2f x with chi2 of %6.2f\n",slot,i,par0[slot][i],par1[slot][i],chi2[slot][i]);
+               printsend("For slot %d adc %d, fit %6.2f + %6.2f x with chi2 of %6.2f\n",slot,i,par0[slot][i],par1[slot][i],chi2[slot][i]);
             }
         }
     }

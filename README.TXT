@@ -93,7 +93,7 @@ in the source code, but here it is in one place, nicely formatted.
 	Stolen directly from beej.us (see note in Introduction).
 
 	Example:
-	printf("new_daq: connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
+printsend("new_daq: connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
 	       newfd, inet_ntop(remoteaddr.ss_family,
 	       get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), newfd);
 
@@ -192,7 +192,7 @@ in the source code, but here it is in one place, nicely formatted.
 		}
 	}
 (3.K): int print_send(char *input, fd_set suggested)
-	This is a printf() replacement function that:
+	This is aprintsend() replacement function that:
 	1. prints the given string(/input/)
 	2. attempts to send the given string(/input/) to all of
 	   the file descriptors in fd_set /suggested/.

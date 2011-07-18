@@ -39,24 +39,24 @@ int receive_cald(int xl3_num, uint16_t *point_buf, uint16_t *adc_buf)
         set_delay_values(5, 1000);
         data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, &delay_value);
         if (data == -1){
-            print_send("wait_while_messages: Error in select()\n", view_fdset);
+            printsend("wait_while_messages: Error in select()\n");
             return -1;
         }else if (data == 0){
-            print_send("wait_while_messages: timed out\n", view_fdset);
+            printsend("wait_while_messages: timed out\n");
             return -2;
         }else if (FD_ISSET(connected_xl3s[xl3_num], &funcreadable_fdset)){
             n = recv(connected_xl3s[xl3_num],p,MAX_PACKET_SIZE, 0);
             if(n <= 0){
-                sprintf(psb, "wait_while_messages: unable to receive response from xl3 #%d (socket %d)\n",
+                printsend( "wait_while_messages: unable to receive response from xl3 #%d (socket %d)\n",
                         xl3_num, connected_xl3s[xl3_num]);
-                print_send(psb, view_fdset);
+                
                 return -3;
             }
             // We've successfully gotten a packet from XL3, what is it?
             *aPacket = *(XL3_Packet*)p;
             SwapShortBlock(&(aPacket->cmdHeader.packet_num),1);
             if (aPacket->cmdHeader.packet_type == MESSAGE_ID){
-                print_send(aPacket->payload, view_fdset); // we loop around again
+                printsend(aPacket->payload); // we loop around again
             }else if(aPacket->cmdHeader.packet_type == CALD_RESPONSE_ID){
                 // we now parse the packet
                 response = (cald_response_t *) aPacket->payload;
@@ -72,7 +72,7 @@ int receive_cald(int xl3_num, uint16_t *point_buf, uint16_t *adc_buf)
                         adc_buf[current_slot*8000+current_point*4+1] = response->adc1[i];
                         adc_buf[current_slot*8000+current_point*4+2] = response->adc2[i];
                         adc_buf[current_slot*8000+current_point*4+3] = response->adc3[i];
-                        //printf("slot %d: point %d, %4u %4u %4u %4u\n",current_slot,response->point[i],response->adc0[i],response->adc1[i],response->adc2[i],response->adc3[i]);
+                        //printsend("slot %d: point %d, %4u %4u %4u %4u\n",current_slot,response->point[i],response->adc0[i],response->adc1[i],response->adc2[i],response->adc3[i]);
                         current_point++;
                         point_count++;
                     }
@@ -82,10 +82,10 @@ int receive_cald(int xl3_num, uint16_t *point_buf, uint16_t *adc_buf)
                 return point_count;
             }else{
                 int r;
-                printf("wait_while_messages: unknown packet:\n");
+               printsend("wait_while_messages: unknown packet:\n");
                 for (r=0;r<5;r++)
-                    printf("wait_while_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
-                printf("\n");
+                   printsend("wait_while_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+               printsend("\n");
             }
         }else{	// if the data coming in was not from an xl3
             int z;
@@ -93,13 +93,13 @@ int receive_cald(int xl3_num, uint16_t *point_buf, uint16_t *adc_buf)
                 if(FD_ISSET(z, &funcreadable_fdset)){	// if the fd is readable, take the data
                     n = recv(z, p, 2444, 0);
                     if(n >= 0){
-                        sprintf(psb, "received data from socket %d\n", z);
-                        print_send(psb, view_fdset);
+                        printsend( "received data from socket %d\n", z);
+                        
                     }
                     if(FD_ISSET(z, &cont_fdset)){	// if it's a control socket, send back 'busy'
                         n = write(z, "new_daq: busy, did not process command\n", 39);
-                        sprintf(psb, "sent %d bytes back to socket %d\n", n, z);
-                        print_send(psb, view_fdset);
+                        printsend( "sent %d bytes back to socket %d\n", n, z);
+                        
                     }
                 }
             }
@@ -133,16 +133,16 @@ memset(aPacket, '\0', MAX_PACKET_SIZE);
 set_delay_values(0, 1000);
 data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, &delay_value);
 if (data == -1){
-print_send("new_daq: error in select()\n", view_fdset);
+printsend("new_daq: error in select()\n");
 return 1;
 }else if (data == 0){
 return message_count;
 }else if (FD_ISSET(connected_xl3s[xl3_num], &funcreadable_fdset)){
 n = recv(connected_xl3s[xl3_num],p,MAX_PACKET_SIZE, 0);
 if(n <= 0){
-sprintf(psb, "new_daq: sleep_with_messages, unable to receive response from xl3 #%d (socket %d)\n",
+printsend( "new_daq: sleep_with_messages, unable to receive response from xl3 #%d (socket %d)\n",
 xl3_num, connected_xl3s[xl3_num]);
-print_send(psb, view_fdset);
+
 return 1;
 }
 // We've successfully gotten a packet from XL3, what is it?
@@ -152,13 +152,13 @@ return 1;
  if (strlen(history) < 45000){
  sprintf(history+strlen(history),"%s",aPacket->payload);
  }
- print_send(aPacket->payload, view_fdset); // we loop around again
+ printsend(aPacket->payload); // we loop around again
  message_count++;
  }else{
  int r;
  for (r=0;r<5;r++)
- printf("sleep_with_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
- printf("\n");
+printsend("sleep_with_messages: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+printsend("\n");
  }
  }else{	// if the data coming in was not from an xl3
  int z;
@@ -166,13 +166,13 @@ return 1;
  if(FD_ISSET(z, &funcreadable_fdset)){	// if the fd is readable, take the data
  n = recv(z, p, 2444, 0);
  if(n >= 0){
- sprintf(psb, "received data from socket %d\n", z);
- print_send(psb, view_fdset);
+ printsend( "received data from socket %d\n", z);
+ 
  }
  if(FD_ISSET(z, &cont_fdset)){	// if it's a control socket, send back 'busy'
  n = write(z, "new_daq: busy, did not process command\n", 39);
- sprintf(psb, "sent %d bytes back to socket %d\n", n, z);
- print_send(psb, view_fdset);
+ printsend( "sent %d bytes back to socket %d\n", n, z);
+ 
  }
  }
  }
@@ -187,7 +187,7 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
 {
     //xl3_num -= 1;	// compensate for the fact that arrays start at 0, not 1
     if (connected_xl3s[xl3_num] == -999){
-        print_send("Invalid crate number: socket value is NULL\n", view_fdset);
+        printsend("Invalid crate number: socket value is NULL\n");
         return -1;
     }    
     XL3_Packet bPacket, *aPacket;
@@ -203,11 +203,11 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
                     if (multifc_buffer.cmd[i].flags == 0){
                         *(buffer + current_num) = multifc_buffer.cmd[i].data;
                     }else{
-                        print_send("There was a bus error in results\n",view_fdset);
+                        printsend("There was a bus error in results\n");
                     }
                     current_num++;
                 }else{
-                    print_send("Results out of order?\n",view_fdset);
+                    printsend("Results out of order?\n");
                     return -1;
                 }
                 if (i == (multifc_buffer.howmany-1)){
@@ -234,25 +234,25 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
         set_delay_values(SECONDS, USECONDS);
         data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, &delay_value);
         if (data == -1){
-            print_send("new_daq: error in select()\n", view_fdset);
+            printsend("new_daq: error in select()\n");
             return -2;
         }else if (data == 0){
-            print_send("new_daq: timeout in select()\n", view_fdset);
+            printsend("new_daq: timeout in select()\n");
             return -3;
         }else if (FD_ISSET(connected_xl3s[xl3_num], &funcreadable_fdset)){
             n = recv(connected_xl3s[xl3_num],p,MAX_PACKET_SIZE, 0);
             if(n <= 0){
-                sprintf(psb, "new_daq: receive_data: unable to receive response from xl3 #%d (socket %d)\n",
+                printsend( "new_daq: receive_data: unable to receive response from xl3 #%d (socket %d)\n",
                         xl3_num, connected_xl3s[xl3_num]);
-                print_send(psb, view_fdset);
+                
                 return -1;
             }
             // We've successfully gotten a packet from XL3, what is it?
             *aPacket = *(XL3_Packet*)p;
             SwapShortBlock(&(aPacket->cmdHeader.packet_num),1);
             if (aPacket->cmdHeader.packet_type == MESSAGE_ID)
-                printf("%s",aPacket->payload);
-            //print_send(aPacket->payload, view_fdset); // we loop around again
+               printsend("%s",aPacket->payload);
+            //printsend(aPacket->payload); // we loop around again
             else if (aPacket->cmdHeader.packet_type == CMD_ACK_ID){
                 // read in cmds and add to buffer, then loop again unless read in num_cmds cmds
                 commands = *(MultiFC *) aPacket->payload;
@@ -266,15 +266,15 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
                     if (commands.cmd[i].packet_num == packet_num){
                         if (commands.cmd[i].cmd_num == current_num){
                             if (commands.cmd[i].flags == 0){
-                                //printf("read in %08x\n",commands.cmd[i].data);
+                                //printsend("read in %08x\n",commands.cmd[i].data);
                                 *(buffer + current_num) = commands.cmd[i].data;
                             }else{
-                                sprintf(psb,"Bus error in receive data, %02x, command # %d\n",commands.cmd[i].flags,i);
-                                print_send(psb,view_fdset);
+                                printsend("Bus error in receive data, %02x, command # %d\n",commands.cmd[i].flags,i);
+                                
                             }
                             current_num++;
                         }else{
-                            print_send("Results out of order?\n",view_fdset);
+                            printsend("Results out of order?\n");
                             return -1;
                         }
                     }else{
@@ -284,7 +284,7 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
                             multifc_buffer.cmd[multifc_buffer.howmany] = commands.cmd[i];
                             multifc_buffer.howmany++;
                         }else{
-                            print_send("Result buffer already full, packets mixed up?\n",view_fdset);
+                            printsend("Result buffer already full, packets mixed up?\n");
                             return -1;
                         }
                     }
@@ -293,12 +293,12 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
                     return 0; // we got all our results, otherwise go around again
                 }
             }else{
-                //printf("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
-                //printf("%d bytes: .%s.\n",n,aPacket->payload);
+                //printsend("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
+                //printsend("%d bytes: .%s.\n",n,aPacket->payload);
                 int r;
                 for (r=0;r<5;r++)
-                    printf("receive_data: %08x ",*(uint32_t *) (aPacket->payload+4*r));
-                printf("\n");
+                   printsend("receive_data: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+               printsend("\n");
             }
         }else{	// if the data coming in was not from an xl3
             int z;
@@ -306,13 +306,13 @@ int receive_data(int num_cmds, int packet_num, int xl3_num, uint32_t *buffer)
                 if(FD_ISSET(z, &funcreadable_fdset)){	// if the fd is readable, take the data
                     n = recv(z, p, 2444, 0);
                     if(n >= 0){
-                        sprintf(psb, "received data from socket %d\n", z);
-                        print_send(psb, view_fdset);
+                        printsend( "received data from socket %d\n", z);
+                        
                     }
                     if(FD_ISSET(z, &cont_fdset)){	// if it's a control socket, send back 'busy'
                         n = write(z, "new_daq: busy, did not process command\n", 39);
-                        sprintf(psb, "sent %d bytes back to socket %d\n", n, z);
-                        print_send(psb, view_fdset);
+                        printsend( "sent %d bytes back to socket %d\n", n, z);
+                        
                     }
                 }
             }
@@ -329,7 +329,7 @@ int do_xl3_cmd(XL3_Packet *aPacket, int xl3_num){
 
     //xl3_num -= 1;	// compensate for the fact that arrays start at 0, not 1
     if (connected_xl3s[xl3_num] == -999){
-        print_send("Invalid crate number: socket value is NULL\n", view_fdset);
+        printsend("Invalid crate number: socket value is NULL\n");
         return -1;
     }    
     //int32_t numBytesToSend = aPacket->numBytes;
@@ -340,7 +340,7 @@ int do_xl3_cmd(XL3_Packet *aPacket, int xl3_num){
     SwapShortBlock(&(aPacket->cmdHeader.packet_num),1);
     n = write(connected_xl3s[xl3_num], p, numBytesToSend);
     if (n < 0) {
-        print_send("ERROR writing to socket\n", view_fdset);
+        printsend("ERROR writing to socket\n");
         return -1;
     }else{
         if (this_packet_type == CALD_TEST_ID)
@@ -364,17 +364,17 @@ int do_xl3_cmd(XL3_Packet *aPacket, int xl3_num){
                 set_delay_values(SECONDS, USECONDS);
             data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, &delay_value);
             if (data == -1){
-                print_send("new_daq: error in select()\n", view_fdset);
+                printsend("new_daq: error in select()\n");
                 return -2;
             }else if (data == 0){
-                print_send("new_daq: timeout in select()\n", view_fdset);
+                printsend("new_daq: timeout in select()\n");
                 return -3;
             }else if (FD_ISSET(connected_xl3s[xl3_num], &funcreadable_fdset)){
                 n = recv(connected_xl3s[xl3_num],p,MAX_PACKET_SIZE, 0);
                 if(n <= 0){
-                    sprintf(psb, "new_daq: do_xl3_cmd: packet_type %02x, unable to receive response from xl3 #%d (socket %d)\n",
+                    printsend( "new_daq: do_xl3_cmd: packet_type %02x, unable to receive response from xl3 #%d (socket %d)\n",
                             this_packet_type,xl3_num, connected_xl3s[xl3_num]);
-                    print_send(psb, view_fdset);
+                    
                     return -1;
                 }
                 // We've successfully gotten a packet from XL3, what is it?
@@ -384,28 +384,28 @@ int do_xl3_cmd(XL3_Packet *aPacket, int xl3_num){
                     if (this_packet_type == CALD_TEST_ID){
                         fprintf(cald_test_file, "%s", aPacket->payload);
                     }
-                    printf("%s",aPacket->payload);
+                   printsend("%s",aPacket->payload);
 
-                    //print_send(aPacket->payload, view_fdset); // we loop around again
+                    //printsend(aPacket->payload); // we loop around again
                 }else if (aPacket->cmdHeader.packet_type == this_packet_type){
                     if (this_packet_type == CALD_TEST_ID)
                         fclose(cald_test_file);
                     if (aPacket->cmdHeader.packet_num == ((command_number-1)%65536))
                         return 0;
                     else{
-                        sprintf(psb, "wrong command number?? Expected %d, got %d.\n",command_number-1,aPacket->cmdHeader.packet_num);
-                        print_send(psb, view_fdset);
+                        printsend( "wrong command number?? Expected %d, got %d.\n",command_number-1,aPacket->cmdHeader.packet_num);
+                        
                         return -4;
                     }
                 }else if (aPacket->cmdHeader.packet_type == MEGA_BUNDLE_ID){
                     store_mega_bundle(aPacket->cmdHeader.num_bundles);
                 }else{
-                    //printf("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
-                    //printf("%d bytes: .%s.\n",n,aPacket->payload);
+                    //printsend("packet type was %02x, number %02x\n",aPacket->cmdHeader.packet_type,aPacket->cmdHeader.packet_num);
+                    //printsend("%d bytes: .%s.\n",n,aPacket->payload);
                     int r;
                     for (r=0;r<5;r++)
-                        printf("do_xl3_cmd: %08x ",*(uint32_t *) (aPacket->payload+4*r));
-                    printf("\n");
+                       printsend("do_xl3_cmd: %08x ",*(uint32_t *) (aPacket->payload+4*r));
+                   printsend("\n");
                 }
             }else{	// if the data coming in was not from an xl3
                 int z;
@@ -413,13 +413,13 @@ int do_xl3_cmd(XL3_Packet *aPacket, int xl3_num){
                     if(FD_ISSET(z, &funcreadable_fdset)){	// if the fd is readable, take the data
                         n = recv(z, p, 2444, 0);
                         if(n >= 0){
-                            sprintf(psb, "received data from socket %d\n", z);
-                            print_send(psb, view_fdset);
+                            printsend( "received data from socket %d\n", z);
+                            
                         }
                         if(FD_ISSET(z, &cont_fdset)){	// if it's a control socket, send back 'busy'
                             n = write(z, "new_daq: busy, did not process command\n", 39);
-                            sprintf(psb, "sent %d bytes back to socket %d\n", n, z);
-                            print_send(psb, view_fdset);
+                            printsend( "sent %d bytes back to socket %d\n", n, z);
+                            
                         }
                     }
                 }
@@ -435,7 +435,7 @@ int do_xl3_cmd_no_response(XL3_Packet *aPacket, int xl3_num){
     int result;
     //xl3_num -= 1;	// compensate for the fact that arrays start at 0, not 1
     if (connected_xl3s[xl3_num] == -999){
-        print_send("Invalid crate number: socket value is NULL\n", view_fdset);
+        printsend("Invalid crate number: socket value is NULL\n");
         return -1;
     }    
     //int32_t numBytesToSend = aPacket->numBytes;
@@ -446,7 +446,7 @@ int do_xl3_cmd_no_response(XL3_Packet *aPacket, int xl3_num){
     SwapShortBlock(&(aPacket->cmdHeader.packet_num),1);
     n = write(connected_xl3s[xl3_num], p, numBytesToSend);
     if (n < 0) {
-        print_send("ERROR writing to socket\n", view_fdset);
+        printsend("ERROR writing to socket\n");
         return -1;
     }
     return 0;
@@ -490,10 +490,10 @@ int read_from_tut(char* result){
     while(1){ // we loop until we get the right response or error out
         data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, NULL);
         if (data == -1){
-            print_send("new_daq: error in select()\n", view_fdset);
+            printsend("new_daq: error in select()\n");
             return -2;
         }else if (data == 0){
-            print_send("new_daq: timeout in select()\n", view_fdset);
+            printsend("new_daq: timeout in select()\n");
             //return -3;
         }else{ 
             int z;
@@ -503,13 +503,13 @@ int read_from_tut(char* result){
                         n = recv(z, p, 2444, 0);
                         if(n > 0){
                             sprintf(result,"%s",p);
-                            //sprintf(psb, "controller says \"%s\"\n", p);
-                            //print_send(psb, view_fdset);
+                            //printsend( "controller says \"%s\"\n", p);
+                            //
                             if(FD_ISSET(z, &writeable_fdset)){
                                 write(z, COMACK, strlen(COMACK));
                                 return 0;
                             }else{
-                                print_send("could not send response - check connection\n",
+                                printsend("could not send response - check connection\n",
                                         view_fdset);
                                 return 0;
                             }
@@ -520,7 +520,7 @@ int read_from_tut(char* result){
                             }
                             // if there's an error in the connection, throw an error and close the connection
                             else if ( n < 0){
-                                print_send("receive error: receiving controller data\n", view_fdset);
+                                printsend("receive error: receiving controller data\n");
                                 close_con(z, "CONTROLLER");
                                 return -1;
                             }

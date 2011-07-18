@@ -21,8 +21,8 @@
 int readout_test(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
+        
         return -1;
     }
     count_d =0;
@@ -74,9 +74,9 @@ int readout_test(char *buffer)
                 words2 = strtok(NULL, " ");
                 ped_width = atoi(words2);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: readout_test -c"
+                printsend("Usage: readout_test -c"
                         " [crate_mask (hex)] -s [slot mask (hex)] -f [frequency] -p [pattern] -t [gtdelay] -w [ped width]\n");
-                print_send(psb, view_fdset);
+                
                 return -1;
             }else if (words[1] == '0'){
                 if (words[2] == '0'){
@@ -161,15 +161,15 @@ int readout_test(char *buffer)
         fprintf(file,"\nRun started at %.24s\n",ctime(&now));
     }
     else{
-        sprintf(psb,"Readout Test Setup\n");
-        sprintf(psb+strlen(psb),"-------------------------------------------\n");
-        sprintf(psb+strlen(psb),"Crate Mask:		    0x%05x\n",crate_mask);
-        sprintf(psb+strlen(psb),"Pedestal Mask:	    0x%08lx\n",pattern);
-        sprintf(psb+strlen(psb),"GT delay (ns):	    %3hu\n", gtdelay);
-        sprintf(psb+strlen(psb),"Pedestal Width (ns):    %2d\n",ped_width);
-        sprintf(psb+strlen(psb),"Pulser Frequency (Hz):  %3.0f\n",frequency);
-        sprintf(psb+strlen(psb),"\nRun started at %.24s\n",ctime(&now));
-        print_send(psb, view_fdset);
+        printsend("Readout Test Setup\n");
+        printsend("-------------------------------------------\n");
+        printsend("Crate Mask:		    0x%05x\n",crate_mask);
+        printsend("Pedestal Mask:	    0x%08lx\n",pattern);
+        printsend("GT delay (ns):	    %3hu\n", gtdelay);
+        printsend("Pedestal Width (ns):    %2d\n",ped_width);
+        printsend("Pulser Frequency (Hz):  %3.0f\n",frequency);
+        printsend("\nRun started at %.24s\n",ctime(&now));
+        
     }
 
     uint32_t result;
@@ -178,7 +178,7 @@ int readout_test(char *buffer)
     uint32_t *p = (uint32_t *) packet.payload;
     for (i=0;i<19;i++){
         if (((0x1<<i)&crate_mask) && (connected_xl3s[i] != -999)){
-            printf("starting readout on crate %d\n",i);
+           printsend("starting readout on crate %d\n",i);
             packet.cmdHeader.packet_type = CHANGE_MODE_ID;
             *p = 0x1;
             SwapLongBlock(p,1);
@@ -206,7 +206,7 @@ int readout_test(char *buffer)
 
     errors = setup_pedestals(frequency,ped_width,gtdelay,GT_FINE_DELAY);
     if (errors){
-        print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+        printsend("Error setting up MTC for pedestals. Exiting\n");
         unset_ped_crate_mask(MASKALL);
         unset_gt_crate_mask(MASKALL);
         return -1;
@@ -263,21 +263,21 @@ int readout_add_crate(char *buffer)
                 words2 = strtok(NULL, " ");
                 pattern = strtoul(words2, (char **) NULL, 16);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: readout_addcrate -c"
+                printsend("Usage: readout_addcrate -c"
                         " [crate num] -s [slot mask (hex)] -p [pattern]\n");
-                print_send(psb, view_fdset);
+                
                 return -1;
             }
         }
         words = strtok(NULL, " ");
     }
 
-    sprintf(psb,"Readout Test Setup - adding a crate\n");
-    sprintf(psb+strlen(psb),"-------------------------------------------\n");
-    sprintf(psb+strlen(psb),"Crate:		    %d\n",crate);
-    sprintf(psb+strlen(psb),"Slot Mask:		    0x%4hx\n",slot_mask);
-    sprintf(psb+strlen(psb),"Pedestal Mask:	    0x%08lx\n",pattern);
-    print_send(psb, view_fdset);
+    printsend("Readout Test Setup - adding a crate\n");
+    printsend("-------------------------------------------\n");
+    printsend("Crate:		    %d\n",crate);
+    printsend("Slot Mask:		    0x%4hx\n",slot_mask);
+    printsend("Pedestal Mask:	    0x%08lx\n",pattern);
+    
 
     XL3_Packet packet;
     uint32_t *p = (uint32_t *) packet.payload;
@@ -314,8 +314,8 @@ int readout_add_crate(char *buffer)
 int readout_add_mtc(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
+        
         return -1;
     }
     count_d =0;
@@ -354,9 +354,9 @@ int readout_add_mtc(char *buffer)
                 words2 = strtok(NULL, " ");
                 ped_width = atoi(words2);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: readout_add_mtc -c [crate mask (hex)] -f [freq (0 = softgt)]\n"
+                printsend("Usage: readout_add_mtc -c [crate mask (hex)] -f [freq (0 = softgt)]\n"
                         "-t [gtdelay] -w [ped_width]\n");
-                print_send(psb,view_fdset);
+                
                 return -1;
             }
         }
@@ -368,7 +368,7 @@ int readout_add_mtc(char *buffer)
 
     errors = setup_pedestals(frequency,ped_width,gtdelay,GT_FINE_DELAY);
     if (errors){
-        print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+        printsend("Error setting up MTC for pedestals. Exiting\n");
         unset_ped_crate_mask(MASKALL);
         unset_gt_crate_mask(MASKALL);
         return -1;
@@ -388,8 +388,8 @@ int readout_add_mtc(char *buffer)
 int stop_pulser(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
+        
         return -1;
     }
     disable_pulser();
@@ -432,8 +432,8 @@ int end_readout(char *buffer)
 int change_pulser(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
+        
         return -1;
     }
     int errors=0;
@@ -450,20 +450,20 @@ int change_pulser(char *buffer)
                 words2 = strtok(NULL, " ");
                 frequency =  atof(words2);
             }else if (words[1] == 'h'){
-                sprintf(psb,"usage: change_pulser -f [frequency]\n");
-                print_send(psb,view_fdset);
+                printsend("usage: change_pulser -f [frequency]\n");
+                
                 return -1;
             }
         }
         words = strtok(NULL, " ");
     }
 
-    sprintf(psb, "Pulser Frequency (Hz):  %3.0f\n",frequency);
-    print_send(psb, view_fdset);
+    printsend( "Pulser Frequency (Hz):  %3.0f\n",frequency);
+    
 
     errors = setup_pedestals(frequency,ped_width,gtdelay,GT_FINE_DELAY);
     if (errors){
-        print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+        printsend("Error setting up MTC for pedestals. Exiting\n");
         unset_ped_crate_mask(MASKALL);
         unset_gt_crate_mask(MASKALL);
         return -1;

@@ -207,11 +207,8 @@ int count_d;
 MultiFC multifc_buffer;
 int multifc_buffer_full;
 int command_number;
-// allows print_send to send more than simple strings
-char psb[5000];
 // determines whether or not a log is opened for writing
 int write_log; //(by default, false)
-// log file variable for print_send()
 FILE *ps_log_file;
 FILE *cald_test_file;
 // timeout for select functions (any function that reads/writes)

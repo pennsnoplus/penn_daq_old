@@ -58,14 +58,14 @@ int main(int argc, char *argv[]){
             case 0:
                 break;
             case 'l':
-                printf("Starting to log!\n");
+                printsend("Starting to log!\n");
                 start_logging();
                 break;
             case 'h':
-                printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
-                printf("            or\n");
-                printf("       %s [-h/--help]\n", argv[0]);
-                printf("For more help, read the README\n");
+                printsend("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+                printsend("            or\n");
+                printsend("       %s [-h/--help]\n", argv[0]);
+                printsend("For more help, read the README\n");
                 exit(0);
                 break;
             case 'p':
@@ -86,17 +86,17 @@ int main(int argc, char *argv[]){
     }
     /* print any remaining command line arguments (not options). */
     //if (optind < argc){
-    //printf("Hostname: %s\n", argv[optind]);
+    ///printsend("Hostname: %s\n", argv[optind]);
     //}
     //else{
-    //printf("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
-    //printf("            or\n");
-    //printf("       %s [-h/--help]\n", argv[0]);
-    //printf("For more help, read the README\n");
+    ///printsend("usage: %s [-l/--log] [-p/--penn|-a/--aboveground|-u/--underground]", argv[0]);
+    ///printsend("            or\n");
+    ///printsend("       %s [-h/--help]\n", argv[0]);
+    ///printsend("For more help, read the README\n");
     //exit(0);
     //}
 
-    printf("current location is %d\n",current_location);
+    printsend("current location is %d\n",current_location);
 
     // ############ INITIALIZE VARIABLES #############
 
@@ -139,18 +139,15 @@ int main(int argc, char *argv[]){
         }
     }
 
-    //clear the print_send buffer (char psb[])
-    memset(psb, '\0', sizeof(psb));
-
     for (a=0;a<MAX_XL3_CON;a++){
         connected_xl3s[a] = -999;
     }
 
     // set the universal timeout value
     set_delay_values(SECONDS, USECONDS);
-    sprintf(psb, "delay_value set to %d.%d seconds\n", (int)delay_value.tv_sec,
+    printsend( "delay_value set to %d.%d seconds\n", (int)delay_value.tv_sec,
             ((int)delay_value.tv_usec)/100000);
-    print_send(psb, view_fdset);
+    
 
 
     // make sure the database is up and running
@@ -158,12 +155,12 @@ int main(int argc, char *argv[]){
     pr = db_get(pr, DB_SERVER, DB_BASE_NAME);
     pr_do(pr);
     if(pr->httpresponse != 200){
-        printf("Unable to connect to database. error code %d\n",(int)pr->httpresponse);
-        printf("CURL error code: %d\n", pr->curlcode);
+        printsend("Unable to connect to database. error code %d\n",(int)pr->httpresponse);
+        printsend("CURL error code: %d\n", pr->curlcode);
         //exit(0);
     }
     else{
-        printf("Connected to database: http response code %d\n",(int)pr->httpresponse);
+        printsend("Connected to database: http response code %d\n",(int)pr->httpresponse);
     }
     pr_free(pr);
 
@@ -173,17 +170,17 @@ int main(int argc, char *argv[]){
     // ########### SETUP ALL THE ETHERNET STUFF ##################
     setup_listeners();
 
-    sprintf(psb,"new_daq: setup complete\n");
+    printsend("new_daq: setup complete\n");
     // show the user what the ports are linked to
-    sprintf(psb+strlen(psb),"\nNAME\t\tPORT#\n");
-    sprintf(psb+strlen(psb),"XL3s\t\t%d-%d\n", XL3_PORT, XL3_PORT+MAX_XL3_CON-1);
-    sprintf(psb+strlen(psb),"SBC/MTC\t\t%d\n", SBC_PORT);
-    sprintf(psb+strlen(psb),"CONTROLLER\t%d\n", CONT_PORT);
-    sprintf(psb+strlen(psb),"VIEWERs\t\t%d\n\n", VIEW_PORT);
+    printsend("\nNAME\t\tPORT#\n");
+    printsend("XL3s\t\t%d-%d\n", XL3_PORT, XL3_PORT+MAX_XL3_CON-1);
+    printsend("SBC/MTC\t\t%d\n", SBC_PORT);
+    printsend("CONTROLLER\t%d\n", CONT_PORT);
+    printsend("VIEWERs\t\t%d\n\n", VIEW_PORT);
 
-    sprintf(psb+strlen(psb),"waiting for connections...\n");
-    //sprintf(psb+strlen(psb),"it is highly recommended that you connect an sbc with 'connect_to_SBC'\n");
-    print_send(psb, view_fdset);
+    printsend("waiting for connections...\n");
+    //printsend("it is highly recommended that you connect an sbc with 'connect_to_SBC'\n");
+    
     // note- it's very unlikely that all of the commands will work properly without
     //		an SBC/MTC connected as a client. This string is just a reminder to the
     //		user that they need to set up the SBC/MTC. - (Peter Downs, 8/9/10)
@@ -208,8 +205,8 @@ int main(int argc, char *argv[]){
         select_return = select(fdmax+1, &readable_fdset, &writeable_fdset, NULL, 0);
         if (select_return == -1){
 
-            sprintf(psb, "select error in main loop\n");
-            print_send(psb, view_fdset);
+            printsend( "select error in main loop\n");
+            
             sigint_func(SIGINT);
         }
         else if(select_return > 0){		// if there were file descriptors to be read/written to
@@ -306,9 +303,9 @@ int main(int argc, char *argv[]){
                         // if there is an error with receiving the data, close the connection
                         else if (numbytes < 0){
 
-                            sprintf(psb, "new_daq: error receiving data from XL3 #%d\n",
+                            printsend( "new_daq: error receiving data from XL3 #%d\n",
                                     get_xl3_location(a, connected_xl3s));
-                            print_send(psb, view_fdset);
+                            
                             close_con(a, "XL3");
                         }
                         else{
@@ -328,13 +325,13 @@ int main(int argc, char *argv[]){
                         }
                         // if there's an error in the connection, throw an error and close the connection
                         else if ( numbytes < 0){
-                            print_send("receive error: receiving controller data\n", view_fdset);
+                            printsend("receive error: receiving controller data\n");
                             close_con(a, "CONTROLLER");
                         }
                         else{
 
-                            sprintf(psb, "CONTROLLER (socket %d): %s\n", a, c_packet);
-                            print_send(psb, view_fdset);
+                            printsend( "CONTROLLER (socket %d): %s\n", a, c_packet);
+                            
                             if(process_command(c_packet) == -1){
                                 sigint_func(SIGINT);
                             }
@@ -344,7 +341,7 @@ int main(int argc, char *argv[]){
                             }
 
                             else{
-                                print_send("could not send response - check connection\n",
+                                printsend("could not send response - check connection\n",
                                         view_fdset);
                             }
 
@@ -362,14 +359,14 @@ int main(int argc, char *argv[]){
                         }
                         // if there's an error in the connection, throw an error and close the connection
                         else if( numbytes < 0){
-                            print_send("new_daq: error receiving SBC data\n", view_fdset);
+                            printsend("new_daq: error receiving SBC data\n");
                             close_con(a, "SBC/MTC");
                             sbc_is_connected = 0;
                         }
                         else{
 
-                            sprintf(psb, "SBC/MTC (socket %d): %s\n", a, c_packet);
-                            print_send(psb, view_fdset);
+                            printsend( "SBC/MTC (socket %d): %s\n", a, c_packet);
+                            
                         }
                     } // End SBC/MTC data
                     /* Viewer data 21.3.2.4) */
@@ -384,7 +381,7 @@ int main(int argc, char *argv[]){
                         // the viewer should never be sending data other than telling us that it quit)
                         // show that there was an error and close the connection
                         else if(numbytes < 0){
-                            print_send("error receiving viewer data\n", view_fdset);
+                            printsend("error receiving viewer data\n");
                             close_con(a, "VIEWER");
                         }
                     } // End viewer data
@@ -413,99 +410,99 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
         // here crate number goes from 0 to 18
         // acknowledge that we received different commands
         case CHANGE_MODE_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): CHANGE_MODE_ID\n",
+            printsend( "XL3 (crate %d, port %d): CHANGE_MODE_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case XL3_TEST_CMD_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): XL3_TEST_CMD_ID\n",
+            printsend( "XL3 (crate %d, port %d): XL3_TEST_CMD_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case SINGLE_CMD_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): SINGLE_CMD_ID\n",
+            printsend( "XL3 (crate %d, port %d): SINGLE_CMD_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case DAQ_QUIT_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): DAQ_QUIT_ID\n",
+            printsend( "XL3 (crate %d, port %d): DAQ_QUIT_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case FEC_CMD_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): FEC_CMD_ID\n",
+            printsend( "XL3 (crate %d, port %d): FEC_CMD_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case FEC_TEST_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): FEC_TEST_ID\n",
+            printsend( "XL3 (crate %d, port %d): FEC_TEST_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case MEM_TEST_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): MEM_TEST_ID\n",
+            printsend( "XL3 (crate %d, port %d): MEM_TEST_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case CRATE_INIT_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): CRATE_INIT_ID\n",
+            printsend( "XL3 (crate %d, port %d): CRATE_INIT_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case VMON_START_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): VMON_START_ID\n",
+            printsend( "XL3 (crate %d, port %d): VMON_START_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case BOARD_ID_READ_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): BOARD_ID_READ_ID\n",
+            printsend( "XL3 (crate %d, port %d): BOARD_ID_READ_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case ZERO_DISCRIMINATOR_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): ZERO_DISCRIMINATOR_ID\n",
+            printsend( "XL3 (crate %d, port %d): ZERO_DISCRIMINATOR_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case FEC_LOAD_CRATE_ADD_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): FEC_LOAD_CRATE_ADD_ID\n",
+            printsend( "XL3 (crate %d, port %d): FEC_LOAD_CRATE_ADD_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case SET_CRATE_PEDESTALS_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): SET_CRATE_PEDESTALS_ID\n",
+            printsend( "XL3 (crate %d, port %d): SET_CRATE_PEDESTALS_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case DESELECT_FECS_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): DESELECT_FECS_ID\n",
+            printsend( "XL3 (crate %d, port %d): DESELECT_FECS_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case BUILD_CRATE_CONFIG_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): BUILD_CRATE_CONFIG_ID\n",
+            printsend( "XL3 (crate %d, port %d): BUILD_CRATE_CONFIG_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case LOADSDAC_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): LOADSDAC_ID\n",
+            printsend( "XL3 (crate %d, port %d): LOADSDAC_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case CALD_TEST_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): CALD_TEST_ID\n",
+            printsend( "XL3 (crate %d, port %d): CALD_TEST_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case STATE_MACHINE_RESET_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): STATE_MACHINE_RESET_ID\n",
+            printsend( "XL3 (crate %d, port %d): STATE_MACHINE_RESET_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
         case MULTI_CMD_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): MULTI_CMD_ID\n",
+            printsend( "XL3 (crate %d, port %d): MULTI_CMD_ID\n",
                     crate_number, crate_number+XL3_PORT);
-            print_send(psb, view_fdset);
+            
             break;
 
 
@@ -514,9 +511,9 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
             // THESE BELOW ARE THE ONLY ONES YOU SHOULD SEE AND
             // DO SOMETHING ABOUT
         case MESSAGE_ID:
-            sprintf(psb, "XL3 (crate %d, port %d): MESSAGE: %s\n",
+            printsend( "XL3 (crate %d, port %d): MESSAGE: %s\n",
                     crate_number, crate_number+XL3_PORT,packet->payload);
-            print_send(psb, view_fdset);
+            
             break;
         case MEGA_BUNDLE_ID:
             store_mega_bundle(packet->cmdHeader.num_bundles);
@@ -531,11 +528,11 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
             send_pong(crate_number);
             break;
         default:
-            printf("STRANGE PACKET:\n");
-            sprintf(psb, "XL3 (crate %d, port %d): OTHER: %d (%08x)\n",
+            printsend("STRANGE PACKET:\n");
+            printsend( "XL3 (crate %d, port %d): OTHER: %d (%08x)\n",
                     crate_number, crate_number+XL3_PORT,
                     (int)packet->cmdHeader.packet_type,*(uint32_t *) &(packet->cmdHeader));
-            print_send(psb, view_fdset);
+            
             break;
     }
 }
@@ -547,7 +544,7 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
 int process_command(char *buffer){ //DATABASE
     //_!_begin_commands_!_
     if (strncmp(buffer, "exit", 4) == 0){ // quit
-        print_send("new_daq: exiting\n", view_fdset);
+        printsend("new_daq: exiting\n");
         return -1;
     }
     else if (strncmp(buffer, "print_connected", 10) == 0)
@@ -658,11 +655,11 @@ int process_command(char *buffer){ //DATABASE
         kill_SBC_process();
     else if (strncmp(buffer, "clear_screen", 12) == 0){
         system("clear");
-        print_send("new_daq: cleared screen\n", view_fdset);
+        printsend("new_daq: cleared screen\n");
     }
     //_!_end_commands_!_
     else
-        print_send("not a valid command\n", view_fdset);
+        printsend("not a valid command\n");
 
     return 0;
 }
@@ -688,10 +685,10 @@ int store_mega_bundle(int nbundles){ // a mega_bundle
     if(count_d%Nprint==0) {
         dt= new_time-old_time;
         old_time=new_time;
-        sprintf(psb, "recv %i \t %i \t %i \t %i \t ave %8.2f Mb/s \t d/dt %8.2f Mb/s (%.1f %% fake)\n",
+        printsend( "recv %i \t %i \t %i \t %i \t ave %8.2f Mb/s \t d/dt %8.2f Mb/s (%.1f %% fake)\n",
                 count_d,nbundles,(int)rec_bytes,(int)delta_t,(float)(rec_bytes*8/(float)delta_t),
                 (float)(nbundles*12*8*Nprint/(float)dt),rec_fake_bytes/(float)(Nprint*120*12)*100.0);
-        print_send(psb, view_fdset);
+        
         rec_fake_bytes=0;
     }
 }
@@ -750,8 +747,8 @@ void sigint_func(int sig){
        open connections/files are closed correctly. It also moves
        any logs in the /daq directory to /daq/logs.
      */
-    print_send("\nnew_daq: beginning shutdown\n", view_fdset);
-    print_send("new_daq: closing connections\n", view_fdset);
+    printsend("\nnew_daq: beginning shutdown\n");
+    printsend("new_daq: closing connections\n");
     int u;
     for(u = 0; u <= fdmax; u++){
         if(FD_ISSET(u, &all_fdset)){
@@ -760,12 +757,12 @@ void sigint_func(int sig){
     }
     stop_logging();
     if(write_log){
-        print_send("new_daq: closing log\n", view_fdset);
+        printsend("new_daq: closing log\n");
         if(ps_log_file){
             stop_logging();
         }
         else{
-            print_send("No log file to close\n", view_fdset);
+            printsend("No log file to close\n");
         }
     }
     exit(0);
@@ -774,7 +771,7 @@ void sigint_func(int sig){
 /* void start_logging (3.M) */
 void start_logging(){
     /*
-       Opens up a time stamped log file which print_send()
+       Opens up a time stamped log file which printsend()
        tries to write to every time it is called.
        Format is:
        log_name = "Year_Month_Day_Hour_Minute_Second_Milliseconds.log"
@@ -793,12 +790,12 @@ void start_logging(){
         strftime(log_name, 256, "%Y_%m_%d_%H_%M_%S_", loctime);
         sprintf(log_name+strlen(log_name), "%d.log", (int)moretime.tv_usec);
         ps_log_file = fopen(log_name, "a+");
-        sprintf(psb, "Enabled logging\n");
-        sprintf(psb+strlen(psb), "Opened log file: %s\n", log_name);
-        print_send(psb, view_fdset);
+        printsend( "Enabled logging\n");
+        printsend( "Opened log file: %s\n", log_name);
+        
     }
     else{
-        print_send("Logging already enabled\n", view_fdset);
+        printsend("Logging already enabled\n");
     }
 }
 
@@ -812,18 +809,18 @@ void stop_logging(){
      */
     if(write_log){
         write_log = 0;
-        print_send("Disabled logging\n", view_fdset);
+        printsend("Disabled logging\n");
         if(ps_log_file){
-            print_send("Closed log file\n", view_fdset);
+            printsend("Closed log file\n");
             fclose(ps_log_file);
             system("mv *.log ./logs");
         }
         else{
-            print_send("\tNo log file to close\n", view_fdset);
+            printsend("\tNo log file to close\n");
         }
     }
     else{
-        print_send("Logging is already disabled\n", view_fdset);
+        printsend("Logging is already disabled\n");
     }
 }
 

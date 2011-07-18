@@ -48,7 +48,7 @@
    errorbit = (total_count[i] & 0x80000000) ? 1 : 0;
    if (errorbit){
    errors++;
-   printf("there was a cmos total count error\n");
+  printsend("there was a cmos total count error\n");
    if (errors > 320)
    return -1;
    }else{
@@ -154,22 +154,19 @@ int zdisc(char *buffer)
                 }
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: zdisc -c"
+                printsend("Usage: zdisc -c"
                         " [crate_num] -s [slot mask (hex)] -o [offset] -r [rate] -d (write results to db)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
         words = strtok(NULL, " ");
     }
 
-    print_send("-------------------------------------\n\r",view_fdset);
-    print_send("Discriminator Zero Finder. \n\r",view_fdset);
-    sprintf(psb,"Desired rate:\t% 5.1f\n", rate);
-    print_send(psb,view_fdset);
-    sprintf(psb,"Offset      :\t%hu\n", offset);
-    print_send(psb,view_fdset);
-    print_send("-------------------------------------\n\r",view_fdset);
+    printsend("-------------------------------------\n\r");
+    printsend("Discriminator Zero Finder. \n\r");
+    printsend("Desired rate:\t% 5.1f\n", rate);
+    printsend("Offset      :\t%hu\n", offset);
+    printsend("-------------------------------------\n\r");
 
     XL3_Packet packet;
     hware_vals_t hware_vals_found[16];
@@ -206,26 +203,26 @@ int zdisc(char *buffer)
 
 
             // printout stuff/////////
-            printf("channel    max rate,       lower,       upper\n\r");
-            printf("------------------------------------------\n\r");
+           printsend("channel    max rate,       lower,       upper\n\r");
+           printsend("------------------------------------------\n\r");
             for (j=0;j<32;j++)
             {
-                printf("ch (%2d)   %5.2f(MHz)  %6.1f(KHz)  %6.1f(KHz)\n\r",j,(float) MaxRate[j]/1E6,(float) LowerRate[j]/1E3,(float) UpperRate[j]/1E3);
+               printsend("ch (%2d)   %5.2f(MHz)  %6.1f(KHz)  %6.1f(KHz)\n\r",j,(float) MaxRate[j]/1E6,(float) LowerRate[j]/1E3,(float) UpperRate[j]/1E3);
             }
-            printf("Dac Settings\n\r");
-            printf("channel     Max   Lower   Upper   U+L/2\n\r");
+           printsend("Dac Settings\n\r");
+           printsend("channel     Max   Lower   Upper   U+L/2\n\r");
             for (j=0;j<32;j++)
             {
-                printf("ch (%2i)   %5hu   %5hu   %5hu   %5hu\n", j, MaxDacSetting[j],LowerDacSetting[j],UpperDacSetting[j],ZeroDacSetting[j]);
+               printsend("ch (%2i)   %5hu   %5hu   %5hu   %5hu\n", j, MaxDacSetting[j],LowerDacSetting[j],UpperDacSetting[j],ZeroDacSetting[j]);
                 if (LowerDacSetting[j] > MaxDacSetting[j])
                 {
-                    printf(" <- lower > max! (MaxRate(MHz):%5.2f, lowrate(KHz):%5.2f\n",(float) MaxRate[j]/1E6,(float) LowerRate[j]/1000.0);
+                   printsend(" <- lower > max! (MaxRate(MHz):%5.2f, lowrate(KHz):%5.2f\n",(float) MaxRate[j]/1E6,(float) LowerRate[j]/1000.0);
                 }
             }
 
             // update the database
             if (update_db){
-                printf("updating the database\n");
+               printsend("updating the database\n");
                 char hextostr[50];
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("zdisc"));
@@ -265,8 +262,8 @@ int zdisc(char *buffer)
             }
         } // end loop over slot mask
     } // end loop over slots
-    print_send("zero discriminator complete.\n",view_fdset);
-    print_send("*******************************\n",view_fdset);
+    printsend("zero discriminator complete.\n");
+    printsend("*******************************\n");
     return 0;
 }
 
@@ -285,9 +282,8 @@ int ramp_voltage(char *buffer)
                 pattern = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: load_relays -c"
+                printsend("Usage: load_relays -c"
                         " [crate_num] -s [slot mask (hex)] -d [update debug db]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -325,9 +321,8 @@ int load_relays(char *buffer)
                 pattern = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: load_relays -c"
+                printsend("Usage: load_relays -c"
                         " [crate_num] -s [slot mask (hex)] -d [update debug db]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -386,9 +381,8 @@ int fec_test(char *buffer)
                 }
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: fec_test -c"
+                printsend("Usage: fec_test -c"
                         " [crate_num] -s [slot mask (hex)] -d [update debug db]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -405,7 +399,7 @@ int fec_test(char *buffer)
     do_xl3_cmd(&packet,crate_num);
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         uint32_t* results = (uint32_t*) packet.payload;
         // results layout is : [error flags] [slot 0 discrete] [slot 1 discrete] ... [slot 0 cmos] [slot 1 cmos] ...
         SwapLongBlock(results,65);
@@ -413,7 +407,7 @@ int fec_test(char *buffer)
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
-                printf("updating slot %d\n",slot);
+               printsend("updating slot %d\n",slot);
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("fec_test"));
                 if (results[1+slot] & 0x1)
@@ -478,9 +472,8 @@ int board_id(char *buffer)
                 slot_mask = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: board_id -c"
+                printsend("Usage: board_id -c"
                         " [crate_num] -s [slot mask (hex)]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -496,7 +489,7 @@ int board_id(char *buffer)
     uint32_t *chip = (uint32_t *) (packet.payload+4);
     uint32_t *reg = (uint32_t *) (packet.payload+8);
     int i,j,k;
-    sprintf(psb, "SLOT ID: MB	    DB1	    DB2	    DB3	    DB4	    HVC\n");
+    printsend( "SLOT ID: MB	    DB1	    DB2	    DB3	    DB4	    HVC\n");
     for (i=0;i<16;i++){
         if (slot_mask & (0x01<<i)){
             *slot = i;
@@ -528,12 +521,11 @@ int board_id(char *buffer)
             do_xl3_cmd(&packet,crate_num);
             SwapLongBlock(slot,1);
             hv_id = *result;
-            sprintf(psb+strlen(psb), "%d	    0x%04x 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x\n",
+            printsend( "%d	    0x%04x 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x\n",
                     i,mb_id,dc_id[0],dc_id[1],dc_id[2],dc_id[3],hv_id);
-            print_send(psb, view_fdset);
         }
     }
-    print_send("*******************************\n",view_fdset);
+    printsend("*******************************\n");
     deselect_fecs(crate_num);
     return 0;
 }
@@ -557,9 +549,8 @@ int mem_test(char *buffer)
                 update_db = 1;
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: mem_test -c"
+                printsend("Usage: mem_test -c"
                         " [crate_num] -s [slot number (int)] -d (update debug database)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -567,7 +558,7 @@ int mem_test(char *buffer)
     }
 
     if (slot_num > 15 || slot_num < 0){
-        print_send("slot number not valid (its an integer!)\n", view_fdset);
+        printsend("slot number not valid (its an integer!)\n");
         return -1;
     }
 
@@ -581,7 +572,7 @@ int mem_test(char *buffer)
     do_xl3_cmd(&packet,crate_num);
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         uint32_t* results = (uint32_t*) packet.payload;
         // results layout is : [error flags] [address test bit failures] [pattern test first error location] [expected] [read]
         SwapLongBlock(results,65);
@@ -647,9 +638,8 @@ int vmon(char *buffer)
                 }
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: vmon -c"
+                printsend("Usage: vmon -c"
                         " [crate_num] -s [slot mask (hex)] -d (udpate debug db)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -683,20 +673,20 @@ int vmon(char *buffer)
     // now lets print out the results
     int k;
     for (k=0;k<2;k++){
-        printf("slot             %2d     %2d     %2d     %2d     %2d     %2d     %2d     %2d\n",k*8,k*8+1,k*8+2,k*8+3,k*8+4,k*8+5,k*8+6,k*8+7);
+       printsend("slot             %2d     %2d     %2d     %2d     %2d     %2d     %2d     %2d\n",k*8,k*8+1,k*8+2,k*8+3,k*8+4,k*8+5,k*8+6,k*8+7);
         for (i=0;i<21;i++){
-            printf("%10s   ",v_name[i]);
+           printsend("%10s   ",v_name[i]);
             for (j=0;j<8;j++){
-                printf("%6.2f ",voltages[j+k*8][i]);
+               printsend("%6.2f ",voltages[j+k*8][i]);
             }
-            printf("\n");
+           printsend("\n");
         }
-        printf("\n");
+       printsend("\n");
     }
 
     // update the database
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         char hextostr[50];
         ;
         for (slot_num=0;slot_num<16;slot_num++){
@@ -818,9 +808,9 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 
     if ((3 * limit) < diff){
         if ((3*limit)*1.5 < diff){
-            printf("Memory level much higher than expected (%d > %d), possible fifo overflow\n",diff,3*limit);
+           printsend("Memory level much higher than expected (%d > %d), possible fifo overflow\n",diff,3*limit);
         }else{
-            printf("Memory level over expected (%d > %d)\n",diff,3*limit);
+           printsend("Memory level over expected (%d > %d)\n",diff,3*limit);
         }
         diff = 3*limit; // make sure we do not read out more than limit pmt bundles
     }
@@ -828,7 +818,7 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 #ifdef FIRST_WORD_BUG
     if ((diff > 3) && first[slot])
     {
-        print_send("This is a hack until the sequencer is fixed\n", view_fdset);
+        printsend("This is a hack until the sequencer is fixed\n");
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate_number);
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate_number);
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate_number);
@@ -838,7 +828,7 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 
     // lets use the new function!
     // first we attempt to load up the xl3 with 'diff' # of reads to memory
-    printf("attempting to read %d bundles\n",diff/3);
+   printsend("attempting to read %d bundles\n",diff/3);
     packet.cmdHeader.packet_type = READ_PEDESTALS_ID;
     *(uint32_t *) packet.payload = slot;
     int reads_left = diff;
@@ -871,11 +861,10 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
                     lastGT = theGT;
                     continue;
                 }
-                sprintf(psb, "Big Momma GT ID! iterator= %i\nGTID = %d (0x%06lx), lastGT = %d(0x%06lx)\n",
+                printsend( "Big Momma GT ID! iterator= %i\nGTID = %d (0x%06lx), lastGT = %d(0x%06lx)\n",
                         i/3,theGT,theGT,lastGT,lastGT);
                 //dump it and two previous, and one following
-                sprintf(psb+strlen(psb), "Dumping GT and context (%d previous, 2 following)\n",CNTXT);
-                print_send(psb, view_fdset);
+                printsend( "Dumping GT and context (%d previous, 2 following)\n",CNTXT);
                 //dump_pmt_verbose(CNTXT + 3,(pmt_buf+i) - CNTXT*3); //RJB not in yet
             }
             lastGT = theGT;
@@ -884,7 +873,7 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 #endif //BIG_MOMMA
 
     if (error){
-        print_send("Bus error reading memory\n", view_fdset);
+        printsend("Bus error reading memory\n");
         error = 0;
     }
     count = diff / 3;
@@ -983,9 +972,8 @@ int read_bundle(char *buffer)
             if (words[1] == 'q')
                 quiet = 1;
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: read_bundle -c"
+                printsend("Usage: read_bundle -c"
                         " [crate_num] -s [slot_num (int)] -q (enable quiet mode)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -998,8 +986,7 @@ int read_bundle(char *buffer)
     xl3_rw(READ_MEM+slot_num*FEC_SEL,0x0,pmtword,crate_num);
     xl3_rw(READ_MEM+slot_num*FEC_SEL,0x0,pmtword+1,crate_num);
     xl3_rw(READ_MEM+slot_num*FEC_SEL,0x0,pmtword+2,crate_num);
-    sprintf(psb,"%08x %08x %08x\n",pmtword[0],pmtword[1],pmtword[2]);
-    print_send(psb,view_fdset);
+    printsend("%08x %08x %08x\n",pmtword[0],pmtword[1],pmtword[2]);
     if (quiet == 0){
         crate = (uint32_t) UNPK_CRATE_ID(pmtword);
         slot = (uint32_t)  UNPK_BOARD_ID(pmtword);
@@ -1015,11 +1002,10 @@ int read_bundle(char *buffer)
         qhs = (double) UNPK_QHS(pmtword);
         qhl = (double) UNPK_QHL(pmtword);
         tac = (double) UNPK_TAC(pmtword);
-        sprintf(psb,"crate %08x, slot %08x, chan %08x, cell %d, gt8 %08x, gt16 %08x, cmos_es16 %08x,"
+        printsend("crate %08x, slot %08x, chan %08x, cell %d, gt8 %08x, gt16 %08x, cmos_es16 %08x,"
                 " cgt_es16 %08x, cgt_es8 %08x, nc_cc %08x, qlx %6.1f, qhs %6.1f, qhl %6.1f, tac %6.1f\n",
                 crate,slot,chan,cell,gt8,
                 gt16,cmos_es16,cgt_es16,cgt_es8,nc_cc,qlx,qhs,qhl,tac);
-        print_send(psb,view_fdset);
     }
     return 0;
 }
@@ -1051,9 +1037,8 @@ int changedelay(char *buffer)
                 words2 = strtok(NULL, " ");
                 delay_per = atoi(words2);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: change_delay -c [crate num] -s [slot num]"
+                printsend("Usage: change_delay -c [crate num] -s [slot num]"
                         " -d [delay bits per channel]\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -1083,8 +1068,7 @@ int changedelay(char *buffer)
                 << TR20WIDTHOFFSET);
         // 8 bits of CMOS TAC trim info (2 x three twiddle bits plus two 
         // master mask bits.)
-        // sprintf(psb, "tacbits: %hu \n", tacbits_ptr[j]);
-        // print_send(psb, view_fdset);
+        // printsend( "tacbits: %hu \n", tacbits_ptr[j]);
         cmosshiftdata[j][0] |= (u_long) ((0 & 0xFFUL) 
                 << TACTRIMOFFSET); 
         // now rest of stuff is across boundry btw long words here
@@ -1093,8 +1077,7 @@ int changedelay(char *buffer)
                 << CMOSCRUFTOFFSETLOW);
         cmosshiftdata[j][1] = 0x0UL; // zero this first
         cmosshiftdata[j][1] |= (u_long)((0 & 0x0380) >> CMOSCRUFTOFFSETHIGH);
-        // sprintf(psb, "cmosshift %08x \n", cmosshiftdata[j][0]);
-        // print_send(psb, view_fdset);
+        // printsend( "cmosshift %08x \n", cmosshiftdata[j][0]);
 
     }
 
@@ -1171,6 +1154,6 @@ void dump_pmt_verbose(int n, uint32_t *pmt_buf, char* msg_buf)
                 (uint32_t) UNPK_BOARD_ID(pmt_buf+i));
     }
     sprintf(msg_buf+strlen(msg_buf),"%s",msg);
-    printf("%s",msg);
+   printsend("%s",msg);
     return;
 }

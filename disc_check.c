@@ -59,17 +59,16 @@ int disc_check(char *buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: disc_check -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: disc_check -c [crate number] -s [slot mask (hex)]"
                         " -n [num peds] -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
         words = strtok(NULL, " ");
     }
 
-    printf("************************************************\n");
-    printf("Starting discriminator check for crate: %d\n",crate_num);
+   printsend("************************************************\n");
+   printsend("Starting discriminator check for crate: %d\n",crate_num);
     setup_softgt(crate_num);
     setup_crate(crate_num,slot_mask);
 
@@ -92,7 +91,7 @@ int disc_check(char *buffer)
             i=0;
         }
         if (i%50000 == 0)
-            printf("%d\n",i);
+           printsend("%d\n",i);
     }
 
     // get final data
@@ -110,7 +109,7 @@ int disc_check(char *buffer)
                 chan_diff[i][j] = 0;
                 cdiff = count_f[i][j]-count_i[i][j];
                 if (cdiff != nped){
-                    printf("cmos_count != nped for slot %d chan %d. Nped: %d, cdiff: %d\n",i,j,nped,cdiff);
+                   printsend("cmos_count != nped for slot %d chan %d. Nped: %d, cdiff: %d\n",i,j,nped,cdiff);
                     chan_errors[i][j] = 1;
                     chan_diff[i][j] = cdiff-nped;
                     errors++;
@@ -121,7 +120,7 @@ int disc_check(char *buffer)
 
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
@@ -153,7 +152,7 @@ int disc_check(char *buffer)
 
 
 
-    printf("****************************************\n");
+   printsend("****************************************\n");
     return errors;
 }
 
@@ -161,7 +160,7 @@ static int setup_crate(int cn, uint32_t slot_mask)
 {
     int i;
     uint32_t select_reg, result,temp;
-    print_send("Resetting fifos.\n", view_fdset);
+    printsend("Resetting fifos.\n");
     for (i=0;i<16;i++){ //FIXME 
         select_reg = FEC_SEL * i;
 

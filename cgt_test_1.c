@@ -66,7 +66,7 @@ int cgt_test_1(char* buffer)
             }else if (words[1] == 'l'){
                 words2 = strtok(NULL, " ");
                 chan_mask = strtoul(words2,(char **)NULL,16);
-                printf("chan mask now %08x\n",chan_mask);
+               printsend("chan mask now %08x\n",chan_mask);
             }else if (words[1] == 'd'){
                 update_db = 1;
             }else if (words[1] == '#'){
@@ -78,9 +78,8 @@ int cgt_test_1(char* buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: cgt_test_1 -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: cgt_test_1 -c [crate number] -s [slot mask (hex)]"
                         " -l [channel mask (hex)] -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -102,10 +101,9 @@ int cgt_test_1(char* buffer)
     setup_softgt(crate_num);
     setup_crate(crate_num,slot_mask);
 
-    sprintf(psb, "** Starting GT increment Test **\n");
-    sprintf(psb+strlen(psb), "Crate number: %hu\n",crate_num);
-    sprintf(psb+strlen(psb), "Slot and Channel mask: %08x %08x\n",slot_mask,chan_mask);
-    print_send(psb, view_fdset);
+    printsend("** Starting GT increment Test **\n"
+              "Crate number: %hu\n"
+              "Slot and Channel mask: %08x %08x\n", crate_num, slot_mask,chan_mask);
 
     //select desired MB and channel
     for (i=0;i<16;i++){
@@ -122,8 +120,7 @@ int cgt_test_1(char* buffer)
     //initialization
 
     numPedestals = (1*(TWO_16_M1) + 10000 );	
-    sprintf(psb, "Going to fire pulser %u times. \n",numPedestals);
-    print_send(psb, view_fdset);
+    printsend("Going to fire pulser %u times. \n",numPedestals);
 
     XL3_Packet packet;
 
@@ -145,7 +142,7 @@ int cgt_test_1(char* buffer)
                 select_reg = FEC_SEL*i;
                 xl3_rw(FIFO_DIFF_PTR_R + select_reg + READ_REG,0x0,&result,crate_num);
                 if ((result & 0x000FFFFF) != numgt*3*num_chans){
-                    printf("Not enough bundles slot %d, expected %d, found %u.\n",i,numgt*3*num_chans,result&0x000FFFFF);
+                   printsend("Not enough bundles slot %d, expected %d, found %u.\n",i,numgt*3*num_chans,result&0x000FFFFF);
                     sprintf(error_history[i]+strlen(error_history[i]),"Not enough bundles slot %d, expected %d, found %u.\n",i,numgt*3*num_chans,result&0x000FFFFF);
                     missing_bundles[i] = 1;
                 }
@@ -171,7 +168,7 @@ int cgt_test_1(char* buffer)
                 select_reg = FEC_SEL*i;
                 xl3_rw(FIFO_DIFF_PTR_R + select_reg + READ_REG,0x0,&result,crate_num);
                 if ((result & 0x000FFFFF) != 3*num_chans){
-                    printf("Not enough bundles slot %d, expected %d, found %u.\n",i,3*num_chans,result&0x000FFFFF);
+                   printsend("Not enough bundles slot %d, expected %d, found %u.\n",i,3*num_chans,result&0x000FFFFF);
                     sprintf(error_history[i]+strlen(error_history[i]),"Not enough bundles slot %d, expected %d, found %u.\n",i,3*num_chans,result&0x000FFFFF);
                     missing_bundles[i] = 1;
                 }
@@ -193,34 +190,34 @@ int cgt_test_1(char* buffer)
                     badchanmask &= ~(0x1<<chan_id);
 
                     if (crate_id != crate_num){
-                        printf("Crate wrong for slot %d, chan %u. Read %u, expected %d\n",i,chan_id,crate_id,crate_num);
+                       printsend("Crate wrong for slot %d, chan %u. Read %u, expected %d\n",i,chan_id,crate_id,crate_num);
                         sprintf(error_history[i]+strlen(error_history[i]),"Crate wrong for slot %d, chan %u. Read %u, expected %d\n",i,chan_id,crate_id,crate_num);
                         chan_errors[i][chan_id] = 1;
                     }
                     if (slot_id != i){
-                        printf("Slot wrong for chan %u. Read %u, expected %d\n",chan_id,slot_id,i);
+                       printsend("Slot wrong for chan %u. Read %u, expected %d\n",chan_id,slot_id,i);
                         sprintf(error_history[i]+strlen(error_history[i]),"Slot wrong for chan %u. Read %u, expected %d\n",chan_id,slot_id,i);
                         chan_errors[i][chan_id] = 1;
                     }
                     if (nc_id != 0x0){
-                        printf("NC wrong for slot %d, chan %u. Read %u, expected %d\n",i,chan_id,nc_id,0);
+                       printsend("NC wrong for slot %d, chan %u. Read %u, expected %d\n",i,chan_id,nc_id,0);
                         sprintf(error_history[i]+strlen(error_history[i]),"NC wrong for slot %d, chan %u. Read %u, expected %d\n",i,chan_id,nc_id,0);
                         chan_errors[i][chan_id] = 1;
                     }
                     if ((gt16_id + (65536*gt8_id)) != total_pulses){
-                        printf("bad gtid slot %d, chan %d. Read %u instead of %d. (%08x %08x %08x)\n",i,chan_id,gt16_id+(65536*gt8_id),total_pulses,bundles[0],bundles[1],bundles[2]);
+                       printsend("bad gtid slot %d, chan %d. Read %u instead of %d. (%08x %08x %08x)\n",i,chan_id,gt16_id+(65536*gt8_id),total_pulses,bundles[0],bundles[1],bundles[2]);
                         sprintf(error_history[i]+strlen(error_history[i]),"bad gtid slot %d, chan %d. Read %u instead of %d. (%08x %08x %08x)\n",i,chan_id,gt16_id+(65536*gt8_id),total_pulses,bundles[0],bundles[1],bundles[2]);
                         chan_errors[i][chan_id] = 1;
                     }
                     if (es16 != 0x0 && j >= 13){
-                        printf("Synclear Error slot %d, chan %u.\n",i,chan_id);
+                       printsend("Synclear Error slot %d, chan %u.\n",i,chan_id);
                         sprintf(error_history[i]+strlen(error_history[i]),"Synclear Error slot %d, chan %u.\n",i,chan_id);
                         chan_errors[i][chan_id] = 1;
                     }
                 }
                 for (k=0;k<32;k++){
                     if ((0x1<<k) & badchanmask){
-                        printf("No bundle found for channel %d.\n",k);
+                       printsend("No bundle found for channel %d.\n",k);
                         sprintf(error_history[i]+strlen(error_history[i]),"No bundle found for channel %d.\n",k);
                         chan_errors[i][k] = 1;
                     }
@@ -229,23 +226,23 @@ int cgt_test_1(char* buffer)
         }
         for (i=0;i<16;i++){
             if ((strlen(error_history[i]) > 25000) && (max_errors[i] == 0)){
-                printf("too many errors slot %d. Skipping that slot\n",i);
+               printsend("too many errors slot %d. Skipping that slot\n",i);
                 max_errors[i] = 1;
             }
         }
 
-        printf("%d pulses\n",total_pulses);
+       printsend("%d pulses\n",total_pulses);
         for (i=0;i<16;i++)
             sprintf(error_history[i]+strlen(error_history[i]),"%d pulses\n",total_pulses);
     }
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         int slot,passflag = 1;
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
-                printf("updating slot %d\n",slot);
+               printsend("updating slot %d\n",slot);
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("cgt_test"));
                 json_append_member(newdoc,"missing_bundles",json_mknumber((double)missing_bundles[slot]));
@@ -272,7 +269,7 @@ int cgt_test_1(char* buffer)
         }
     }
 
-    print_send("***Ending GT increment Test***\n", view_fdset);
+    printsend("***Ending GT increment Test***\n");
     return 0;
 }
 
@@ -328,9 +325,8 @@ int fifo_test(char* buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: fifo_test -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: fifo_test -c [crate number] -s [slot mask (hex)]"
                         " -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -371,7 +367,7 @@ int fifo_test(char* buffer)
 
     // now pulse the soft gts
     gtstofire = (0xFFFFF-32)/3;
-    printf("Now firing %d soft gts.\n",gtstofire);
+   printsend("Now firing %d soft gts.\n",gtstofire);
     int gtcount = 0;
     i = 14;
     while (gtcount < gtstofire){
@@ -383,28 +379,28 @@ int fifo_test(char* buffer)
             gtcount += gtstofire-gtcount;
         }
         if (gtcount%15000 == 0){
-            printf(".");
+           printsend(".");
             fflush(stdout);
         }
     }
-    printf("\n");
-    printf("Number of GTs looped: %u\n",gtstofire);
+   printsend("\n");
+   printsend("Number of GTs looped: %u\n",gtstofire);
 
     for (i=0;i<16;i++){
         if ((0x1<<i) & slot_mask){
             select_reg = FEC_SEL*i;
             //get gt count
             get_gt_count(&GTs2[i]);
-            printf("Slot %d - Number of GTs fired: %u\n",i,GTs2[i] - GTs1[i]);
-            printf("Slot %d - GT before: %u, after: %u\n",i,GTs1[i],GTs2[i]);
+           printsend("Slot %d - Number of GTs fired: %u\n",i,GTs2[i] - GTs1[i]);
+           printsend("Slot %d - GT before: %u, after: %u\n",i,GTs1[i],GTs2[i]);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Number of GTs fired: %u\n",i,GTs2[i] - GTs1[i]);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - GT before: %u, after: %u\n",i,GTs1[i],GTs2[i]);
 
             checkfifo(&diff,crate_num,select_reg,error_history[i]);
             if (diff != 3*(GTs2[i]-GTs1[i])){
-                printf("Slot %d - Unexpected number of FIFO counts!\n",i);
-                printf("Slot %d - Based on MTCD GTs fired, should be 0x%05x (%u)\n",i,3*(GTs2[i]-GTs1[i]),3*(GTs2[i]-GTs1[i]));
-                printf("Slot %d - Based on times looped, 0x%05x (%u)\n",i,gtstofire*3,gtstofire*3);
+               printsend("Slot %d - Unexpected number of FIFO counts!\n",i);
+               printsend("Slot %d - Based on MTCD GTs fired, should be 0x%05x (%u)\n",i,3*(GTs2[i]-GTs1[i]),3*(GTs2[i]-GTs1[i]));
+               printsend("Slot %d - Based on times looped, 0x%05x (%u)\n",i,gtstofire*3,gtstofire*3);
                 sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Unexpected number of FIFO counts!\n",i);
                 sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Based on MTCD GTs fired, should be 0x%05x (%u)\n",i,3*(GTs2[i]-GTs1[i]),3*(GTs2[i]-GTs1[i]));
                 sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Based on times looped, 0x%05x (%u)\n",i,gtstofire*3,gtstofire*3);
@@ -415,7 +411,7 @@ int fifo_test(char* buffer)
 
             // now pulse the last soft GTs to fill memory
             remainder =  diff / 3;
-            printf("Slot %d - Now firing %d more soft gts\n",i,remainder);
+           printsend("Slot %d - Now firing %d more soft gts\n",i,remainder);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Now firing %d more soft gts\n",i,remainder);
             multi_softgt(remainder);
 
@@ -425,7 +421,7 @@ int fifo_test(char* buffer)
             for (j=0;j<12;j++){
                 xl3_rw(READ_MEM + select_reg,0x0,&bundle[j],crate_num);
             }
-            printf("Slot %d - Read out %d longwords (%d bundles)\n",i,12,12/3);
+           printsend("Slot %d - Read out %d longwords (%d bundles)\n",i,12,12/3);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Read out %d longwords (%d bundles)\n",i,12,12/3);
 
             checkfifo(&diff,crate_num,select_reg,error_history[i]);
@@ -433,36 +429,36 @@ int fifo_test(char* buffer)
             dump_pmt_verbose(12/3,bundle,error_history[i]);
 
             // check overflow behavior
-            printf("Slot %d - Now overfill FEC (firing %d more soft GTs)\n",i,remainder+3);
+           printsend("Slot %d - Now overfill FEC (firing %d more soft GTs)\n",i,remainder+3);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Now overfill FEC (firing %d more soft GTs)\n",i,remainder+3);
             multi_softgt(remainder+3);
 
             checkfifo(&diff,crate_num,select_reg,error_history[i]);
             uint32_t busy_bits,test_id;
             xl3_rw(CMOS_BUSY_BIT(0) + READ_REG + select_reg,0x0,&busy_bits,crate_num);
-            printf("Should see %d cmos busy bits set. Busy bits are -> 0x%04x\n",3,busy_bits & 0x0000FFFF);
-            printf("(Note that there might be one less than expected as it might be caught up in sequencing.)\n");
+           printsend("Should see %d cmos busy bits set. Busy bits are -> 0x%04x\n",3,busy_bits & 0x0000FFFF);
+           printsend("(Note that there might be one less than expected as it might be caught up in sequencing.)\n");
             sprintf(error_history[i]+strlen(error_history[i]),"Should see %d cmos busy bits set. Busy bits are -> 0x%04x\n",3,busy_bits & 0x0000FFFF);
             sprintf(error_history[i]+strlen(error_history[i]),"(Note that there might be one less than expected as it might be caught up in sequencing.)\n");
             xl3_rw(CMOS_INTERN_TEST(0) + READ_REG + select_reg,0x0,&test_id,crate_num);
-            printf("See if we can read out test reg: 0x%08x\n",test_id);
+           printsend("See if we can read out test reg: 0x%08x\n",test_id);
             sprintf(error_history[i]+strlen(error_history[i]),"See if we can read out test reg: 0x%08x\n",test_id);
 
             // now read out bundles
             for (j=0;j<12;j++){
                 xl3_rw(READ_MEM + select_reg,0x0,&bundle[j],crate_num);
             }
-            printf("Slot %d - Read out %d longwords (%d bundles). Should have cleared all busy bits\n",i,12,12/3);
-            printf(error_history[i]+strlen(error_history[i]),"Slot %d - Read out %d longwords (%d bundles). Should have cleared all busy bits\n",i,12,12/3);
+           printsend("Slot %d - Read out %d longwords (%d bundles). Should have cleared all busy bits\n",i,12,12/3);
+           printsend(error_history[i]+strlen(error_history[i]),"Slot %d - Read out %d longwords (%d bundles). Should have cleared all busy bits\n",i,12,12/3);
             dump_pmt_verbose(12/3,bundle,error_history[i]);
             checkfifo(&diff,crate_num,select_reg,error_history[i]);
             xl3_rw(CMOS_BUSY_BIT(0) + READ_REG + select_reg,0x0,&busy_bits,crate_num);
-            printf("Should see %d cmos busy bits set. Busy bits are -> 0x%04x\n",0,busy_bits & 0x0000FFFF);
+           printsend("Should see %d cmos busy bits set. Busy bits are -> 0x%04x\n",0,busy_bits & 0x0000FFFF);
             sprintf(error_history[i]+strlen(error_history[i]),"Should see %d cmos busy bits set. Busy bits are -> 0x%04x\n",0,busy_bits & 0x0000FFFF);
 
             // read out data and check the stuff around the wrap of the write pointer
             j = 30;
-            printf("Slot %d - Dumping all but the last %d events.\n",i,j);
+           printsend("Slot %d - Dumping all but the last %d events.\n",i,j);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Dumping all but the last %d events.\n",i,j);
             readout_data = (uint32_t *) malloc( 0x000FFFFF * sizeof(uint32_t));
             read_pmt(crate_num, i, 0x000FFFFF/3-j-2,readout_data);
@@ -470,41 +466,41 @@ int fifo_test(char* buffer)
             checkfifo(&diff,crate_num,select_reg,error_history[i]);
             j = (0x000FFFFF-diff)/3;
 
-            printf("Slot %d - Dumping last %d events!\n",i,j);
+           printsend("Slot %d - Dumping last %d events!\n",i,j);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Dumping last %d events!\n",i,j);
             read_pmt(crate_num, i, j, readout_data);
             dump_pmt_verbose(j, readout_data,error_history[i]);
             checkfifo(&diff,crate_num,select_reg,error_history[i]);
-            printf("Slot %d - Trying to read past the end... should get %d bus errors\n",i,12);
+           printsend("Slot %d - Trying to read past the end... should get %d bus errors\n",i,12);
             sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Trying to read past the end... should get %d bus errors\n",i,12);
             busstop = 0;
             for (j=0;j<12;j++){
                 busstop += xl3_rw(READ_MEM + select_reg,0x0,&bundle[j],crate_num);
             }
             if (busstop){
-                printf("Slot %d - Got expected bus errors (%d).\n",i,busstop);
+               printsend("Slot %d - Got expected bus errors (%d).\n",i,busstop);
                 sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Got expected bus errors (%d).\n",i,busstop);
             }else{
-                printf("Slot %d - Error! Read past end!\n",i);
+               printsend("Slot %d - Error! Read past end!\n",i);
                 sprintf(error_history[i]+strlen(error_history[i]),"Slot %d - Error! Read past end!\n",i);
                 slot_errors[i] = 1;
             }
             deselect_fecs(crate_num);
-            printf("Finished Slot %d\n",i);
+           printsend("Finished Slot %d\n",i);
             sprintf(error_history[i]+strlen(error_history[i]),"Finished Slot %d\n",i);
-            printf("**************************************************\n");
+           printsend("**************************************************\n");
             sprintf(error_history[i]+strlen(error_history[i]),"**************************************************\n");
 
         } // end if slot mask
     } // end loop over slot
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         int slot;
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
-                printf("updating slot %d\n",slot);
+               printsend("updating slot %d\n",slot);
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("fifo_test"));
                 json_append_member(newdoc,"printout",json_mkstring(error_history[slot]));
@@ -585,9 +581,8 @@ int mb_stability_test(char* buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: mb_stability_test -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: mb_stability_test -c [crate number] -s [slot mask (hex)]"
                         " -n [num pedestals] -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -598,11 +593,9 @@ int mb_stability_test(char* buffer)
     setup_softgt(crate_num);
     setup_crate(crate_num,slot_mask);
 
-    sprintf(psb, "** Starting MB+DB stability Test **\n");
-    sprintf(psb+strlen(psb), "Crate number: %hu\n",crate_num);
-    sprintf(psb+strlen(psb), "Slot mask: %08x \n",slot_mask);
-    print_send(psb, view_fdset);
-
+    printsend("** Starting MB+DB stability Test **\n"
+              "Crate number: %hu\n"
+              "Slot mask: %08x \n",crate_num,slot_mask);
     rd = 0;
     num_chan = 8;
     nfire_16 = 0;
@@ -616,10 +609,10 @@ int mb_stability_test(char* buffer)
     chan_mask_rand[1] = 0x22222222;
     chan_mask_rand[2] = 0x44444444;
     chan_mask_rand[3] = 0x88888888;
-    printf("Channel mask used: 0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
+   printsend("Channel mask used: 0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
             chan_mask_rand[0],chan_mask_rand[1],chan_mask_rand[2],chan_mask_rand[3]);
 
-    printf("going to fire %d times.\n",numPedestals);
+   printsend("going to fire %d times.\n",numPedestals);
 
     for (nfire=1;nfire<numPedestals;nfire++){
         nfire_16++;
@@ -642,7 +635,7 @@ int mb_stability_test(char* buffer)
 
         // fire pulser once
         if (nfire == numPrint){
-            printf("Pulser fired %u times.\n",nfire);
+           printsend("Pulser fired %u times.\n",nfire);
             for (i=0;i<16;i++){
                 if (((0x1<<i) & slot_mask) && (slot_errors[i] == 0)){
                     sprintf(error_history[i]+strlen(error_history[i]),"Pulser fired %u times.\n",nfire);
@@ -666,7 +659,7 @@ int mb_stability_test(char* buffer)
                     sprintf(temp_msg+strlen(temp_msg),">>>testing crate %d, slot %d\n",crate_num,j);
                     sprintf(temp_msg+strlen(temp_msg),">>>stopping at pulser iteration %u\n",nfire);
                     sprintf(error_history[j]+strlen(error_history[j]),"%s",temp_msg);
-                    printf("%s",temp_msg);
+                   printsend("%s",temp_msg);
                     slot_errors[j] = 1 ;
                 }
             }
@@ -685,7 +678,7 @@ int mb_stability_test(char* buffer)
                         sprintf(temp_msg+strlen(temp_msg),">>>testing crate %d, slot %d\n",crate_num,j);
                         sprintf(temp_msg+strlen(temp_msg),">>>stopping at pulser iteration %u\n",nfire);
                         sprintf(error_history[j]+strlen(error_history[j]),"%s",temp_msg);
-                        printf("%s",temp_msg);
+                       printsend("%s",temp_msg);
                         slot_errors[j] = 1 ;
                         break;
                     }
@@ -717,7 +710,7 @@ int mb_stability_test(char* buffer)
                         sprintf(temp_msg+strlen(temp_msg),"***************************************\n");
                         sprintf(temp_msg+strlen(temp_msg),">>>Stopping at pulser iteration %u\n",nfire);
                         sprintf(error_history[j]+strlen(error_history[j]),"%s",temp_msg);
-                        printf("%s",temp_msg);
+                       printsend("%s",temp_msg);
                         slot_errors[j] = 1;
                         break;
                     }
@@ -733,7 +726,7 @@ int mb_stability_test(char* buffer)
                         sprintf(temp_msg+strlen(temp_msg),"***************************************\n");
                         sprintf(temp_msg+strlen(temp_msg),">>>Stopping at pulser iteration %u\n",nfire);
                         sprintf(error_history[j]+strlen(error_history[j]),"%s",temp_msg);
-                        printf("%s",temp_msg);
+                       printsend("%s",temp_msg);
                         slot_errors[j] = 1;
                         break;
                     }
@@ -750,7 +743,7 @@ int mb_stability_test(char* buffer)
                             sprintf(temp_msg+strlen(temp_msg),"***************************************\n");
                             sprintf(temp_msg+strlen(temp_msg),">>>Stopping at pulser iteration %u\n",nfire);
                             sprintf(error_history[j]+strlen(error_history[j]),"%s",temp_msg);
-                            printf("%s",temp_msg);
+                           printsend("%s",temp_msg);
                             slot_errors[j] = 1;
                             break;
                         }
@@ -765,12 +758,12 @@ int mb_stability_test(char* buffer)
     } // loop over nfire
 
     if (update_db){
-        printf("updating the database\n");
+       printsend("updating the database\n");
         int slot;
         ;
         for (slot=0;slot<16;slot++){
             if ((0x1<<slot) & slot_mask){
-                printf("updating slot %d\n",slot);
+               printsend("updating slot %d\n",slot);
                 JsonNode *newdoc = json_mkobject();
                 json_append_member(newdoc,"type",json_mkstring("mb_stability_test"));
                 json_append_member(newdoc,"printout",json_mkstring(error_history[slot]));
@@ -788,7 +781,7 @@ int mb_stability_test(char* buffer)
     }
 
 
-    printf("***** Ending MB stability test *****\n");
+   printsend("***** Ending MB stability test *****\n");
     return 0;
 }
 
@@ -798,7 +791,7 @@ static int setup_crate(int cn, uint32_t slot_mask)
 {
     int i;
     uint32_t select_reg, result,temp;
-    print_send("Resetting fifos.\n", view_fdset);
+    printsend("Resetting fifos.\n");
     for (i=0;i<16;i++){ //FIXME 
         select_reg = FEC_SEL * i;
 
@@ -861,6 +854,6 @@ static void checkfifo(uint32_t *thediff, int crate_num, uint32_t select_reg, cha
     sprintf(msg+strlen(msg),"Total events in memory is %2.1f.\n",(float) diff / 3.0);
 
     sprintf(msg_buff+strlen(msg_buff),"%s",msg);
-    printf("%s",msg);
+   printsend("%s",msg);
     *thediff = (uint32_t) remainder;
 }

@@ -119,11 +119,11 @@ int32_t main(int32_t argc, char *argv[])
     maxPacketSize = kSBC_MaxPayloadSizeBytes;
 
     if (argc != 2) {
-        printf("use the port number ./OrcaReadout 5001 \n");
+       printsend("use the port number ./OrcaReadout 5001 \n");
         exit(1);
     }
 
-    printf("Hey\n\r");
+   printsend("Hey\n\r");
     int32_t thePort = atoi(argv[1]);
     while(1){
         if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) exit(1);
@@ -157,18 +157,18 @@ int32_t main(int32_t argc, char *argv[])
         int32_t testWord;
         needToSwap = FALSE;
         int32_t n = read(workingSocket,&testWord, 4);
-        printf("testWord is %08X \n",testWord);
+       printsend("testWord is %08X \n",testWord);
         if(n <= 0) return n; //disconnected or error -- exit
         if(testWord == 0xBADC0000) {
             needToSwap = TRUE;
-            printf("needToSwap = TRUE \n");
+           printsend("needToSwap = TRUE \n");
         } else if (testWord != 0x000DCBA) {
             /* Unrecognized service trying to connect? */
-            printf("Unrecognized service trying to connect? \n");
+           printsend("Unrecognized service trying to connect? \n");
             exit(2);
         }
         else{
-            printf("needToSwap = FALSE \n");
+           printsend("needToSwap = FALSE \n");
         }
         //end of swap test
 
@@ -205,18 +205,18 @@ int32_t main(int32_t argc, char *argv[])
         SBC_Packet aPacket;
         int32_t numRead = 0;
         while(!timeToExit){
-            //printf("STILL GOING\n\r");
+            //printsend("STILL GOING\n\r");
             if (workingSocket < 0 || workingIRQSocket < 0) {
                 /* This indicates one of the sockets has been closed, don't continue. */
-                printf("socket closed!!!!!\n\r");
+               printsend("socket closed!!!!!\n\r");
                 break;
             }
             numRead = readBuffer(&aPacket);
-            if(numRead == 0) {printf("Empty packet\n\r");break;}
+            if(numRead == 0) printsend("Empty packet\n\r");break;}
             if (numRead > 0) {
                 processBuffer(&aPacket,kReply);
             } else {
-                printf("numread less than 0\n\r");
+               printsend("numread less than 0\n\r");
                 /* if numRead is less than 0, then an error occurred.  We'll try to continue. */
                 LogError("Error reading buffer: %s", strerror(errno));
             }
@@ -264,10 +264,10 @@ int32_t main(int32_t argc, char *argv[])
 
 void processBuffer(SBC_Packet* aPacket, uint8_t reply)
 {
-    //printf("Processing packet\n\r");
+    //printsend("Processing packet\n\r");
     /*look at the first word to get the destination*/
     int32_t destination = aPacket->cmdHeader.destination;
-    //printf("dest:%08x, cmdID:%08x, numBytes:%08x\n",aPacket->cmdHeader.destination,aPacket->cmdHeader.cmdID,aPacket->numBytes);
+    //printsend("dest:%08x, cmdID:%08x, numBytes:%08x\n",aPacket->cmdHeader.destination,aPacket->cmdHeader.cmdID,aPacket->numBytes);
     switch(destination){
         case kSBC_Process:   processSBCCommand(aPacket,reply);    break;
         default:            processHWCommand(aPacket);		  break;
@@ -292,7 +292,7 @@ void processPENNCommand(SBC_Packet* aPacket) //RJB
 
 void processSBCCommand(SBC_Packet* aPacket,uint8_t reply)
 {
-    //printf("processing sbc command\n\r");
+    //printsend("processing sbc command\n\r");
     switch(aPacket->cmdHeader.cmdID){
         case kSBC_WriteBlock:        
             pthread_mutex_lock (&runInfoMutex);                            //begin critical section
@@ -301,13 +301,13 @@ void processSBCCommand(SBC_Packet* aPacket,uint8_t reply)
             break;
 
         case kSBC_ReadBlock:
-            //printf("Starting a read block\n\r");    
+            //printsend("Starting a read block\n\r");    
             pthread_mutex_lock (&runInfoMutex);                            //begin critical section
-            //printf("mutex lock success\n\r");    
+            //printsend("mutex lock success\n\r");    
             doReadBlock(aPacket,reply);  
-            //printf("do read block success\n\r");
+            //printsend("do read block success\n\r");
             pthread_mutex_unlock (&runInfoMutex);                        //end critical section
-            //printf("mutex unlock success\n\r");
+            //printsend("mutex unlock success\n\r");
             break;
 
         case kSBC_LoadConfig:

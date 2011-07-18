@@ -50,12 +50,11 @@ int crate_init(char *buffer)
             }else if (words[1] == 'a'){use_all = 1;
             }else if (words[1] == 'w'){use_hw = 1;
             }else if (words[1] == 'h'){
-                sprintf(psb, "Usage: crate_init -c [crate_num] -s [slot_mask]\n");
-                sprintf(psb+strlen(psb),
+                printsend( "Usage: crate_init -c [crate_num] -s [slot_mask]\n");
+                printsend(
                         "		  -x (load xilinx) -X (load cald xilinx) -v (reset HV dac)\n");
-                sprintf(psb+strlen(psb),
+                printsend(
                         "		  -b (load cbal from db) -d (load zdisc from db) -t (load ttot from db) -a (load all from db) -w (use crate/card specific values from db)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -63,15 +62,13 @@ int crate_init(char *buffer)
     }
 
     if (connected_xl3s[crate_num] == -999){
-        sprintf(psb, "Crate %d's XL3 is not connected\n",crate_num);
-        print_send(psb, view_fdset);
+        printsend( "Crate %d's XL3 is not connected\n",crate_num);
         return -1;
     }
 
-    sprintf(psb, "Initializing crate %d, slots %08x, xl:%d, hv:%d\n",crate_num,slot_mask,xilinx_load,hv_reset);
-    print_send(psb, view_fdset);
+    printsend( "Initializing crate %d, slots %08x, xl:%d, hv:%d\n",crate_num,slot_mask,xilinx_load,hv_reset);
 
-    print_send("Sending database to XL3s\n",view_fdset);
+    printsend("Sending database to XL3s\n");
 
     pouch_request *hw_response = pr_init();
     JsonNode* hw_rows = NULL;
@@ -277,7 +274,7 @@ int crate_init(char *buffer)
 
 
     // START CRATE_INIT ON ML403
-    print_send("Beginning crate_init.\n",view_fdset);
+    printsend("Beginning crate_init.\n");
 
     packet.cmdHeader.packet_type = CRATE_INIT_ID;
     *mb_num = 666;
@@ -308,8 +305,8 @@ int crate_init(char *buffer)
     }
 
     //update_crate_configuration(crate_num,hware_flip);  //FIXME
-    print_send("Crate configuration updated.\n",view_fdset);
-    print_send("*******************************\n",view_fdset);
+    printsend("Crate configuration updated.\n");
+    printsend("*******************************\n");
     json_delete(hw_rows);
     json_delete(debug_doc);
     return 0;

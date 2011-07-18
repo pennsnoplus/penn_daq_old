@@ -154,22 +154,19 @@ int zdisc(char *buffer)
                 }
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: zdisc -c"
+                printsend("Usage: zdisc -c"
                         " [crate_num] -s [slot mask (hex)] -o [offset] -r [rate] -d (write results to db)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
         words = strtok(NULL, " ");
     }
 
-    print_send("-------------------------------------\n\r",view_fdset);
-    print_send("Discriminator Zero Finder. \n\r",view_fdset);
-    sprintf(psb,"Desired rate:\t% 5.1f\n", rate);
-    print_send(psb,view_fdset);
-    sprintf(psb,"Offset      :\t%hu\n", offset);
-    print_send(psb,view_fdset);
-    print_send("-------------------------------------\n\r",view_fdset);
+    printsend("-------------------------------------\n\r");
+    printsend("Discriminator Zero Finder. \n\r");
+    printsend("Desired rate:\t% 5.1f\n", rate);
+    printsend("Offset      :\t%hu\n", offset);
+    printsend("-------------------------------------\n\r");
 
     XL3_Packet packet;
     hware_vals_t hware_vals_found[16];
@@ -265,8 +262,8 @@ int zdisc(char *buffer)
             }
         } // end loop over slot mask
     } // end loop over slots
-    print_send("zero discriminator complete.\n",view_fdset);
-    print_send("*******************************\n",view_fdset);
+    printsend("zero discriminator complete.\n");
+    printsend("*******************************\n");
     return 0;
 }
 
@@ -285,9 +282,8 @@ int ramp_voltage(char *buffer)
                 pattern = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: load_relays -c"
+                printsend("Usage: load_relays -c"
                         " [crate_num] -s [slot mask (hex)] -d [update debug db]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -325,9 +321,8 @@ int load_relays(char *buffer)
                 pattern = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: load_relays -c"
+                printsend("Usage: load_relays -c"
                         " [crate_num] -s [slot mask (hex)] -d [update debug db]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -386,9 +381,8 @@ int fec_test(char *buffer)
                 }
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: fec_test -c"
+                printsend("Usage: fec_test -c"
                         " [crate_num] -s [slot mask (hex)] -d [update debug db]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -478,9 +472,8 @@ int board_id(char *buffer)
                 slot_mask = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: board_id -c"
+                printsend("Usage: board_id -c"
                         " [crate_num] -s [slot mask (hex)]\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -496,7 +489,7 @@ int board_id(char *buffer)
     uint32_t *chip = (uint32_t *) (packet.payload+4);
     uint32_t *reg = (uint32_t *) (packet.payload+8);
     int i,j,k;
-    sprintf(psb, "SLOT ID: MB	    DB1	    DB2	    DB3	    DB4	    HVC\n");
+    printsend( "SLOT ID: MB	    DB1	    DB2	    DB3	    DB4	    HVC\n");
     for (i=0;i<16;i++){
         if (slot_mask & (0x01<<i)){
             *slot = i;
@@ -528,12 +521,11 @@ int board_id(char *buffer)
             do_xl3_cmd(&packet,crate_num);
             SwapLongBlock(slot,1);
             hv_id = *result;
-            sprintf(psb+strlen(psb), "%d	    0x%04x 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x\n",
+            printsend( "%d	    0x%04x 0x%04x 0x%04x 0x%04x 0x%04x 0x%04x\n",
                     i,mb_id,dc_id[0],dc_id[1],dc_id[2],dc_id[3],hv_id);
-            print_send(psb, view_fdset);
         }
     }
-    print_send("*******************************\n",view_fdset);
+    printsend("*******************************\n");
     deselect_fecs(crate_num);
     return 0;
 }
@@ -557,9 +549,8 @@ int mem_test(char *buffer)
                 update_db = 1;
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: mem_test -c"
+                printsend("Usage: mem_test -c"
                         " [crate_num] -s [slot number (int)] -d (update debug database)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -567,7 +558,7 @@ int mem_test(char *buffer)
     }
 
     if (slot_num > 15 || slot_num < 0){
-        print_send("slot number not valid (its an integer!)\n", view_fdset);
+        printsend("slot number not valid (its an integer!)\n");
         return -1;
     }
 
@@ -647,9 +638,8 @@ int vmon(char *buffer)
                 }
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: vmon -c"
+                printsend("Usage: vmon -c"
                         " [crate_num] -s [slot mask (hex)] -d (udpate debug db)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -828,7 +818,7 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 #ifdef FIRST_WORD_BUG
     if ((diff > 3) && first[slot])
     {
-        print_send("This is a hack until the sequencer is fixed\n", view_fdset);
+        printsend("This is a hack until the sequencer is fixed\n");
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate_number);
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate_number);
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate_number);
@@ -871,11 +861,10 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
                     lastGT = theGT;
                     continue;
                 }
-                sprintf(psb, "Big Momma GT ID! iterator= %i\nGTID = %d (0x%06lx), lastGT = %d(0x%06lx)\n",
+                printsend( "Big Momma GT ID! iterator= %i\nGTID = %d (0x%06lx), lastGT = %d(0x%06lx)\n",
                         i/3,theGT,theGT,lastGT,lastGT);
                 //dump it and two previous, and one following
-                sprintf(psb+strlen(psb), "Dumping GT and context (%d previous, 2 following)\n",CNTXT);
-                print_send(psb, view_fdset);
+                printsend( "Dumping GT and context (%d previous, 2 following)\n",CNTXT);
                 //dump_pmt_verbose(CNTXT + 3,(pmt_buf+i) - CNTXT*3); //RJB not in yet
             }
             lastGT = theGT;
@@ -884,7 +873,7 @@ int32_t read_pmt(int crate_number, int32_t slot, int32_t limit, uint32_t *pmt_bu
 #endif //BIG_MOMMA
 
     if (error){
-        print_send("Bus error reading memory\n", view_fdset);
+        printsend("Bus error reading memory\n");
         error = 0;
     }
     count = diff / 3;
@@ -983,9 +972,8 @@ int read_bundle(char *buffer)
             if (words[1] == 'q')
                 quiet = 1;
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: read_bundle -c"
+                printsend("Usage: read_bundle -c"
                         " [crate_num] -s [slot_num (int)] -q (enable quiet mode)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -998,8 +986,7 @@ int read_bundle(char *buffer)
     xl3_rw(READ_MEM+slot_num*FEC_SEL,0x0,pmtword,crate_num);
     xl3_rw(READ_MEM+slot_num*FEC_SEL,0x0,pmtword+1,crate_num);
     xl3_rw(READ_MEM+slot_num*FEC_SEL,0x0,pmtword+2,crate_num);
-    sprintf(psb,"%08x %08x %08x\n",pmtword[0],pmtword[1],pmtword[2]);
-    print_send(psb,view_fdset);
+    printsend("%08x %08x %08x\n",pmtword[0],pmtword[1],pmtword[2]);
     if (quiet == 0){
         crate = (uint32_t) UNPK_CRATE_ID(pmtword);
         slot = (uint32_t)  UNPK_BOARD_ID(pmtword);
@@ -1015,11 +1002,10 @@ int read_bundle(char *buffer)
         qhs = (double) UNPK_QHS(pmtword);
         qhl = (double) UNPK_QHL(pmtword);
         tac = (double) UNPK_TAC(pmtword);
-        sprintf(psb,"crate %08x, slot %08x, chan %08x, cell %d, gt8 %08x, gt16 %08x, cmos_es16 %08x,"
+        printsend("crate %08x, slot %08x, chan %08x, cell %d, gt8 %08x, gt16 %08x, cmos_es16 %08x,"
                 " cgt_es16 %08x, cgt_es8 %08x, nc_cc %08x, qlx %6.1f, qhs %6.1f, qhl %6.1f, tac %6.1f\n",
                 crate,slot,chan,cell,gt8,
                 gt16,cmos_es16,cgt_es16,cgt_es8,nc_cc,qlx,qhs,qhl,tac);
-        print_send(psb,view_fdset);
     }
     return 0;
 }
@@ -1051,9 +1037,8 @@ int changedelay(char *buffer)
                 words2 = strtok(NULL, " ");
                 delay_per = atoi(words2);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: change_delay -c [crate num] -s [slot num]"
+                printsend("Usage: change_delay -c [crate num] -s [slot num]"
                         " -d [delay bits per channel]\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -1083,8 +1068,7 @@ int changedelay(char *buffer)
                 << TR20WIDTHOFFSET);
         // 8 bits of CMOS TAC trim info (2 x three twiddle bits plus two 
         // master mask bits.)
-        // sprintf(psb, "tacbits: %hu \n", tacbits_ptr[j]);
-        // print_send(psb, view_fdset);
+        // printsend( "tacbits: %hu \n", tacbits_ptr[j]);
         cmosshiftdata[j][0] |= (u_long) ((0 & 0xFFUL) 
                 << TACTRIMOFFSET); 
         // now rest of stuff is across boundry btw long words here
@@ -1093,8 +1077,7 @@ int changedelay(char *buffer)
                 << CMOSCRUFTOFFSETLOW);
         cmosshiftdata[j][1] = 0x0UL; // zero this first
         cmosshiftdata[j][1] |= (u_long)((0 & 0x0380) >> CMOSCRUFTOFFSETHIGH);
-        // sprintf(psb, "cmosshift %08x \n", cmosshiftdata[j][0]);
-        // print_send(psb, view_fdset);
+        // printsend( "cmosshift %08x \n", cmosshiftdata[j][0]);
 
     }
 

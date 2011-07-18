@@ -22,8 +22,7 @@ uint32_t *pmt_buf;
 int crate_cbal(char * buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
         return -1;
     }
     int crate = 2;
@@ -60,16 +59,15 @@ int crate_cbal(char * buffer)
                 words2 = strtok(NULL, " ");
                 chan_mask = strtoul(words2,(char**)NULL,16);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: crate_cbal -c"
+                printsend("Usage: crate_cbal -c"
                         " [crate_num] -s [slot_mask (hex)] -l [chan_mask] -d (update debug db)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
         words = strtok(NULL, " ");
     }
     if (!update_db)
-        print_send("Not writing balance values to DB.\n", view_fdset);
+        printsend("Not writing balance values to DB.\n");
     else
         ;
 
@@ -140,9 +138,8 @@ int crate_cbal(char * buffer)
 
     // END variables --------------
 
-    print_send("-------------------------------\n",view_fdset);
-    print_send("Balancing channels now.\n"
-            "High gain balance first.\n", view_fdset);
+    printsend("-------------------------------\n");
+    printsend("Balancing channels now.\nHigh gain balance first.\n");
 
     //initialization
     x1_ch = &x1[0];
@@ -184,9 +181,8 @@ int crate_cbal(char * buffer)
             select_reg = FEC_SEL*is;
             xl3_rw(GENERAL_CSR_R + select_reg + WRITE_REG,0xF,&result,crate); // clear fec
 
-            sprintf(psb, "--------------------------------\n");
-            sprintf(psb+strlen(psb), "Balancing Crate %hu, Slot %hu. \n",crate,is);
-            print_send(psb, view_fdset);
+            printsend( "--------------------------------\n");
+            printsend( "Balancing Crate %hu, Slot %hu. \n",crate,is);
 
             //////////////////////////
             // INITIALIZE VARIABLES //
@@ -252,7 +248,7 @@ int crate_cbal(char * buffer)
             theDAC_Values[num_dacs] = vmaxtestval;
             num_dacs++;
             if (multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,select_reg) != 0){
-                print_send("Error loading Dacs. Aborting.\n",view_fdset);
+                printsend("Error loading Dacs. Aborting.\n");
                 free(pmt_buf);
                 return REG_ERROR;
             }
@@ -267,8 +263,8 @@ int crate_cbal(char * buffer)
             // first need to calculate initial conditions
 
             if (DEBUG) {
-                print_send(SNTR_TOOLS_DIALOG_DIVIDER, view_fdset);
-                print_send("Starting testing run.\n", view_fdset);
+                printsend(SNTR_TOOLS_DIALOG_DIVIDER);
+                printsend("Starting testing run.\n");
             }
             // get data for balance at zero
             for (i = 0; i <= 31; i++) {
@@ -280,7 +276,7 @@ int crate_cbal(char * buffer)
                 }
             }
             if (multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,select_reg) != 0){
-                print_send("Error loading Dacs. Aborting.\n",view_fdset);
+                printsend("Error loading Dacs. Aborting.\n");
                 free(pmt_buf);
                 return REG_ERROR;
             }
@@ -289,7 +285,7 @@ int crate_cbal(char * buffer)
             // x1 will be the low data point.
             // grab pedestal data with these settings.
             if (getPedestal(x1_ch, ChParams, crate, select_reg) != 0) {
-                print_send(PED_ERROR_MESSAGE, view_fdset);
+                printsend(PED_ERROR_MESSAGE);
                 //SNO_printerr(5, INIT_FAC, err_str);
                 free(pmt_buf);
                 return PED_ERROR;
@@ -310,7 +306,7 @@ int crate_cbal(char * buffer)
                 }
             }
             if (multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,select_reg) != 0){
-                print_send("Error loading Dacs. Aborting.\n",view_fdset);
+                printsend("Error loading Dacs. Aborting.\n");
                 free(pmt_buf);
                 return REG_ERROR;
             }
@@ -318,7 +314,7 @@ int crate_cbal(char * buffer)
 
             // x2 will be the high data point.
             if (getPedestal(x2_ch, ChParams, crate,select_reg) != 0) {
-                print_send(PED_ERROR_MESSAGE, view_fdset);
+                printsend(PED_ERROR_MESSAGE);
                 //SNO_printerr(5, INIT_FAC, err_str);
                 free(pmt_buf);
                 return PED_ERROR;
@@ -335,12 +331,10 @@ int crate_cbal(char * buffer)
                 // some checking to make sure we don't do this forever.
                 if (iterations++ > (Max_iterations)) {
                     if (DEBUG) {
-                        print_send("Too many iterations, "
-                                "aborting with some channels unbalanced.\n",
-                                view_fdset);
+                        printsend("Too many iterations, "
+                                "aborting with some channels unbalanced.\n");
                         //SNO_printerr(5, INIT_FAC, err_str);
-                        print_send("Making best guess for unbalanced channels.\n",
-                                view_fdset);
+                        printsend("Making best guess for unbalanced channels.\n");
                         //SNO_printerr(5, INIT_FAC, err_str);
                     }
                     // get best guess from those channels that remain unbalanced
@@ -375,10 +369,8 @@ int crate_cbal(char * buffer)
                         f2[j] = fmean2 / numcells;
 
                         if (DEBUG) {
-                            sprintf(psb, "Iteration %d, Ch(%2i): f1 = %+7.1f, x1 = %3i, f2 = %+7.1f,"
+                            printsend( "Iteration %d, Ch(%2i): f1 = %+7.1f, x1 = %3i, f2 = %+7.1f,"
                                     " x2 = %3i\n", iterations, j, f1[j], x1_bal[j], f2[j], x2_bal[j]);
-
-                            print_send(psb, view_fdset);
                             //SNO_printerr(5, INIT_FAC, err_str);
                         }
 
@@ -441,9 +433,8 @@ int crate_cbal(char * buffer)
                                 tmp_bal[j] = (tmp_bal[j] >= 45) ? 
                                     (tmp_bal[j] - kick) : (tmp_bal[j] + kick);
                                 if (DEBUG) {
-                                    sprintf(psb, "Ch(%2i) in local trap.  "
+                                    printsend( "Ch(%2i) in local trap.  "
                                             "Nudging by %2i\n", j, kick);
-                                    print_send(psb, view_fdset);
                                     //SNO_printerr(5, INIT_FAC, err_str);
                                 }
                             }
@@ -465,7 +456,7 @@ int crate_cbal(char * buffer)
 
 
                 if (multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,select_reg) != 0){
-                    print_send("Error loading Dacs. Aborting.\n",view_fdset);
+                    printsend("Error loading Dacs. Aborting.\n");
                     free(pmt_buf);
                     return REG_ERROR;
                 }
@@ -475,8 +466,7 @@ int crate_cbal(char * buffer)
                 // i.e. none are active
                 if (activeChannels != 0x0) {
                     if (DEBUG) {
-                        sprintf(psb, "Next step, iteration %i.\n", iterations);
-                        print_send(psb, view_fdset);
+                        printsend( "Next step, iteration %i.\n", iterations);
                         //SNO_printerr(7, INIT_FAC, err_str);
                     }
                     if (getPedestal(tmp_ch, ChParams, crate,select_reg) != 0) {
@@ -502,11 +492,11 @@ int crate_cbal(char * buffer)
 
             // let people know what's going on
             if (DEBUG) {
-                print_send("End of high gain balancing.\n", view_fdset);
+                printsend("End of high gain balancing.\n");
                 //SNO_printerr(7, INIT_FAC, err_str);
-                print_send(SNTR_TOOLS_DIALOG_DIVIDER, view_fdset);
+                printsend(SNTR_TOOLS_DIALOG_DIVIDER);
                 //SNO_printerr(7, INIT_FAC, err_str);
-                print_send("Starting low gain balance run.\n", view_fdset);
+                printsend("Starting low gain balance run.\n");
                 //SNO_printerr(7, INIT_FAC, err_str);
             }
             // reset this
@@ -540,7 +530,7 @@ int crate_cbal(char * buffer)
                 }
             }
             if (multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,select_reg) != 0){
-                print_send("Error loading Dacs. Aborting.\n",view_fdset);
+                printsend("Error loading Dacs. Aborting.\n");
                 free(pmt_buf);
                 return REG_ERROR;
             }
@@ -550,7 +540,7 @@ int crate_cbal(char * buffer)
             // x1,x1l  will be the low data point.
             // grab pedestal data with these settings.
             if (getPedestal(x1_ch, ChParams, crate,select_reg) != 0) {
-                print_send(PED_ERROR_MESSAGE, view_fdset);
+                printsend(PED_ERROR_MESSAGE);
                 //SNO_printerr(5, INIT_FAC, err_str);
                 free(pmt_buf);
                 return PED_ERROR;
@@ -560,7 +550,7 @@ int crate_cbal(char * buffer)
 
             // now get low gain long integrate
             if (getPedestal(x1l_ch, ChParams, crate,select_reg) != 0) {
-                print_send(PED_ERROR_MESSAGE, view_fdset);
+                printsend(PED_ERROR_MESSAGE);
                 //SNO_printerr(5, INIT_FAC, err_str);
                 free(pmt_buf);
                 return PED_ERROR;
@@ -578,7 +568,7 @@ int crate_cbal(char * buffer)
                 }
             }
             if (multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,select_reg) != 0){
-                print_send("Error loading Dacs. Aborting.\n",view_fdset);
+                printsend("Error loading Dacs. Aborting.\n");
                 free(pmt_buf);
                 return REG_ERROR;
             }
@@ -587,7 +577,7 @@ int crate_cbal(char * buffer)
 
             // x2 will be the high data point.
             if (getPedestal(x2_ch, ChParams, crate,select_reg) != 0) {
-                print_send(PED_ERROR_MESSAGE, view_fdset);
+                printsend(PED_ERROR_MESSAGE);
                 //SNO_printerr(5, INIT_FAC, err_str);
                 free(pmt_buf);
                 return PED_ERROR;
@@ -597,7 +587,7 @@ int crate_cbal(char * buffer)
 
             // now get low gain long integrate
             if (getPedestal(x2l_ch, ChParams, crate,select_reg) != 0) {
-                print_send(PED_ERROR_MESSAGE, view_fdset);
+                printsend(PED_ERROR_MESSAGE);
                 //SNO_printerr(5, INIT_FAC, err_str);
                 free(pmt_buf);
                 return PED_ERROR;
@@ -619,10 +609,10 @@ int crate_cbal(char * buffer)
                 // some checking to make sure we don't do this forever.
                 if (iterations++ > (Max_iterations)) {
                     if (DEBUG) {
-                        print_send("Too many iterations -- aborting with some"
-                                " channels unbalanced.\n", view_fdset);
+                        printsend("Too many iterations -- aborting with some"
+                                " channels unbalanced.\n");
                         //SNO_printerr(7, INIT_FAC, err_str);
-                        print_send("Making best guess for unbalanced channels.\n", view_fdset);
+                        printsend("Making best guess for unbalanced channels.\n");
                         //SNO_printerr(7, INIT_FAC, err_str);
                     }
                     // get best guess from those channels that remain unbalanced
@@ -656,9 +646,8 @@ int crate_cbal(char * buffer)
                         f2[j] = fmean2 / numcells;
 
                         if (DEBUG) {
-                            sprintf(psb, "Ch(%2i): f1 = %+7.1f, x1 = %3i, f2 = %+7.1f"
+                            printsend( "Ch(%2i): f1 = %+7.1f, x1 = %3i, f2 = %+7.1f"
                                     ", x2 = %3i\n", j, f1[j], x1_bal[j], f2[j], x2_bal[j]);
-                            print_send(psb, view_fdset);
                             //SNO_printerr(7, INIT_FAC, err_str);
                         }
                         // check to assure we straddle root, i.e. channel is balanceable
@@ -666,9 +655,8 @@ int crate_cbal(char * buffer)
                             //they both have the same sign on first run
 
                             if (DEBUG) {
-                                sprintf(psb, "Error:  Ch(%2i) does not appear"
+                                printsend( "Error:  Ch(%2i) does not appear"
                                         " balanceable.\n", j);
-                                print_send(psb, view_fdset);
                                 //SNO_printerr(7, INIT_FAC, err_str);
                             }
                             activeChannels &= ~(0x1UL << j);	// turn off this one and go on.
@@ -713,9 +701,8 @@ int crate_cbal(char * buffer)
                                 tmp_bal[j] = (tmp_bal[j] >= 45) 
                                     ? (tmp_bal[j] - kick) : (tmp_bal[j] + kick);
                                 if (DEBUG) {
-                                    sprintf(psb, "Ch(%2i) in local trap.  Nudging by %2i\n", 
+                                    printsend( "Ch(%2i) in local trap.  Nudging by %2i\n", 
                                             j, kick);
-                                    print_send(psb, view_fdset);
                                     //SNO_printerr(7, INIT_FAC, err_str);
                                 }
 
@@ -742,7 +729,7 @@ int crate_cbal(char * buffer)
                     }
                 }
                 if (multiloadsDac(num_dacs,theDACs,theDAC_Values,crate,select_reg) != 0){
-                    print_send("Error loading Dacs. Aborting.\n",view_fdset);
+                    printsend("Error loading Dacs. Aborting.\n");
                     free(pmt_buf);
                     return REG_ERROR;
                 }
@@ -754,12 +741,11 @@ int crate_cbal(char * buffer)
                 // i.e. none are active
                 if (activeChannels != 0x0) {
                     if (DEBUG) {
-                        sprintf(psb, "Next step, iteration %i.\n", iterations + 1);
-                        print_send(psb, view_fdset);
+                        printsend( "Next step, iteration %i.\n", iterations + 1);
                         //SNO_printerr(7, INIT_FAC, err_str);
                     }
                     if (getPedestal(tmp_ch, ChParams, crate,select_reg) != 0) {
-                        print_send(PED_ERROR_MESSAGE, view_fdset);
+                        printsend(PED_ERROR_MESSAGE);
                         //SNO_printerr(5, INIT_FAC, err_str);
                         free(pmt_buf);
                         return PED_ERROR;
@@ -769,7 +755,7 @@ int crate_cbal(char * buffer)
 
                     // now get low gain long integrate
                     if (getPedestal(tmpl_ch, ChParams, crate,select_reg) != 0) {
-                        print_send(PED_ERROR_MESSAGE, view_fdset);
+                        printsend(PED_ERROR_MESSAGE);
                         //SNO_printerr(5, INIT_FAC, err_str);
                         free(pmt_buf);
                         return PED_ERROR;
@@ -795,12 +781,12 @@ int crate_cbal(char * buffer)
 
             // ----------------------------------------
             if (DEBUG) {
-                print_send("End of balancing loops.\n", view_fdset);
+                printsend("End of balancing loops.\n");
                 //SNO_printerr(5, INIT_FAC, err_str);
             }
             // reset this
             activeChannels = orig_activeChannels;
-            print_send("\nFinal VBAL table.\n", view_fdset);
+            printsend("\nFinal VBAL table.\n");
 
 
             ///////////////////////
@@ -811,9 +797,8 @@ int crate_cbal(char * buffer)
             for (j = 0; j <= 31; j++) {
                 if ((activeChannels & (0x1L << j)) != 0) {
                     if ((ChParam[j].hiBalanced == 1) && (ChParam[j].loBalanced == 1)) {
-                        sprintf(psb, "Ch %2i High: %3i. low: %3i -> balanced \n", j,
+                        printsend( "Ch %2i High: %3i. low: %3i -> balanced \n", j,
                                 ChParam[j].highGainBalance, ChParam[j].lowGainBalance);
-                        print_send(psb, view_fdset);
                         //SNO_printerr(5, INIT_FAC, err_str);
 
                         if ((ChParam[j].highGainBalance == 255) 
@@ -830,14 +815,14 @@ int crate_cbal(char * buffer)
                             if(ChParam[j].lowGainBalance == 0) 
                                 ChParam[j].lowGainBalance = 150;
 
-                            print_send(" >>Extreme balance, setting to 150 ", view_fdset);
+                            printsend(" >>Extreme balance, setting to 150 ");
                             error_flags[j] = 1;
                         }
                         if ((ChParam[j].highGainBalance > 225) 
                                 || (ChParam[j].highGainBalance < 50)
                                 || (ChParam[j].lowGainBalance > 225) 
                                 || (ChParam[j].lowGainBalance < 50)) {
-                            print_send(" >>Warning: extreme balance value. ", view_fdset);
+                            printsend(" >>Warning: extreme balance value. ");
                             error_flags[j] = 2;
                         }
 
@@ -849,9 +834,8 @@ int crate_cbal(char * buffer)
                     else if ((ChParam[j].hiBalanced == 1) 
                             || (ChParam[j].loBalanced == 1)) {
                         error_flags[j] = 3;
-                        sprintf(psb, "Ch %2i High: %3i. low: %3i -> part balanced, set to 150 if extreme\n",
+                        printsend( "Ch %2i High: %3i. low: %3i -> part balanced, set to 150 if extreme\n",
                                 j, ChParam[j].highGainBalance, ChParam[j].lowGainBalance);
-                        print_send(psb, view_fdset);
                         //SNO_printerr(5, INIT_FAC, err_str);
 
                         //set to 150 if extreme
@@ -872,8 +856,7 @@ int crate_cbal(char * buffer)
                     }else {		// unbalanced
                         error_flags[j] = 4;
 
-                        sprintf(psb, "Ch %2i                     -> unbalanced, set to 150\n", j);
-                        print_send(psb, view_fdset);
+                        printsend( "Ch %2i                     -> unbalanced, set to 150\n", j);
                         //SNO_printerr(5, INIT_FAC, err_str);
                         //if failed, set to 150
                         ChParam[j].highGainBalance = 150; 
@@ -938,9 +921,9 @@ int crate_cbal(char * buffer)
     }// end loop over slots
 
 
-    print_send("End of balanceChannels.\n", view_fdset);
+    printsend("End of balanceChannels.\n");
     //SNO_printerr(7, INIT_FAC, err_str);
-    print_send("**********************************\n",view_fdset);
+    printsend("**********************************\n");
     //SNO_printerr(7, INIT_FAC, err_str);
 
     free(pmt_buf);
@@ -1016,7 +999,7 @@ short getPedestal(struct pedestal *pedestals,
 
     // make sure pedestal pointer is not null and initalize structs.
     if (pedestals == 0) {
-        print_send("Error:  null pointer passed to getPedestal! Aborting.\n", view_fdset);
+        printsend("Error:  null pointer passed to getPedestal! Aborting.\n");
         return 666;			// the return code of the beast.
     }
     for (i = 0; i <= 31; i++) {
@@ -1054,8 +1037,7 @@ short getPedestal(struct pedestal *pedestals,
 
     // pulse pulser NumPulses times.
     if (DEBUG) {
-        sprintf(psb, "Firing ~ %08x pedestals.\n", NumPulses);
-        print_send(psb, view_fdset);
+        printsend( "Firing ~ %08x pedestals.\n", NumPulses);
     }
     multi_softgt(NumPulses);
 
@@ -1081,15 +1063,14 @@ short getPedestal(struct pedestal *pedestals,
     }
 
     if (WordsInMem < Min_num_words) {
-        sprintf(psb, "Less than %08x bundles in memory (there are %08x).  Aborting.\n", 
+        printsend( "Less than %08x bundles in memory (there are %08x).  Aborting.\n", 
                 Min_num_words,WordsInMem);
-        print_send(psb, view_fdset);
         return 10;
     }
 
     // now we are reading out the memory
     if (DEBUG) {
-        print_send("Reading out FEC32 memory.\n", view_fdset);
+        printsend("Reading out FEC32 memory.\n");
     }
 
 
@@ -1097,7 +1078,7 @@ short getPedestal(struct pedestal *pedestals,
 #ifdef FIRST_WORD_BUG
     if ((WordsInMem > 3) )
     {
-        print_send("This is a hack until the sequencer is fixed\n", view_fdset);
+        printsend("This is a hack until the sequencer is fixed\n");
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate);
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate);
         xl3_rw(select_reg + READ_MEM,0x0,pmt_buf,crate);

@@ -34,8 +34,7 @@ int setup_chinj(int crate, uint16_t slot_mask, uint32_t default_ch_mask, uint16_
 int chinj_scan(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
         return -1;
     }
     int i,j,k;
@@ -120,16 +119,15 @@ int chinj_scan(char *buffer)
     }
 
     (void) time(&now);
-    sprintf(psb,"Charge Injection Run Setup\n");
-    sprintf(psb+strlen(psb),"-------------------------------------------\n");
-    sprintf(psb+strlen(psb),"Crate:		    %2d\n",crate);
-    sprintf(psb+strlen(psb),"Slot Mask:		    0x%4hx\n",slot_mask);
-    sprintf(psb+strlen(psb),"Pedestal Mask:	    0x%08lx\n",pattern);
-    sprintf(psb+strlen(psb),"GT delay (ns):	    %3hu\n", gtdelay);
-    sprintf(psb+strlen(psb),"Pedestal Width (ns):    %2d\n",ped_width);
-    sprintf(psb+strlen(psb),"Pulser Frequency (Hz):  %3.0f\n",frequency);
-    //sprintf(psb+strlen(psb),"\nRun started at %.24s\n",ctime(&now));
-    print_send(psb, view_fdset);
+    printsend("Charge Injection Run Setup\n");
+    printsend("-------------------------------------------\n");
+    printsend("Crate:		    %2d\n",crate);
+    printsend("Slot Mask:		    0x%4hx\n",slot_mask);
+    printsend("Pedestal Mask:	    0x%08lx\n",pattern);
+    printsend("GT delay (ns):	    %3hu\n", gtdelay);
+    printsend("Pedestal Width (ns):    %2d\n",ped_width);
+    printsend("Pulser Frequency (Hz):  %3.0f\n",frequency);
+    //printsend("\nRun started at %.24s\n",ctime(&now));
 
     float qhls[16*32*2][26];
     float qhss[16*32*2][26];
@@ -161,7 +159,7 @@ int chinj_scan(char *buffer)
         }
         deselect_fecs(crate); 
 
-        //print_send("Reset FECs\n", view_fdset);
+        //printsend("Reset FECs\n");
 
         errors = 0;
         errors += fec_load_crateadd(crate, slot_mask);
@@ -186,7 +184,7 @@ int chinj_scan(char *buffer)
 
         errors = setup_pedestals(0,ped_width,gtdelay,GT_FINE_DELAY);
         if (errors){
-            print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+            printsend("Error setting up MTC for pedestals. Exiting.\n");
             unset_ped_crate_mask(MASKALL);
             unset_gt_crate_mask(MASKALL);
             free(pmt_buffer);
@@ -238,14 +236,12 @@ int chinj_scan(char *buffer)
 
                 //check for readout errors
                 if (count <= 0){
-                    print_send("there was an error in the count!\n", view_fdset);
-                    sprintf(psb, "Errors reading out MB(%2d) (errno %i)\n",slot_iter,count);
-                    print_send(psb, view_fdset);
+                    printsend("there was an error in the count!\n");
+                    printsend("Errors reading out MB(%2d) (errno %i)\n", slot_iter, count);
                     errors+=1;
                     continue;
                 }else{
-                    sprintf(psb, "MB(%2d): %5d bundles read out.\n",slot_iter,count);
-                    //print_send(psb, view_fdset);
+                    //printsend("MB(%2d): %5d bundles read out.\n", slot_iter, count);
                 }
 
                 if (count < num_pedestals*32*16)
@@ -257,8 +253,7 @@ int chinj_scan(char *buffer)
                 for (i=0;i<count;i++){
                     crateID = (int) UNPK_CRATE_ID(pmt_iter);
                     if (crateID != crate){
-                        sprintf(psb, "Invalid crate ID seen! (crate ID %2d, bundle %2i)\n",crateID,i);
-                        print_send(psb, view_fdset);
+                        printsend("Invalid crate ID seen! (crate ID %2d, bundle %2i)\n", crateID, i);
                         pmt_iter+=3;
                         continue;
                     }
@@ -325,10 +320,10 @@ int chinj_scan(char *buffer)
                 // PRINT RESULTS //
                 ///////////////////
 
-                sprintf(psb,"########################################################\n");
-                sprintf(psb+strlen(psb),"Slot (%2d)\n", slot_iter);
-                sprintf(psb+strlen(psb),"########################################################\n");
-                //print_send(psb, view_fdset);
+                printsend("########################################################\n");
+                printsend("Slot (%2d)\n", slot_iter);
+                printsend("########################################################\n");
+
                 for (i = 0; i<32; i++){
                     //printsend("Ch Cell  #   Qhl         Qhs         Qlx         TAC\n");
                     for (j=0;j<16;j++){
@@ -379,13 +374,12 @@ int chinj_scan(char *buffer)
                                     scan_errors[slot_iter*32+i*2+1][dac_iter]++;
                             }
                         }
-                        sprintf(psb,"%2d %3d %4d %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f\n",
-                                i,j,ped[i].thiscell[j].per_cell,
-                                ped[i].thiscell[j].qhlbar, ped[i].thiscell[j].qhlrms,
-                                ped[i].thiscell[j].qhsbar, ped[i].thiscell[j].qhsrms,
-                                ped[i].thiscell[j].qlxbar, ped[i].thiscell[j].qlxrms,
-                                ped[i].thiscell[j].tacbar, ped[i].thiscell[j].tacrms);
-                        //	print_send(psb, view_fdset);
+                        //printsend("%2d %3d %4d %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f\n",
+                                //i,j,ped[i].thiscell[j].per_cell,
+                                //ped[i].thiscell[j].qhlbar, ped[i].thiscell[j].qhlrms,
+                                //ped[i].thiscell[j].qhsbar, ped[i].thiscell[j].qhsrms,
+                                //ped[i].thiscell[j].qlxbar, ped[i].thiscell[j].qlxrms,
+                                //ped[i].thiscell[j].tacbar, ped[i].thiscell[j].tacrms);
                     }
                 }
 
@@ -498,11 +492,10 @@ int chinj_scan(char *buffer)
 
 
     if (errors)
-        sprintf(psb, "There were %d errors\n",errors);
+        printsend("There were %d errors\n", errors);
     else
-        sprintf(psb, "No errors seen\n");
-    print_send(psb, view_fdset);
-    print_send("*************************************\n",view_fdset);
+        printsend("No errors seen\n");
+    printsend("*************************************\n");
     return errors;
 }
 
@@ -511,8 +504,7 @@ int chinj_scan(char *buffer)
 int chinj_test(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
         return -1;
     }
     int i,j;
@@ -590,17 +582,16 @@ int chinj_test(char *buffer)
     }
 
     (void) time(&now);
-    sprintf(psb,"Charge Injection Run Setup\n");
-    sprintf(psb+strlen(psb),"-------------------------------------------\n");
-    sprintf(psb+strlen(psb),"Crate:		    %2d\n",crate);
-    sprintf(psb+strlen(psb),"Slot Mask:		    0x%4hx\n",slot_mask);
-    sprintf(psb+strlen(psb),"Pedestal Mask:	    0x%08lx\n",pattern);
-    sprintf(psb+strlen(psb),"GT delay (ns):	    %3hu\n", gtdelay);
-    sprintf(psb+strlen(psb),"Pedestal Width (ns):    %2d\n",ped_width);
-    sprintf(psb+strlen(psb),"Pulser Frequency (Hz):  %3.0f\n",frequency);
-    sprintf(psb+strlen(psb),"Chinj Dac Value (d):    %hu\n",dacvalue);
-    //sprintf(psb+strlen(psb),"\nRun started at %.24s\n",ctime(&now));
-    print_send(psb, view_fdset);
+    printsend("Charge Injection Run Setup\n");
+    printsend("-------------------------------------------\n");
+    printsend("Crate:		    %2d\n",crate);
+    printsend("Slot Mask:		    0x%4hx\n",slot_mask);
+    printsend("Pedestal Mask:	    0x%08lx\n",pattern);
+    printsend("GT delay (ns):	    %3hu\n", gtdelay);
+    printsend("Pedestal Width (ns):    %2d\n",ped_width);
+    printsend("Pulser Frequency (Hz):  %3.0f\n",frequency);
+    printsend("Chinj Dac Value (d):    %hu\n",dacvalue);
+    //printsend("\nRun started at %.24s\n",ctime(&now));
 
     wtime = (float) (num_pedestals-1) * NUM_CELLS / frequency; //FIXME hack for mtc latency
 
@@ -616,7 +607,7 @@ int chinj_test(char *buffer)
     }
     deselect_fecs(crate); 
 
-    print_send("Reset FECs\n", view_fdset);
+    printsend("Reset FECs\n");
 
     errors = 0;
     errors += fec_load_crateadd(crate, slot_mask);
@@ -639,7 +630,7 @@ int chinj_test(char *buffer)
 
     errors = setup_pedestals(frequency,ped_width,gtdelay,GT_FINE_DELAY);
     if (errors){
-        print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+        printsend("Error setting up MTC for pedestals. Exiting.\n");
         unset_ped_crate_mask(MASKALL);
         unset_gt_crate_mask(MASKALL);
         free(pmt_buffer);
@@ -697,14 +688,12 @@ int chinj_test(char *buffer)
 
             //check for readout errors
             if (count <= 0){
-                print_send("there was an error in the count!\n", view_fdset);
-                sprintf(psb, "Errors reading out MB(%2d) (errno %i)\n",slot_iter,count);
-                print_send(psb, view_fdset);
+                printsend("there was an error in the count!\n");
+                printsend("Errors reading out MB(%2d) (errno %i)\n",slot_iter,count);
                 errors+=1;
                 continue;
             }else{
-                sprintf(psb, "MB(%2d): %5d bundles read out.\n",slot_iter,count);
-                print_send(psb, view_fdset);
+                printsend( "MB(%2d): %5d bundles read out.\n",slot_iter,count);
             }
 
             if (count < num_pedestals*32*16)
@@ -716,8 +705,7 @@ int chinj_test(char *buffer)
             for (i=0;i<count;i++){
                 crateID = (int) UNPK_CRATE_ID(pmt_iter);
                 if (crateID != crate){
-                    sprintf(psb, "Invalid crate ID seen! (crate ID %2d, bundle %2i)\n",crateID,i);
-                    print_send(psb, view_fdset);
+                    printsend( "Invalid crate ID seen! (crate ID %2d, bundle %2i)\n",crateID,i);
                     pmt_iter+=3;
                     continue;
                 }
@@ -784,10 +772,9 @@ int chinj_test(char *buffer)
             // PRINT RESULTS //
             ///////////////////
 
-            sprintf(psb,"########################################################\n");
-            sprintf(psb+strlen(psb),"Slot (%2d)\n", slot_iter);
-            sprintf(psb+strlen(psb),"########################################################\n");
-            print_send(psb, view_fdset);
+            printsend("########################################################\n");
+            printsend("Slot (%2d)\n", slot_iter);
+            printsend("########################################################\n");
             for (i = 0; i<32; i++){
                printsend("Ch Cell  #   Qhl         Qhs         Qlx         TAC\n");
                 for (j=0;j<16;j++){
@@ -812,13 +799,12 @@ int chinj_test(char *buffer)
                            printsend(">>>>>Qlx Extreme Value<<<<<\n");
                         }
                     }
-                    sprintf(psb,"%2d %3d %4d %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f\n",
+                    printsend("%2d %3d %4d %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f\n",
                             i,j,ped[i].thiscell[j].per_cell,
                             ped[i].thiscell[j].qhlbar, ped[i].thiscell[j].qhlrms,
                             ped[i].thiscell[j].qhsbar, ped[i].thiscell[j].qhsrms,
                             ped[i].thiscell[j].qlxbar, ped[i].thiscell[j].qlxrms,
                             ped[i].thiscell[j].tacbar, ped[i].thiscell[j].tacrms);
-                    print_send(psb, view_fdset);
                 }
             }
 
@@ -852,11 +838,10 @@ int chinj_test(char *buffer)
     deselect_fecs(crate);
 
     if (errors)
-        sprintf(psb, "There were %d errors\n",errors);
+        printsend( "There were %d errors\n",errors);
     else
-        sprintf(psb, "No errors seen\n");
-    print_send(psb, view_fdset);
-    print_send("*************************************\n",view_fdset);
+        printsend( "No errors seen\n");
+    printsend("*************************************\n");
     return errors;
 }
 

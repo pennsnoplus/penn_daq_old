@@ -18,8 +18,8 @@
 int get_ttot(char * buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
+        
         return -1;
     }
     int errors;
@@ -57,9 +57,9 @@ int get_ttot(char * buffer)
                 words2 = strtok(NULL, " ");
                 targettime = atoi(words2);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: get_ttot -c"
+                printsend("Usage: get_ttot -c"
                         " [crate_num] -s [slot_mask (hex)] -t [target time] -d (update debug db)\n");
-                print_send(psb, view_fdset);
+                
                 return 0;
             }
         }
@@ -132,8 +132,8 @@ int set_ttot(char * buffer)
 {
    printsend(".%s.\n",buffer);
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
+        
         return -1;
     }
     int errors;
@@ -169,9 +169,9 @@ int set_ttot(char * buffer)
                 words2 = strtok(NULL, " ");
                 targettime = atoi(words2);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: set_ttot -c"
+                printsend("Usage: set_ttot -c"
                         " [crate_num] -s [slot_mask (hex)] -t [target time] -d (update debug db)\n");
-                print_send(psb, view_fdset);
+                
                 return 0;
             }
         }

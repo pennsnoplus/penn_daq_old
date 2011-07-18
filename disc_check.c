@@ -59,9 +59,8 @@ int disc_check(char *buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: disc_check -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: disc_check -c [crate number] -s [slot mask (hex)]"
                         " -n [num peds] -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -161,7 +160,7 @@ static int setup_crate(int cn, uint32_t slot_mask)
 {
     int i;
     uint32_t select_reg, result,temp;
-    print_send("Resetting fifos.\n", view_fdset);
+    printsend("Resetting fifos.\n");
     for (i=0;i<16;i++){ //FIXME 
         select_reg = FEC_SEL * i;
 

@@ -30,9 +30,9 @@ int set_location(char *buffer)
                 current_location = 0;
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: set_location"
+                printsend("Usage: set_location"
                         "-a (above ground) -u (under ground) -p (penn)\n");
-                print_send(psb, view_fdset);
+                
                 return 0;
             }
         }
@@ -65,9 +65,9 @@ int spec_cmd(char *buffer)
                 data = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: spec_cmd -c"
+                printsend("Usage: spec_cmd -c"
                         " [crate_num] -a [address] -d [data]\n");
-                print_send(psb, view_fdset);
+                
                 return 0;
             }
         }
@@ -76,11 +76,11 @@ int spec_cmd(char *buffer)
 
     errors = xl3_rw(address, data, &result, crate_num);
     if (errors == 0){
-        sprintf(psb, "result was %08x\n",result);
-        print_send(psb, view_fdset);
+        printsend( "result was %08x\n",result);
+        
     }
     else 
-        print_send("there was a bus error!\n", view_fdset);
+        printsend("there was a bus error!\n");
     return 0;
 }
 
@@ -107,9 +107,9 @@ int add_cmd(char *buffer)
                 data = strtoul(words2,(char**)NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: add_cmd -c"
+                printsend("Usage: add_cmd -c"
                         " [crate_num] -a [address] -d [data]\n");
-                print_send(psb, view_fdset);
+                
                 return 0;
             }
         }
@@ -145,8 +145,8 @@ int sm_reset(char *buffer)
                 crate_num = atoi(words2);
             }
             if (words[1] == 'h'){
-                sprintf(psb, "Usage: sm_reset -c [crate num]\n");
-                print_send(psb,view_fdset);
+                printsend( "Usage: sm_reset -c [crate num]\n");
+                
                 return -1;
             }
         }
@@ -176,8 +176,8 @@ int debugging_mode(char *buffer, uint32_t onoff)
             if (words[1] == 'c')
                 crate_num = atoi(strtok(NULL," "));
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: debugging_on/off -c [crate_num]\n");
-                print_send(psb, view_fdset);
+                printsend("Usage: debugging_on/off -c [crate_num]\n");
+                
                 return 0;
             }
         }
@@ -185,9 +185,9 @@ int debugging_mode(char *buffer, uint32_t onoff)
     }
     do_xl3_cmd(&debug_packet,crate_num);
     if (onoff == 1)
-        print_send("Debugging turned on\n",view_fdset);
+        printsend("Debugging turned on\n");
     else
-        print_send("Debugging turned off\n",view_fdset);
+        printsend("Debugging turned off\n");
     return 0;
 }
 
@@ -228,9 +228,9 @@ int change_mode(char *buffer)
             if (words[1] == 's')
                 *(payload_ptr+1) = strtoul(strtok(NULL, " "),(char**)NULL,16);
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: change_mode -c"
+                printsend("Usage: change_mode -c"
                         " [crate_num] -n [normal mode] -i [init mode] -s [data avail mask]\n");
-                print_send(psb, view_fdset);
+                
                 return 0;
             }
         }
@@ -240,9 +240,9 @@ int change_mode(char *buffer)
     SwapLongBlock(payload_ptr,2);
     do_xl3_cmd(&mode_packet,crate_num); 
     if (norm_init == 1)
-        print_send("Mode changed to init mode\n",view_fdset);
+        printsend("Mode changed to init mode\n");
     else
-        print_send("Mode changed to normal mode\n",view_fdset);
+        printsend("Mode changed to normal mode\n");
     return 0;
 }
 
@@ -265,8 +265,8 @@ int hv_readback(char *buffer)
                 supply_select += 2;
             }
             if (words[1] == 'h'){
-                sprintf(psb, "Usage: read_local_voltage -c [crate num] -a (supply a) -b (supply b)\n");
-                print_send(psb,view_fdset);
+                printsend( "Usage: read_local_voltage -c [crate num] -a (supply a) -b (supply b)\n");
+                
                 return -1;
             }
         }
@@ -322,8 +322,8 @@ int read_local_voltage(char *buffer)
                 v_select = atoi(words2);
             }
             if (words[1] == 'h'){
-                sprintf(psb, "Usage: read_local_voltage -c [crate num] -s [voltage number]\n");
-                print_send(psb,view_fdset);
+                printsend( "Usage: read_local_voltage -c [crate num] -s [voltage number]\n");
+                
                 return -1;
             }
         }
@@ -352,8 +352,8 @@ int hv_ramp_map(char *buffer)
                 crate_num = atoi(words2);
             }
             if (words[1] == 'h'){
-                sprintf(psb, "Usage: read_local_voltage -c [crate num] -s [voltage number]\n");
-                print_send(psb,view_fdset);
+                printsend( "Usage: read_local_voltage -c [crate num] -s [voltage number]\n");
+                
                 return -1;
             }
         }

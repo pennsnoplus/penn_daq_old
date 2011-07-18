@@ -51,28 +51,24 @@ int connect_to_SBC(int portno, struct hostent *server){
     while (sbc_is_connected==0 || counter<Nretrys){
         counter++;
         if (counter == 0){  
-            sprintf(psb, "\n\t Trying to connect to the SBC\n");
-            print_send(psb, view_fdset);
+            printsend( "\n\t Trying to connect to the SBC\n");
         }
         int ALREADY_CONNECTED=0;
         if(mtc_sock > 0){
 
-            //sprintf(psb, "new_daq: Already connected to SBC/MTC (socket %d)\n", mtc_sock);
-            //print_send(psb, view_fdset);
+            //printsend( "new_daq: Already connected to SBC/MTC (socket %d)\n", mtc_sock);
             ALREADY_CONNECTED=1;
             return -1;
         }
         mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
         if (mtc_sock <= 0){
 
-            sprintf(psb, "new_daq: error opening SBC/MTC socket\n");
-            print_send(psb, view_fdset);
-            print_send("error connecting to SBC\n", view_fdset);
+            printsend( "new_daq: error opening SBC/MTC socket\n");
+            printsend("error connecting to SBC\n");
             return -1;
         }
         else if (!ALREADY_CONNECTED) {
-            sprintf(psb, "Trying to connect with screen \n");
-            print_send(psb, view_fdset);
+            printsend( "Trying to connect with screen \n");
             usleep(100);
             system(kill_orcareadout);
             usleep(100);
@@ -92,7 +88,7 @@ int connect_to_SBC(int portno, struct hostent *server){
             close(mtc_sock);
             FD_CLR(mtc_sock, &mtc_fdset);
             mtc_sock = 0;
-            print_send("kk:error connecting to SBC\n", view_fdset);
+            printsend("kk:error connecting to SBC\n");
             return -1;
         }
         // use FD_set so select() can be used
@@ -109,7 +105,7 @@ int connect_to_SBC(int portno, struct hostent *server){
         int n;
         n = write(mtc_sock,send_test,4);
 
-        print_send("\t Connected to SBC.\n", view_fdset);
+        printsend("\t Connected to SBC.\n");
         sbc_is_connected = 1;
     }
     return 0;
@@ -204,13 +200,13 @@ int do_mtc_cmd(SBC_Packet *aPacket){
     int32_t numBytesToSend = aPacket->numBytes;
     char* p = (char*)aPacket;
     if(mtc_sock <= 0){
-        print_send("not connected to the MTC/SBC\n", view_fdset);
+        printsend("not connected to the MTC/SBC\n");
         return -1;
     }
     int n;
     n = write(mtc_sock,p,numBytesToSend);
     if (n < 0) {
-        print_send("ERROR writing to socket\n", view_fdset);
+        printsend("ERROR writing to socket\n");
         return -1;
     }
 
@@ -228,20 +224,19 @@ int do_mtc_cmd(SBC_Packet *aPacket){
     set_delay_values(SECONDS, USECONDS);
     data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, &delay_value);
     if(data==-1){
-        print_send("error in select()", view_fdset);
+        printsend("error in select()");
         return -2;
     }
     else if(data==0){
-        print_send("new_daq: timeout in select()\n", view_fdset);
+        printsend("new_daq: timeout in select()\n");
 
-        sprintf(psb, "new_daq: unable to receive response from MTC (socket %d)\n", mtc_sock);
-        print_send(psb, view_fdset);
+        printsend( "new_daq: unable to receive response from MTC (socket %d)\n", mtc_sock);
         return -3;
     }
     else{
         n = recv(mtc_sock,p,1500, 0 ); // 1500 should be?
         if (n < 0){
-            print_send("receive error in do_mtc_cmd\n", view_fdset);
+            printsend("receive error in do_mtc_cmd\n");
             return -1;
         }
         *aPacket = *(SBC_Packet*)p;
@@ -253,8 +248,7 @@ int get_caen_data(char *buffer)
 {
 
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
         return -1;
     }
 
@@ -324,13 +318,13 @@ int do_mtc_xilinx_cmd(SBC_Packet *aPacket){
     SBC_Packet bPacket;
     char* q = (char*)&bPacket;
     if(mtc_sock <= 0){
-        print_send("not connected to the MTC/SBC\n", view_fdset);
+        printsend("not connected to the MTC/SBC\n");
         return -1;
     }
     int n;
     n = write(mtc_sock,p,numBytesToSend);
     if (n < 0) {
-        print_send("ERROR writing to socket\n", view_fdset);
+        printsend("ERROR writing to socket\n");
         return -1;
     }
 
@@ -348,14 +342,13 @@ int do_mtc_xilinx_cmd(SBC_Packet *aPacket){
     set_delay_values(SECONDS, USECONDS);
     data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, &delay_value);
     if(data==-1){
-        print_send("error in select()", view_fdset);
+        printsend("error in select()");
         return -2;
     }
     else if(data==0){
-        print_send("new_daq: timeout in select()\n", view_fdset);
+        printsend("new_daq: timeout in select()\n");
 
-        sprintf(psb, "new_daq: unable to receive response from MTC (socket %d)\n", mtc_sock);
-        print_send(psb, view_fdset);
+        printsend( "new_daq: unable to receive response from MTC (socket %d)\n", mtc_sock);
         return -3;
     }
     else{
@@ -366,7 +359,7 @@ int do_mtc_xilinx_cmd(SBC_Packet *aPacket){
             numBytesToSend-=n;
         }
         if (n < 0){
-            print_send("receive error in do_mtc_cmd\n", view_fdset);
+            printsend("receive error in do_mtc_cmd\n");
             return -1;
         }
         *aPacket = *(SBC_Packet*)p;

@@ -19,12 +19,11 @@ SBC_Packet aPacket;
 int trigger_scan(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
         return -1;
     }
 
-   printsend("starting a trigger scan\n");
+    printsend("starting a trigger scan\n");
     int nhit;
     uint32_t select_reg,pedestals,result,beforegt,aftergt;
     uint32_t gtdelay = 150;
@@ -41,7 +40,7 @@ int trigger_scan(char *buffer)
     // set up the mtcd to send out softgts
     int errors = setup_pedestals(0,ped_width,gtdelay,0);
     if (errors){
-        print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+        printsend("Error setting up MTC for pedestals. Exiting\n");
         unset_ped_crate_mask(MASKALL);
         unset_gt_crate_mask(MASKALL);
         return -1;
@@ -95,7 +94,7 @@ int trigger_scan(char *buffer)
 
     for (i=0;i<32;i++)
         for (j=0;j<145;j++)
-           printsend("%d %d %f\n",i,j,values[i][j]);
+            printsend("%d %d %f\n",i,j,values[i][j]);
 
     return 0;
 }
@@ -109,17 +108,17 @@ int mtc_xilinxload(void)
     uint32_t dp;
     uint32_t temp;
 
-    print_send("loading xilinx\n", view_fdset);
+    printsend("loading xilinx\n");
     data = getXilinxData(&howManybits);
     if ((data == NULL) || (howManybits == 0)){
-        print_send("error getting xilinx data\n", view_fdset);
+        printsend("error getting xilinx data\n");
         return -1;
     }
 
     aPacket.cmdHeader.destination = 0x3;
     aPacket.cmdHeader.cmdID = 0x1;
     aPacket.cmdHeader.numberBytesinPayload = sizeof(SNOMtc_XilinxLoadStruct) + howManybits;
-   printsend("numbytes is %d, size is %d\n",(int)aPacket.cmdHeader.numberBytesinPayload,(int)sizeof(SNOMtc_XilinxLoadStruct));
+    printsend("numbytes is %d, size is %d\n",(int)aPacket.cmdHeader.numberBytesinPayload,(int)sizeof(SNOMtc_XilinxLoadStruct));
     aPacket.numBytes = aPacket.cmdHeader.numberBytesinPayload+256+16;
     SNOMtc_XilinxLoadStruct *payloadPtr = (SNOMtc_XilinxLoadStruct *)aPacket.payload;
     payloadPtr->baseAddress = 0x7000;
@@ -132,10 +131,9 @@ int mtc_xilinxload(void)
     do_mtc_xilinx_cmd(&aPacket);
     long errorCode = payloadPtr->errorCode;
     if (errorCode){
-        sprintf(psb, "Error code: %d \n",(int)errorCode);
-        print_send(psb, view_fdset);
+        printsend( "Error code: %d \n",(int)errorCode);
     }
-    print_send("Xilinx loading complete\n", view_fdset);
+    printsend("Xilinx loading complete\n");
 
     free(data);
     data = (char *) NULL;
@@ -155,14 +153,13 @@ static char* getXilinxData(long *howManyBits)
     char *data = NULL;
 
     if ((fp = fopen(xilinxfilename, "r")) == NULL ) {
-        sprintf(psb, "getXilinxData:  cannot open file %s\n", xilinxfilename);
-        print_send(psb, view_fdset);
+        printsend( "getXilinxData:  cannot open file %s\n", xilinxfilename);
         return (char*) NULL;
     }
 
     if ((data = (char *) malloc(MAX_DATA_SIZE)) == NULL) {
         //perror("GetXilinxData: ");
-        print_send("GetXilinxData: malloc error\n", view_fdset);
+        printsend("GetXilinxData: malloc error\n");
         return (char*) NULL;
     }
 
@@ -207,8 +204,7 @@ int unset_gt_mask_cmd(char *buffer){
                 type = strtoul(words2,(char **) NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: unset_gt_mask -t [raw trigs to remove (hex)]\n");
-                print_send(psb, view_fdset);
+                printsend("Usage: unset_gt_mask -t [raw trigs to remove (hex)]\n");
                 return 0;
             }
         }
@@ -233,9 +229,8 @@ int set_gt_mask_cmd(char *buffer){
                 clear = 1;
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: set_gt_mask -t [raw trigs to add (hex)]"
+                printsend("Usage: set_gt_mask -t [raw trigs to add (hex)]"
                         " -c (clear gt mask first)\n");
-                print_send(psb, view_fdset);
                 return 0;
             }
         }
@@ -259,15 +254,14 @@ int mtc_read(char *buffer){
                 address = strtoul(words2,(char **) NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: mtc_read -a [address (hex)]\n");
-                print_send(psb, view_fdset);
+                printsend("Usage: mtc_read -a [address (hex)]\n");
                 return 0;
             }
         }
         words = strtok(NULL, " ");
     }
     mtc_reg_read(address, &data);
-   printsend("Received %08x\n",data);
+    printsend("Received %08x\n",data);
     return 0;
 }
 
@@ -288,15 +282,14 @@ int mtc_write(char *buffer){
                 address = strtoul(words2,(char **) NULL,16);
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: mtc_write -d [data (hex)] -a [address (hex)]\n");
-                print_send(psb, view_fdset);
+                printsend("Usage: mtc_write -d [data (hex)] -a [address (hex)]\n");
                 return 0;
             }
         }
         words = strtok(NULL, " ");
     }
     mtc_reg_write(address, data);
-   printsend("wrote %08x\n",data);
+    printsend("wrote %08x\n",data);
     return 0;
 }
 
@@ -304,14 +297,14 @@ void unset_gt_mask(unsigned long raw_trig_types) {
     uint32_t temp;
     mtc_reg_read(MTCMaskReg, &temp);
     mtc_reg_write(MTCMaskReg, temp & ~raw_trig_types);
-    print_send("Triggers have been removed from the GT Mask\n", view_fdset);
+    printsend("Triggers have been removed from the GT Mask\n");
 }
 
 void set_gt_mask(uint32_t raw_trig_types){
     uint32_t temp;
     mtc_reg_read(MTCMaskReg, &temp);
     mtc_reg_write(MTCMaskReg, temp | raw_trig_types);
-    //print_send("Triggers have been added to the GT Mask\n", view_fdset);
+    //printsend("Triggers have been added to the GT Mask\n");
 }
 
 /*
@@ -324,14 +317,14 @@ void unset_ped_crate_mask(unsigned long crates) {
     uint32_t temp;
     mtc_reg_read(MTCPmskReg, &temp);
     mtc_reg_write(MTCPmskReg, temp & ~crates);
-    //print_send("Crates have been removed from the Pedestal Crate Mask\n", view_fdset);
+    //printsend("Crates have been removed from the Pedestal Crate Mask\n");
 }
 
 uint32_t set_ped_crate_mask(uint32_t crates){
     uint32_t old_ped_crate_mask;
     mtc_reg_read(MTCPmskReg, &old_ped_crate_mask);
     mtc_reg_write(MTCPmskReg, old_ped_crate_mask | crates);
-    //print_send("Crates have been added to the Pedestal Crate Mask\n", view_fdset);
+    //printsend("Crates have been added to the Pedestal Crate Mask\n");
     return old_ped_crate_mask;
 }
 
@@ -344,14 +337,14 @@ void unset_gt_crate_mask(unsigned long crates) {
     uint32_t temp;
     mtc_reg_read(MTCGmskReg, &temp);
     mtc_reg_write(MTCGmskReg, temp & ~crates);
-    //print_send("Crates have been removed from the GT Crate Mask\n", view_fdset);
+    //printsend("Crates have been removed from the GT Crate Mask\n");
 }
 
 void set_gt_crate_mask(uint32_t crates){
     uint32_t temp;
     mtc_reg_read(MTCGmskReg, &temp);
     mtc_reg_write(MTCGmskReg, temp | crates);
-    //print_send("Crates have been added to the GT Crate Mask\n", view_fdset);
+    //printsend("Crates have been added to the GT Crate Mask\n");
 }
 
 int set_thresholds(char *buffer){
@@ -421,8 +414,7 @@ int set_thresholds(char *buffer){
                 thresholds.mtca_dac_values[13] = (float) strtod(words2,(char**)NULL)*1000;
             }
             if (words[1] == 'h'){
-                sprintf(psb,"Usage: set_thresholds -(0..d) [level (float)]\n");
-                print_send(psb, view_fdset);
+                printsend("Usage: set_thresholds -(0..d) [level (float)]\n");
                 return 0;
             }
         }
@@ -452,7 +444,7 @@ int load_mtc_dacs(mtc_cons *mtc_cons_ptr) {
     int i, j, bi, di;
     float mV_dacs;
 
-    print_send("Loading MTC/A threshold DACs...\n", view_fdset);
+    printsend("Loading MTC/A threshold DACs...\n");
 
     /* convert each threshold from mVolts to raw value and load into
        raw_dacs array */
@@ -462,9 +454,8 @@ int load_mtc_dacs(mtc_cons *mtc_cons_ptr) {
         //raw_dacs[i] = ((2048 * rdbuf)/5000) + 2048;
         raw_dacs[i] = MTCA_DAC_SLOPE * rdbuf + MTCA_DAC_OFFSET;
         mV_dacs = (((float)raw_dacs[i]/2048) * 5000.0) - 5000.0;
-        sprintf(psb, "\t%s\t threshold set to %6.2f mVolts\n", dac_names[i],
+        printsend( "\t%s\t threshold set to %6.2f mVolts\n", dac_names[i],
                 mV_dacs);
-        print_send(psb, view_fdset);
     }
 
     /* set DACSEL */
@@ -493,13 +484,13 @@ int load_mtc_dacs(mtc_cons *mtc_cons_ptr) {
     mtc_reg_write(MTCDacCntReg,0x0);
 
 
-    print_send("DAC loading complete\n", view_fdset);
+    printsend("DAC loading complete\n");
     return 0;
 }
 
 int load_mtc_dacs_counts(int *counts)
 {
-    print_send("Loading MTC/A threshold DACs...\n", view_fdset);
+    printsend("Loading MTC/A threshold DACs...\n");
     int i,bi,di;
     uint32_t shift_value;
     float mv_dacs;
@@ -509,8 +500,7 @@ int load_mtc_dacs_counts(int *counts)
 
     for (i=0;i<14;i++){
         mv_dacs = ((float) counts[i]/2048)*5000.0-5000.0;
-        sprintf(psb, "\t%s\t threshold set to %6.2f mVolts (%d counts)\n",dac_names[i],mv_dacs,counts[i]);
-        print_send(psb, view_fdset);
+        printsend( "\t%s\t threshold set to %6.2f mVolts (%d counts)\n",dac_names[i],mv_dacs,counts[i]);
     }
 
     /* set DACSEL */
@@ -539,7 +529,7 @@ int load_mtc_dacs_counts(int *counts)
     mtc_reg_write(MTCDacCntReg,0x0);
 
 
-    print_send("DAC loading complete\n", view_fdset);
+    printsend("DAC loading complete\n");
     return 0;
 }
 
@@ -555,7 +545,7 @@ int set_lockout_width(unsigned short width) {
     unsigned long gtlock_value;
 
     if ((width < 20) || (width > 5100)) {
-        print_send("Lockout width out of range\n", view_fdset);
+        printsend("Lockout width out of range\n");
         return -1;
     }
     gtlock_value = ~(width / 20);
@@ -566,8 +556,7 @@ int set_lockout_width(unsigned short width) {
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp & ~LOAD_ENLK); /* toggle load enable */
 
-    //sprintf(psb, "Lockout width is set to %u ns\n", width);
-    //print_send(psb, view_fdset);
+    //printsend( "Lockout width is set to %u ns\n", width);
     return 0;
 
 }
@@ -595,7 +584,7 @@ int set_gt_counter(unsigned long count) {
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp & ~LOAD_ENGT); /* toggle load enable */
 
-    print_send("The GT counter has been loaded\n", view_fdset);
+    printsend("The GT counter has been loaded\n");
     return 0;
 }
 
@@ -611,7 +600,7 @@ int set_gt_counter(unsigned long count) {
 int set_prescale(unsigned short scale) {
     uint32_t temp;
     if (scale < 2) {
-        print_send("Prescale value out of range\n", view_fdset);
+        printsend("Prescale value out of range\n");
         return -1;
     }
     mtc_reg_write(MTCScaleReg,~(scale-1));
@@ -620,8 +609,7 @@ int set_prescale(unsigned short scale) {
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp & ~LOAD_ENPR); /* toggle load enable */
 
-    sprintf(psb, "Prescaler set to %d NHIT_100_LO per PRESCALE\n", scale);
-    print_send(psb, view_fdset);
+    printsend( "Prescaler set to %d NHIT_100_LO per PRESCALE\n", scale);
     return 0;
 }     
 
@@ -641,14 +629,13 @@ int set_pulser_frequency(float freq) {
 
     if (freq <= 1.0e-3) {                                /* SOFT_GTs as pulser */
         pulser_value = 0;
-        print_send("SOFT_GT is set to source the pulser\n", view_fdset);
+        printsend("SOFT_GT is set to source the pulser\n");
     }
     else {
         pulser_value = (unsigned long)((781250 / freq) - 1);   /* 50MHz counter as pulser */
         prog_freq = (unsigned long)(781250/(pulser_value + 1));
         if ((pulser_value < 1) || (pulser_value > 167772216)) {
-            sprintf(psb, "Pulser frequency out of range\n", prog_freq);
-            print_send(psb, view_fdset);
+            printsend( "Pulser frequency out of range\n", prog_freq);
             return -1;
         }
     }
@@ -664,8 +651,7 @@ int set_pulser_frequency(float freq) {
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp & ~LOAD_ENPS); /* toggle load enable */
 
-    //sprintf(psb, "Pulser frequency is set to %u Hz\n", prog_freq);
-    //print_send(psb, view_fdset);
+    //printsend( "Pulser frequency is set to %u Hz\n", prog_freq);
     return 0;
 
 }
@@ -682,7 +668,7 @@ int set_pedestal_width(unsigned short width) {
     uint32_t temp;
     unsigned long pwid_value;
     if ((width < 5) || (width > 1275)) {
-        print_send("Pedestal width out of range\n", view_fdset);
+        printsend("Pedestal width out of range\n");
         return -1;
     }
     pwid_value = ~(width / 5);
@@ -693,8 +679,7 @@ int set_pedestal_width(unsigned short width) {
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg, temp & ~LOAD_ENPW);
 
-    //sprintf(psb, "Pedestal width is set to %u ns\n", width);
-    //print_send(psb, view_fdset);
+    //printsend( "Pedestal width is set to %u ns\n", width);
     return 0;
 
 }
@@ -713,7 +698,7 @@ int set_coarse_delay(unsigned short delay) {
     unsigned long rtdel_value;
 
     if ((delay < 10) || (delay > 2550)) {
-        print_send("Coarse delay value out of range\n", view_fdset);
+        printsend("Coarse delay value out of range\n");
         return -1;
     } 
     rtdel_value = ~(delay / 10);
@@ -724,8 +709,7 @@ int set_coarse_delay(unsigned short delay) {
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg, temp & ~LOAD_ENPW);
 
-    //sprintf(psb, "Coarse delay is set to %u ns\n", delay);
-    //print_send(psb, view_fdset);
+    //printsend( "Coarse delay is set to %u ns\n", delay);
     return 0;
 
 } 
@@ -754,16 +738,15 @@ float set_fine_delay(float delay) {
     pr_set_url(response, get_db_address);
     pr_do(response);
     if (response->httpresponse != 200){
-       printsend("Unable to connect to database. error code %d\n",(int)response->httpresponse);
+        printsend("Unable to connect to database. error code %d\n",(int)response->httpresponse);
         return -1;
     }
     JsonNode *doc = json_decode(response->resp.data);
     addel_slope = (float) json_get_number(json_find_member(json_find_member(doc,"mtcd"),"fine_slope")); 
     addel_value = (unsigned long)(delay / addel_slope);
-    //sprintf(psb, "%f\t%f\t%hu", delay, addel_slope, addel_value);
-    //print_send(psb, view_fdset); 
+    //printsend( "%f\t%f\t%hu", delay, addel_slope, addel_value);
     if (addel_value > 255) {
-        print_send("Fine delay value out of range\n", view_fdset);
+        printsend("Fine delay value out of range\n");
         return -1.0;
     }
 
@@ -774,8 +757,7 @@ float set_fine_delay(float delay) {
     mtc_reg_write(MTCControlReg, temp & ~LOAD_ENPW);
 
     fdelay_set = (float)addel_value*addel_slope;
-    //sprintf(psb, "Fine delay is set to %f ns\n", fdelay_set);
-    //print_send(psb, view_fdset);
+    //printsend( "Fine delay is set to %f ns\n", fdelay_set);
     json_delete(doc);
     pr_free(response);
     return fdelay_set;
@@ -799,7 +781,7 @@ void reset_memory() {
     mtc_reg_write(MTCControlReg,temp & ~FIFO_RESET);
     mtc_reg_write(MTCBbaReg,0x0);  
 
-    print_send("The FIFO control has been reset and the BBA register has been cleared\n",
+    printsend("The FIFO control has been reset and the BBA register has been cleared\n",
             view_fdset);
 
 } 
@@ -837,10 +819,10 @@ int setup_pedestals(float pulser_freq, uint32_t pedestal_width, /* in ns */
     set_gt_crate_mask(SP_GT_CRATE_MASK);
     set_gt_mask(SP_GT_MASK);
     if (result != 0){
-        print_send("new_daq: setup pedestals failed\n", view_fdset);
+        printsend("new_daq: setup pedestals failed\n");
         return -1;
     }else{
-        //print_send("new_daq: setup_pedestals complete\n", view_fdset);
+        //printsend("new_daq: setup_pedestals complete\n");
         return 0;
     }
 }
@@ -850,7 +832,7 @@ void enable_pulser()
     uint32_t temp;
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp | PULSE_EN);
-    //print_send("Pulser enabled\n", view_fdset);
+    //printsend("Pulser enabled\n");
 }
 
 void disable_pulser()
@@ -858,7 +840,7 @@ void disable_pulser()
     uint32_t temp;
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp & ~PULSE_EN);
-    //print_send("Pulser disabled\n", view_fdset);
+    //printsend("Pulser disabled\n");
 }
 
 
@@ -867,7 +849,7 @@ void enable_pedestal()
     uint32_t temp;
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp | PED_EN);
-    //print_send("Pedestals enabled\n", view_fdset);
+    //printsend("Pedestals enabled\n");
 }
 
 
@@ -876,14 +858,14 @@ void disable_pedestal()
     uint32_t temp;
     mtc_reg_read(MTCControlReg,&temp);
     mtc_reg_write(MTCControlReg,temp & ~PED_EN);
-    //print_send("Pedestals disabled\n", view_fdset);
+    //printsend("Pedestals disabled\n");
 }
 
 
 uint32_t get_mtc_crate_mask(uint32_t crate_number)
 {
     if ((crate_number > 25)){
-        print_send("Illegal crate number (>25) in get_mtc_crate_mask\n", view_fdset);
+        printsend("Illegal crate number (>25) in get_mtc_crate_mask\n");
         return -1;
     }
 
@@ -922,12 +904,12 @@ int prepare_mtc_pedestals(float pulser_freq, /* in Hz */
     set_gt_mask(SP_GT_MASK);
     if (result != 0){
         sprintf(err_str,"prepare mtc pedestals failed\n");
-        print_send(err_str, view_fdset);
+        printsend(err_str);
         //SNO_printerr(5, MTC_FAC, err_str);
         return -1;
     }else{
         sprintf(err_str,"prepare_mtc_pedestals complete\n");
-        print_send(err_str, view_fdset);
+        printsend(err_str);
         //SNO_printerr(9, MTC_FAC, err_str);
         return 0;
     }

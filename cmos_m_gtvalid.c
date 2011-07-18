@@ -123,9 +123,8 @@ int cmos_m_gtvalid(char *buffer)
                 words2 = strtok(NULL, " ");
                 slot_mask = strtoul(words2,(char**)NULL,16);
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: cmos_m_gtvalid -c [crate num] -s [slot mask (hex)]"
+                printsend("Usage: cmos_m_gtvalid -c [crate num] -s [slot mask (hex)]"
                         " -g [gt cutoff] -l [channel mask (hex)] -n (no twiddle) -d (write to db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -190,7 +189,7 @@ int cmos_m_gtvalid(char *buffer)
                     error+= loadsDac(129,(u_short)ISETA,cn,select_reg);
                     error+= loadsDac(130,(u_short)ISETA,cn,select_reg);
                     if (error != 0){
-                        print_send("Error in setting up TAC voltages, exiting...\n",view_fdset);
+                        printsend("Error in setting up TAC voltages, exiting...\n");
                         return 1;
                     }
                    printsend("Dacs loaded.\n");
@@ -224,8 +223,7 @@ int cmos_m_gtvalid(char *buffer)
                 isetm_start[1] = ISETM_START;
 
                 //main loop over channels
-                sprintf(psb,"Measuring GTVALID for crate,slot,TAC: %d %d %d\n",cn,slot,wt);
-                print_send(psb,view_fdset);
+                printsend("Measuring GTVALID for crate,slot,TAC: %d %d %d\n",cn,slot,wt);
                 //loop over channels to measure initial GTVALID
                 for (chan=0;chan<32;chan++){
                     if (chan_mask & (0x1<<chan)){
@@ -235,13 +233,12 @@ int cmos_m_gtvalid(char *buffer)
                         gtchan[chan] = gt_temp;
                         gt_start[wt][chan] = gtchan[chan];
                         if (error != 0){
-                            sprintf(psb,"Error at slot, chan = %d %d\n",slot,chan);
-                            print_send(psb,view_fdset);
+                            printsend("Error at slot, chan = %d %d\n",slot,chan);
                             return -1;
                         }
                     }// vv
                 }// end loop over channels
-                print_send("Measured initial GTVALIDS\n",view_fdset);
+                printsend("Measured initial GTVALIDS\n");
 
                 //find maximum gtvalid time
                 gmax[wt] = 0.0;
@@ -267,18 +264,15 @@ int cmos_m_gtvalid(char *buffer)
                 }
                 //print out results
                 if (wt == 1){
-                    sprintf(psb,"GTVALID measure results, time in nsec: \n");
-                    print_send(psb,view_fdset);
+                    printsend("GTVALID measure results, time in nsec: \n");
                     for (chan=0;chan<32;chan++){
-                        sprintf(psb,"Crate, slot, chan, GTDELAY0/1: %d %d %d %f %f\n",
+                        printsend("Crate, slot, chan, GTDELAY0/1: %d %d %d %f %f\n",
                                 cn, slot, chan, gt_start[0][chan],gt_start[1][chan]);
-                        print_send(psb,view_fdset);
                     }
-                    sprintf(psb,"TAC0 max-chan, max-gtvalid: %d %f\n",cmax[0],gmax[0]);
-                    sprintf(psb+strlen(psb),"TAC1 max-chan, max-gtvalid: %d %f\n",cmax[1],gmax[1]);
-                    sprintf(psb+strlen(psb),"TAC0 min-chan, min-gtvalid: %d %f\n",cmin[0],gmin[0]);
-                    sprintf(psb+strlen(psb),"TAC1 min-chan, min-gtvalid: %d %f\n",cmin[1],gmin[1]);
-                    print_send(psb,view_fdset);
+                    printsend("TAC0 max-chan, max-gtvalid: %d %f\n",cmax[0],gmax[0]);
+                    printsend("TAC1 max-chan, max-gtvalid: %d %f\n",cmax[1],gmax[1]);
+                    printsend("TAC0 min-chan, min-gtvalid: %d %f\n",cmin[0],gmin[0]);
+                    printsend("TAC1 min-chan, min-gtvalid: %d %f\n",cmin[1],gmin[1]);
                     // if measuring only, write output to standard paw format file
                     if (gt_cutoff == 0){
                         fp = fopen("get_tcmos.dat","a");
@@ -293,8 +287,7 @@ int cmos_m_gtvalid(char *buffer)
                 // if gt_cutoff is set, we are going to change the ISETM dacs until all the
                 // channels are just below it.
                 if (gt_cutoff != 0){
-                    sprintf(psb,"Finding ISETM values for crate,slot,TAC: %d %d %d\n",cn,slot,wt);
-                    print_send(psb,view_fdset);
+                    printsend("Finding ISETM values for crate,slot,TAC: %d %d %d\n",cn,slot,wt);
                     isetm_new[0] = ISETM;
                     isetm_new[1] = ISETM;
                     done = FALSE;
@@ -303,15 +296,14 @@ int cmos_m_gtvalid(char *buffer)
                         isetm_new[wt]++;
                         error = loadsDac(dac_isetm[wt],isetm_new[wt],cn,select_reg);
                         if (error != 0){
-                            print_send("Error loading Dac's', stopping...\n",view_fdset);
+                            printsend("Error loading Dac's', stopping...\n");
                             return 1;
                         }
 
                         // get new measurement of gtvalid for this channel
                         xl3_rw(PED_ENABLE_R + select_reg + WRITE_REG,0x1<<cmax[wt],&temp,cn);
                         error = get_gtdelay(cn, wt, &gt_temp,isetm_new[0],isetm_new[1],select_reg);
-                        sprintf(psb,"- was %f, %f - \n",gt_temp,gt_cutoff);
-                        //print_send(psb,view_fdset);
+                        //printsend("- was %f, %f - \n",gt_temp,gt_cutoff);
                     }
 
                     // check that we still have the max channel
@@ -334,7 +326,7 @@ int cmos_m_gtvalid(char *buffer)
                     }
 
                     if (chan_max_sec != cmax[wt]){
-                        print_send("Warning, second chan_max not same as first.\n",view_fdset);
+                        printsend("Warning, second chan_max not same as first.\n");
                         cmax[wt] = chan_max_sec;
                         gmax[wt] = gt_max_sec;
                         gt_temp = gmax[wt];
@@ -344,8 +336,7 @@ int cmos_m_gtvalid(char *buffer)
                             xl3_rw(PED_ENABLE_R + select_reg + WRITE_REG,0x1<<cmax[wt],&temp,cn);
                             error = get_gtdelay(cn,wt,&gt_temp,isetm_new[0],isetm_new[1],
                                     select_reg);
-                            sprintf(psb,"- was %f, %f - \n",gt_temp,gt_cutoff);
-                            print_send(psb,view_fdset);
+                            //printsend("- was %f, %f - \n",gt_temp,gt_cutoff);
                         }
                     }
 
@@ -373,15 +364,13 @@ int cmos_m_gtvalid(char *buffer)
                                             && tacbits_new[wt][chan] != 0x0){
                                         tacbits_new[wt][chan] -= 0x1; // decrement twiddle by 1
                                         done = FALSE;
-                                        sprintf(psb,"channel %d, %f, tacbits at %01x\n",chan,gtchan_set[wt][chan],tacbits_new[wt][chan]);
-                                        print_send(psb,view_fdset);
+                                        printsend("channel %d, %f, tacbits at %01x\n",chan,gtchan_set[wt][chan],tacbits_new[wt][chan]);
                                     }else if (gtchan_set[wt][chan] > gt_cutoff && gtflag[wt][chan] == 0){
                                         tacbits_new[wt][chan] += 0x1; // go up just one
                                         if (tacbits_new[wt][chan] > 0x7)
                                             tacbits_new[wt][chan] = 0x7; //max
                                         gtflag[wt][chan] = 1; // is as close to gt_cutoff as possible
-                                        sprintf(psb,"channel %d ok\n",chan);
-                                        print_send(psb,view_fdset);
+                                        printsend("channel %d ok\n",chan);
                                     }
                                 }
                             }
@@ -397,7 +386,7 @@ int cmos_m_gtvalid(char *buffer)
                             SwapLongBlock(packet.payload,2);
                             SwapShortBlock(packet.payload+8,32);
                             do_xl3_cmd(&packet,cn);
-                            print_send("Loaded tacbits\n",view_fdset);
+                            printsend("Loaded tacbits\n");
                         } // end while(!done)
                     }
 
@@ -445,27 +434,24 @@ int cmos_m_gtvalid(char *buffer)
                         if (!do_twiddle){
                            printsend(">>>ISETA0/1 = 0, no TAC twiddle bits set.\n");
                         }
-                        sprintf(psb, "GTVALID setup results for Crate/Slot %d %d: \n", cn, j);
-                        sprintf(psb+strlen(psb), "VMAX, TACREF, ISETA = %hu %hu %hu\n",VMAX,TACREF,ISETA);
-                        sprintf(psb+strlen(psb), "CrCaCh, ISETM0/1, TacBits, GTValid0/1:\n");
-                        print_send(psb, view_fdset);
+                        printsend( "GTVALID setup results for Crate/Slot %d %d: \n", cn, j);
+                        printsend( "VMAX, TACREF, ISETA = %hu %hu %hu\n",VMAX,TACREF,ISETA);
+                        printsend( "CrCaCh, ISETM0/1, TacBits, GTValid0/1:\n");
                         for (i=0;i<32;i++){
-                            sprintf(psb, "%d %d %d %d %d 0x%hx %f %f",
+                            printsend( "%d %d %d %d %d 0x%hx %f %f",
                                     cn,j,i,isetm_save[0],isetm_save[1],
                                     tacbits_save[1][i]*16 + tacbits_save[0][i],
                                     gtchan_set[0][i],gtchan_set[1][i]);
                             if (isetm_save[0] == ISETM || isetm_save[1] == ISETM)
-                                sprintf(psb+strlen(psb), ">>> Warning: isetm not adjusted\n");
+                                printsend( ">>> Warning: isetm not adjusted\n");
                             else
-                                sprintf(psb+strlen(psb), "\n");
-                            print_send(psb, view_fdset);
+                                printsend( "\n");
                         }
-                        sprintf(psb, ">>>Maximum Chan/GTValid TAC0: %d %f \n", chan_max_set[0],gt_max_set[0]);
-                        sprintf(psb+strlen(psb), ">>>Minimum Chan/GTValid TAC0: %d %f \n", chan_min_set[0],gt_min_set[0]);
-                        sprintf(psb+strlen(psb), ">>>Maximum Chan/GTValid TAC1: %d %f \n", chan_max_set[1],gt_max_set[1]);
-                        sprintf(psb+strlen(psb), ">>>Minimum Chan/GTValid TAC1: %d %f \n", chan_min_set[1],gt_min_set[1]);
-                        sprintf(psb+strlen(psb), "********************************************\n");
-                        print_send(psb, view_fdset);
+                        printsend( ">>>Maximum Chan/GTValid TAC0: %d %f \n", chan_max_set[0],gt_max_set[0]);
+                        printsend( ">>>Minimum Chan/GTValid TAC0: %d %f \n", chan_min_set[0],gt_min_set[0]);
+                        printsend( ">>>Maximum Chan/GTValid TAC1: %d %f \n", chan_max_set[1],gt_max_set[1]);
+                        printsend( ">>>Minimum Chan/GTValid TAC1: %d %f \n", chan_min_set[1],gt_min_set[1]);
+                        printsend( "********************************************\n");
                     }// end if wt==1
 
                 }// end if gtvalid != 0
@@ -474,22 +460,20 @@ int cmos_m_gtvalid(char *buffer)
 
             xl3_rw(PED_ENABLE_R + select_reg + WRITE_REG,0x0,&temp,cn); // reset pedestals
             for (i=0;i<32;i++){
-                sprintf(psb, "%d %d %d %d %d 0x%hx %f %f",
+                printsend( "%d %d %d %d %d 0x%hx %f %f",
                         cn,j,i,isetm_save[0],isetm_save[1],
                         tacbits_save[1][i]*16 + tacbits_save[0][i],
                         gtchan_set[0][i],gtchan_set[1][i]);
                 if (isetm_save[0] == ISETM || isetm_save[1] == ISETM)
-                    sprintf(psb+strlen(psb), ">>> Warning: isetm not adjusted\n");
+                    printsend( ">>> Warning: isetm not adjusted\n");
                 else
-                    sprintf(psb+strlen(psb), "\n");
-                print_send(psb, view_fdset);
+                    printsend( "\n");
             }
-            sprintf(psb, ">>>Maximum Chan/GTValid TAC0: %d %f \n", chan_max_set[0],gt_max_set[0]);
-            sprintf(psb+strlen(psb), ">>>Minimum Chan/GTValid TAC0: %d %f \n", chan_min_set[0],gt_min_set[0]);
-            sprintf(psb+strlen(psb), ">>>Maximum Chan/GTValid TAC1: %d %f \n", chan_max_set[1],gt_max_set[1]);
-            sprintf(psb+strlen(psb), ">>>Minimum Chan/GTValid TAC1: %d %f \n", chan_min_set[1],gt_min_set[1]);
-            sprintf(psb+strlen(psb), "********************************************\n");
-            print_send(psb, view_fdset);
+            printsend( ">>>Maximum Chan/GTValid TAC0: %d %f \n", chan_max_set[0],gt_max_set[0]);
+            printsend( ">>>Minimum Chan/GTValid TAC0: %d %f \n", chan_min_set[0],gt_min_set[0]);
+            printsend( ">>>Maximum Chan/GTValid TAC1: %d %f \n", chan_max_set[1],gt_max_set[1]);
+            printsend( ">>>Minimum Chan/GTValid TAC1: %d %f \n", chan_min_set[1],gt_min_set[1]);
+            printsend( "********************************************\n");
 
             //store in DB
             if (update_db){
@@ -655,7 +639,7 @@ static int setup_crate(int cn, uint16_t slot_mask)
 {
     int i;
     uint32_t select_reg, result,temp;
-    print_send("Resetting fifo and pedestals.\n", view_fdset);
+    printsend("Resetting fifo and pedestals.\n");
     for (i=0;i<16;i++){ 
         if (((0x1<<i)&slot_mask) != 0x0){
             select_reg = FEC_SEL * i;

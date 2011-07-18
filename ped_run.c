@@ -29,8 +29,8 @@ void usage();
 int ped_run(char *buffer)
 {
     if (sbc_is_connected == 0){
-        sprintf(psb,"SBC not connected.\n");
-        print_send(psb, view_fdset);
+        printsend("SBC not connected.\n");
+        
         return -1;
     }
     int i,j,k,errors=0,count,ch,cell,crateID,num_events,slot_iter;
@@ -107,11 +107,11 @@ int ped_run(char *buffer)
                 words2 = strtok(NULL, " ");
                 file = fopen(words2,"w");
                 if (file == (FILE *) NULL){
-                    sprintf(psb, "Unable to open file for output: %s\n",words2);
-                    print_send(psb, view_fdset);
+                    printsend( "Unable to open file for output: %s\n",words2);
+                    
                     //perror("fopen");
-                    sprintf(psb,"Dumping to screen as backup.\n");
-                    print_send(psb, view_fdset);
+                    printsend("Dumping to screen as backup.\n");
+                    
                     file = stdout;
                 }
             }else if (words[1] == 'h'){
@@ -123,17 +123,17 @@ int ped_run(char *buffer)
     }
     (void) time(&now);
     if(file == stdout){
-        sprintf(psb,"Pedestal Run Setup\n");
-        sprintf(psb+strlen(psb),"-------------------------------------------\n");
-        sprintf(psb+strlen(psb),"Crate:		    %2d\n",crate);
-        sprintf(psb+strlen(psb),"Slot Mask:		    0x%4hx\n",slot_mask);
-        sprintf(psb+strlen(psb),"Pedestal Mask:	    0x%08lx\n",pattern);
-        sprintf(psb+strlen(psb),"GT delay (ns):	    %3hu\n", gtdelay);
-        sprintf(psb+strlen(psb),"Pedestal Width (ns):    %2d\n",ped_width);
-        sprintf(psb+strlen(psb),"Pulser Frequency (Hz):  %3.0f\n",frequency);
-        sprintf(psb+strlen(psb),"Lower/Upper pedestal check range: %d %d\n",ped_low,ped_high);
-        //sprintf(psb+strlen(psb),"\nRun started at %.24s\n",ctime(&now));
-        print_send(psb, view_fdset);
+        printsend("Pedestal Run Setup\n");
+        printsend("-------------------------------------------\n");
+        printsend("Crate:		    %2d\n",crate);
+        printsend("Slot Mask:		    0x%4hx\n",slot_mask);
+        printsend("Pedestal Mask:	    0x%08lx\n",pattern);
+        printsend("GT delay (ns):	    %3hu\n", gtdelay);
+        printsend("Pedestal Width (ns):    %2d\n",ped_width);
+        printsend("Pulser Frequency (Hz):  %3.0f\n",frequency);
+        printsend("Lower/Upper pedestal check range: %d %d\n",ped_low,ped_high);
+        //printsend("\nRun started at %.24s\n",ctime(&now));
+        
     }
     else
     {
@@ -166,7 +166,7 @@ int ped_run(char *buffer)
     }
     deselect_fecs(crate); 
 
-    print_send("Reset FECs\n", view_fdset);
+    printsend("Reset FECs\n");
 
     errors = 0;
     errors += fec_load_crateadd(crate, slot_mask);
@@ -174,7 +174,7 @@ int ped_run(char *buffer)
     deselect_fecs(crate);
     errors = setup_pedestals(frequency,ped_width,gtdelay,GT_FINE_DELAY);
     if (errors){
-        print_send("Error setting up MTC for pedestals. Exiting\n", view_fdset);
+        printsend("Error setting up MTC for pedestals. Exiting\n");
         unset_ped_crate_mask(MASKALL);
         unset_gt_crate_mask(MASKALL);
         free(pmt_buffer);
@@ -230,14 +230,14 @@ int ped_run(char *buffer)
 
             //check for readout errors
             if (count <= 0){
-                print_send("there was an error in the count!\n", view_fdset);
-                sprintf(psb, "Errors reading out MB(%2d) (errno %i)\n",slot_iter,count);
-                print_send(psb, view_fdset);
+                printsend("there was an error in the count!\n");
+                printsend( "Errors reading out MB(%2d) (errno %i)\n",slot_iter,count);
+                
                 errors+=1;
                 continue;
             }else{
-                sprintf(psb, "MB(%2d): %5d bundles read out.\n",slot_iter,count);
-                print_send(psb, view_fdset);
+                printsend( "MB(%2d): %5d bundles read out.\n",slot_iter,count);
+                
             }
 
             if (count < num_pedestals*32*16)
@@ -249,8 +249,8 @@ int ped_run(char *buffer)
             for (i=0;i<count;i++){
                 crateID = (int) UNPK_CRATE_ID(pmt_iter);
                 if (crateID != crate){
-                    sprintf(psb, "Invalid crate ID seen! (crate ID %2d, bundle %2i)\n",crateID,i);
-                    print_send(psb, view_fdset);
+                    printsend( "Invalid crate ID seen! (crate ID %2d, bundle %2i)\n",crateID,i);
+                    
                     pmt_iter+=3;
                     continue;
                 }
@@ -323,10 +323,10 @@ int ped_run(char *buffer)
                 fprintf(file,"########################################################\n");
             }
             else{
-                sprintf(psb,"########################################################\n");
-                sprintf(psb+strlen(psb),"Slot (%2d)\n", slot_iter);
-                sprintf(psb+strlen(psb),"########################################################\n");
-                print_send(psb, view_fdset);
+                printsend("########################################################\n");
+                printsend("Slot (%2d)\n", slot_iter);
+                printsend("########################################################\n");
+                
             }
             for (i = 0; i<32; i++){
                 error_flag[i] = 0;
@@ -341,13 +341,13 @@ int ped_run(char *buffer)
                                 ped[i].thiscell[j].tacbar, ped[i].thiscell[j].tacrms);
                     }
                     else{
-                        sprintf(psb,"%2d %3d %4d %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f\n",
+                        printsend("%2d %3d %4d %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f %6.1f %4.1f\n",
                                 i,j,ped[i].thiscell[j].per_cell,
                                 ped[i].thiscell[j].qhlbar, ped[i].thiscell[j].qhlrms,
                                 ped[i].thiscell[j].qhsbar, ped[i].thiscell[j].qhsrms,
                                 ped[i].thiscell[j].qlxbar, ped[i].thiscell[j].qlxrms,
                                 ped[i].thiscell[j].tacbar, ped[i].thiscell[j].tacrms);
-                        print_send(psb, view_fdset);
+                        
                     }
                     if (ped[i].thiscell[j].per_cell < num_pedestals*.8 || ped[i].thiscell[j].per_cell > num_pedestals*1.2) error_flag[i] = 2;
                     if (ped[i].thiscell[j].qhlbar < ped_low || 
@@ -363,7 +363,7 @@ int ped_run(char *buffer)
                         fprintf(file,">>>Bad Q pedestal for this channel\n");
                     }
                     else{
-                        print_send(">>>Bad Q pedestal for this channel\n",
+                        printsend(">>>Bad Q pedestal for this channel\n",
                                 view_fdset);
                     }
                 }
@@ -372,7 +372,7 @@ int ped_run(char *buffer)
                         fprintf(file,">>>Wrong no of pedestals for this channel\n");
                     }
                     else{
-                        print_send(">>>Wrong no of pedestals for this channel\n",
+                        printsend(">>>Wrong no of pedestals for this channel\n",
                                 view_fdset);
                     }
                 }
@@ -485,27 +485,27 @@ int ped_run(char *buffer)
 
     deselect_fecs(crate);
     if (errors)
-        sprintf(psb, "There were %d errors\n",errors);
+        printsend( "There were %d errors\n",errors);
     else
-        sprintf(psb, "No errors seen\n");
-    print_send(psb, view_fdset);
-    print_send("*************************************\n",view_fdset);
+        printsend( "No errors seen\n");
+    
+    printsend("*************************************\n",view_fdset);
     return errors;
 }
 
 void usage()
 {
-    sprintf(psb,"Usage: ped_run [-c crate] [-s slot_mask] \n");
-    sprintf(psb+strlen(psb),"Where defaults are crate 2, slot_mask 0x2000.\n");
-    sprintf(psb+strlen(psb),"Other available flags are (defaults in parents):\n");
-    sprintf(psb+strlen(psb),"\t-l # (400) Lower Q pedestal check value\n");
-    sprintf(psb+strlen(psb),"\t-u # (700) Upper Q pedestal check value\n");
-    sprintf(psb+strlen(psb),"\t-f # (1KHz) pulser frequency\n");
-    sprintf(psb+strlen(psb),"\t-n # (50) Number of pedestals per cell\n");
-    sprintf(psb+strlen(psb),"\t-t # (150) GT delay\n");
-    sprintf(psb+strlen(psb),"\t-w # (25) pedestal width\n");
-    sprintf(psb+strlen(psb),"\t-o <name> (stdout) output file name\n");
-    sprintf(psb+strlen(psb),"\t-d (update debug db)\n");
-    print_send(psb, view_fdset);
+    printsend("Usage: ped_run [-c crate] [-s slot_mask] \n");
+    printsend("Where defaults are crate 2, slot_mask 0x2000.\n");
+    printsend("Other available flags are (defaults in parents):\n");
+    printsend("\t-l # (400) Lower Q pedestal check value\n");
+    printsend("\t-u # (700) Upper Q pedestal check value\n");
+    printsend("\t-f # (1KHz) pulser frequency\n");
+    printsend("\t-n # (50) Number of pedestals per cell\n");
+    printsend("\t-t # (150) GT delay\n");
+    printsend("\t-w # (25) pedestal width\n");
+    printsend("\t-o <name> (stdout) output file name\n");
+    printsend("\t-d (update debug db)\n");
+    
     return;
 }

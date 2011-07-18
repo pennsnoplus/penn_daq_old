@@ -67,9 +67,9 @@ int cald_test(char *buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: cald_test -c [crate num] -s [slot mask (hex)]"
-                        " -u [upper limit] -l [lower limit] -n [num points] -S [samples] -d (update database)\n");
-                print_send(psb,view_fdset);
+                printsend("Usage: cald_test -c [crate num] -s [slot mask (hex)]"
+                          " -u [upper limit] -l [lower limit] -n [num points]"
+                          " -S [samples] -d (update database\n");
                 return -1;
             }
         }
@@ -97,7 +97,7 @@ int cald_test(char *buffer)
     *(p+4) = lower;
     SwapLongBlock(p,5);
     do_xl3_cmd_no_response(&packet,crate_number); 
-    print_send("Starting cald test!\n", view_fdset);
+    printsend("Starting cald test!\n");
     uint16_t *point_buf;
     uint16_t *adc_buf;
     point_buf = (uint16_t *) malloc(16*2000*sizeof(uint16_t));
@@ -144,9 +144,8 @@ int cald_test(char *buffer)
     }
     free(point_buf);
     free(adc_buf);
-
-    print_send("cald_test complete\n", view_fdset);
-    print_send("*************************************\n", view_fdset);
+    printsend("cald test complete\n");
+    printsend("*************************************\n");
     return 0;
 }
 
@@ -172,21 +171,20 @@ int cald_pushed_from_xl3(int xl3_num)
         set_delay_values(0, 1000);
         data=select(fdmax+1, &funcreadable_fdset, NULL, NULL, &delay_value);
         if (data == -1){
-            print_send("new_daq: error in select()\n", view_fdset);
+            printsend("new_daq: error in select()\n");
             return 1;
         }else if (FD_ISSET(connected_xl3s[xl3_num], &funcreadable_fdset)){
             n = recv(connected_xl3s[xl3_num],p,MAX_PACKET_SIZE, 0);
             if(n <= 0){
-                sprintf(psb, "new_daq: cald_pushed_from_xl3, unable to receive response from xl3 #%d (socket %d)\n",
-                        xl3_num, connected_xl3s[xl3_num]);
-                print_send(psb, view_fdset);
+                printsend("new_daq: cald pushed from xl3, unable to receive response"
+                        "from xl3 #%d (socket %d)\n", xl3_num, connected_xl3s[xl3_num]);
                 return 1;
             }
             // We've successfully gotten a packet from XL3, what is it?
             *aPacket = *(XL3_Packet*)p;
             SwapShortBlock(&(aPacket->cmdHeader.packet_num),1);
             if (aPacket->cmdHeader.packet_type == MESSAGE_ID){
-                print_send(aPacket->payload, view_fdset); // we loop around again
+                printsend(aPacket->payload);
                 message_count++;
             }else if(aPacket->cmdHeader.packet_type == CALD_TEST_ID){
                 SwapShortBlock(aPacket->payload,7);
@@ -212,13 +210,11 @@ int cald_pushed_from_xl3(int xl3_num)
                 if(FD_ISSET(z, &funcreadable_fdset)){	// if the fd is readable, take the data
                     n = recv(z, p, 2444, 0);
                     if(n >= 0){
-                        sprintf(psb, "received data from socket %d\n", z);
-                        print_send(psb, view_fdset);
+                        printsend("received data from socket %d\n", z);
                     }
                     if(FD_ISSET(z, &cont_fdset)){	// if it's a control socket, send back 'busy'
                         n = write(z, "new_daq: busy, did not process command\n", 39);
-                        sprintf(psb, "sent %d bytes back to socket %d\n", n, z);
-                        print_send(psb, view_fdset);
+                        printsend("send %d bytes back to socket %d\n", n, z);
                     }
                 }
             }

@@ -78,9 +78,8 @@ int cgt_test_1(char* buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: cgt_test_1 -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: cgt_test_1 -c [crate number] -s [slot mask (hex)]"
                         " -l [channel mask (hex)] -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -102,10 +101,9 @@ int cgt_test_1(char* buffer)
     setup_softgt(crate_num);
     setup_crate(crate_num,slot_mask);
 
-    sprintf(psb, "** Starting GT increment Test **\n");
-    sprintf(psb+strlen(psb), "Crate number: %hu\n",crate_num);
-    sprintf(psb+strlen(psb), "Slot and Channel mask: %08x %08x\n",slot_mask,chan_mask);
-    print_send(psb, view_fdset);
+    printsend("** Starting GT increment Test **\n"
+              "Crate number: %hu\n"
+              "Slot and Channel mask: %08x %08x\n", crate_num, slot_mask,chan_mask);
 
     //select desired MB and channel
     for (i=0;i<16;i++){
@@ -122,8 +120,7 @@ int cgt_test_1(char* buffer)
     //initialization
 
     numPedestals = (1*(TWO_16_M1) + 10000 );	
-    sprintf(psb, "Going to fire pulser %u times. \n",numPedestals);
-    print_send(psb, view_fdset);
+    printsend("Going to fire pulser %u times. \n",numPedestals);
 
     XL3_Packet packet;
 
@@ -272,7 +269,7 @@ int cgt_test_1(char* buffer)
         }
     }
 
-    print_send("***Ending GT increment Test***\n", view_fdset);
+    printsend("***Ending GT increment Test***\n");
     return 0;
 }
 
@@ -328,9 +325,8 @@ int fifo_test(char* buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: fifo_test -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: fifo_test -c [crate number] -s [slot mask (hex)]"
                         " -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -585,9 +581,8 @@ int mb_stability_test(char* buffer)
                     }
                 }
             }else if (words[1] == 'h'){
-                sprintf(psb,"Usage: mb_stability_test -c [crate number] -s [slot mask (hex)]"
+                printsend("Usage: mb_stability_test -c [crate number] -s [slot mask (hex)]"
                         " -n [num pedestals] -d (update db)\n");
-                print_send(psb,view_fdset);
                 return -1;
             }
         }
@@ -598,11 +593,9 @@ int mb_stability_test(char* buffer)
     setup_softgt(crate_num);
     setup_crate(crate_num,slot_mask);
 
-    sprintf(psb, "** Starting MB+DB stability Test **\n");
-    sprintf(psb+strlen(psb), "Crate number: %hu\n",crate_num);
-    sprintf(psb+strlen(psb), "Slot mask: %08x \n",slot_mask);
-    print_send(psb, view_fdset);
-
+    printsend("** Starting MB+DB stability Test **\n"
+              "Crate number: %hu\n"
+              "Slot mask: %08x \n",crate_num,slot_mask);
     rd = 0;
     num_chan = 8;
     nfire_16 = 0;
@@ -798,7 +791,7 @@ static int setup_crate(int cn, uint32_t slot_mask)
 {
     int i;
     uint32_t select_reg, result,temp;
-    print_send("Resetting fifos.\n", view_fdset);
+    printsend("Resetting fifos.\n");
     for (i=0;i<16;i++){ //FIXME 
         select_reg = FEC_SEL * i;
 

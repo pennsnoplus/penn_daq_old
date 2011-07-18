@@ -38,7 +38,7 @@ void setup_listeners(){
 
     // add sbc listener
     if (listen(sbc_listener, MAX_PENDING_CONS) == -1){
-        print_send("listen error: adding SBC/MTC client listener\n", view_fdset);
+        printsend("listen error: adding SBC/MTC client listener\n");
         sigint_func(SIGINT);
     }
     else{
@@ -51,7 +51,7 @@ void setup_listeners(){
     }
     // add controller client listener
     if (listen(cont_listener, MAX_PENDING_CONS) == -1){
-        print_send("listen error: adding controller client listener\n", view_fdset);
+        printsend("listen error: adding controller client listener\n");
         sigint_func(SIGINT);
     }
     else{
@@ -64,7 +64,7 @@ void setup_listeners(){
     }
     // add view client listener
     if (listen(view_listener, MAX_PENDING_CONS) == -1){
-        print_send("listen error: adding view client listener\n", view_fdset);
+        printsend("listen error: adding view client listener\n");
         sigint_func(SIGINT);
     }
     else{
@@ -94,7 +94,7 @@ done is to find the listener socket's address in this array.
         xl3_listener_array[q] = bind_listener("0.0.0.0", XL3_PORT+q); //FIXME
         // add xl3 listener
         if (listen(xl3_listener_array[q], MAX_PENDING_CONS) == -1){
-            print_send("listen error: adding XL3 listener\n", view_fdset);
+            printsend("listen error: adding XL3 listener\n");
             sigint_func(SIGINT);
         }
         else{
@@ -147,8 +147,7 @@ int bind_listener(char *host, int port){
     hints.ai_flags = AI_PASSIVE;
     if ((rv = getaddrinfo(host, str_port, &hints, &ai)) != 0) {
 
-        sprintf(psb, "new_daq: %s\n", gai_strerror(rv));
-        print_send(psb, view_fdset);
+        printsend( "new_daq: %s\n", gai_strerror(rv));
         return -1;
         sigint_func(SIGINT);
     }
@@ -170,8 +169,7 @@ int bind_listener(char *host, int port){
         // If p == NULL, that means that listener
         // did not get bound to the port
 
-        sprintf(psb, "new_daq: failed to bind listener\n");
-        print_send(psb, view_fdset);
+        printsend( "new_daq: failed to bind listener\n");
         return -1;
     }
     else{
@@ -203,18 +201,16 @@ void reject_connection(int socket, int listener_port, int connections, int max_c
     newfd = accept(socket, (struct sockaddr *)&remoteaddr, &addrlen);
 
     if (newfd == -1) {
-        print_send("reject_connection: accept error\n", view_fdset);
+        printsend("reject_connection: accept error\n");
     } 
     else {
         numbytes = send(newfd, "new_daq: too many connections to this port\n", 44, 0);
 
-        sprintf(psb, "%s (%s) tried to connect on socket %d\n", name, inet_ntop(remoteaddr.ss_family,
+        printsend( "%s (%s) tried to connect on socket %d\n", name, inet_ntop(remoteaddr.ss_family,
                     get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), newfd);
-        print_send(psb, view_fdset);
 
-        sprintf(psb, "\tthere are already %d of %d %ss connected\n\trejected %s connection on socket %d\n",
+        printsend( "\tthere are already %d of %d %ss connected\n\trejected %s connection on socket %d\n",
                 connections, max_con, name, name, newfd);
-        print_send(psb, view_fdset);
         close(newfd);
     }
 }
@@ -258,7 +254,7 @@ int accept_connection(int socket, int listener_port){
     newfd = accept(socket, (struct sockaddr *)&remoteaddr, &addrlen);
 
     if (newfd == -1) {
-        print_send("accept error in accept_connection\n", view_fdset);
+        printsend("accept error in accept_connection\n");
         return -1;
     } 
     else {
@@ -272,10 +268,9 @@ int accept_connection(int socket, int listener_port){
                 int p = listener_port - XL3_PORT;
                 if(connected_xl3s[p] == -999){
 
-                    sprintf(psb, "new_daq: connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
+                    printsend( "new_daq: connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
                             newfd, inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),
                                 remoteIP, INET6_ADDRSTRLEN), newfd);
-                    print_send(psb, view_fdset);
                     connected_xl3s[p] = newfd;	// listener_port = XL3_PORT + listener number 
                     FD_SET(newfd, &xl3_fdset);
                 }
@@ -285,10 +280,9 @@ int accept_connection(int socket, int listener_port){
                     FD_SET(newfd, &xl3_fdset);
                     connected_xl3s[p] = newfd;
 
-                    sprintf(psb,"new_daq: resumed connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
+                    printsend("new_daq: resumed connection: XL3 (port %d, socket %d, from %s)\n", listener_port,
                             newfd, inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),
                                 remoteIP, INET6_ADDRSTRLEN), newfd);
-                    print_send(psb, view_fdset);
                 }
             }
             else if(listener_port == SBC_PORT){
@@ -301,10 +295,9 @@ int accept_connection(int socket, int listener_port){
                    - (Peter Downs, 8/6/10)
                  */
 
-                sprintf(psb, "new_daq: connection request: SBC/MTC (%s) on socket %d\n",
+                printsend( "new_daq: connection request: SBC/MTC (%s) on socket %d\n",
                         inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),
                             remoteIP, INET6_ADDRSTRLEN), newfd);
-                print_send(psb, view_fdset);
                 // this is the test packet that ./OrcaReadout looks for     
                 // the ppc mac swaps Bytes, the linux sbc does not.
                 int32_t testWord=0x000DCBA;
@@ -316,38 +309,35 @@ int accept_connection(int socket, int listener_port){
 
                 }
                 else{
-                    print_send("could not send test packet to SBC\n new_daq: SBC/MTC connection denied\n",
+                    printsend("could not send test packet to SBC\n new_daq: SBC/MTC connection denied\n",
                             view_fdset);
                     //reject_connection(listener_port, "SBC/MTC");
                     return -1;
                 }
 
-                sprintf(psb, "new_daq: SBC/MTC connected (port %d, socket %d)\n", SBC_PORT, newfd);
-                print_send(psb, view_fdset);
+                printsend( "new_daq: SBC/MTC connected (port %d, socket %d)\n", SBC_PORT, newfd);
                 FD_SET(newfd, &mtc_fdset);
                 mtc_sock = newfd;
             }
             else if(listener_port == CONT_PORT){
                 FD_SET(newfd, &cont_fdset);
 
-                sprintf(psb, "new_daq: connection:  CONTROLLER (%s) on socket %d\n", 
+                printsend( "new_daq: connection:  CONTROLLER (%s) on socket %d\n", 
                         inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),
                             remoteIP, INET6_ADDRSTRLEN), newfd);
-                print_send(psb, view_fdset);
             }
             else{
 
 
-                sprintf(psb, "new_daq: connection: VIEWER (%s) on socket %d\n", 
+                printsend( "new_daq: connection: VIEWER (%s) on socket %d\n", 
                         inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),
                             remoteIP, INET6_ADDRSTRLEN), newfd);
-                print_send(psb, view_fdset);
                 FD_SET(newfd, &view_fdset);
             }
             return newfd;
         }
         else{
-            print_send("new_daq: failed to accept connection\n", view_fdset);
+            printsend("new_daq: failed to accept connection\n");
             return -1;
         }
     }
@@ -363,32 +353,31 @@ void close_con(int con_fd, char name[]){
        but really it's just to save space in the code.
      */
 
-    sprintf(psb, "new_daq: closed %s connection (", name);
+    printsend( "new_daq: closed %s connection (", name);
     close(con_fd);
     FD_CLR(con_fd, &all_fdset);
     if(FD_ISSET(con_fd, &xl3_fdset)){
         FD_CLR(con_fd, &xl3_fdset);
-        sprintf(psb + strlen(psb), "crate #%d, port %d, ",
+        printsend( "crate #%d, port %d, ",
                 get_xl3_location(con_fd, connected_xl3s),
                 XL3_PORT+get_xl3_location(con_fd, connected_xl3s));
 
         connected_xl3s[get_xl3_location(con_fd, connected_xl3s)] = -999;
     }
     else if(FD_ISSET(con_fd, &mtc_fdset)){
-        sprintf(psb + strlen(psb), "port %d, ", SBC_PORT);
+        printsend( "port %d, ", SBC_PORT);
         mtc_sock = 0;
         FD_CLR(con_fd, &mtc_fdset);
     }
     else if(FD_ISSET(con_fd, &cont_fdset)){
-        sprintf(psb + strlen(psb), "port %d, ", CONT_PORT);
+        printsend( "port %d, ", CONT_PORT);
         FD_CLR(con_fd, &cont_fdset);
     }
     else{
-        sprintf(psb + strlen(psb), "port %d, ", VIEW_PORT);
+        printsend( "port %d, ", VIEW_PORT);
         FD_CLR(con_fd, &view_fdset);
     }
-    sprintf(psb + strlen(psb), "socket %d)\n", con_fd);
-    print_send(psb, view_fdset);
+    printsend( "socket %d)\n", con_fd);
 }
 
 
@@ -401,41 +390,37 @@ void print_connected(void){
      */
     int z,i;
     int y = 0;
-    print_send("CONNECTED CLIENTS:\n", view_fdset);
+    printsend("CONNECTED CLIENTS:\n");
     for(z = 0; z <= fdmax; z++){
         if(!FD_ISSET(z, &listener_fdset)){	
             for (i=0;i<MAX_XL3_CON;i++){ 
                 if(connected_xl3s[i] == z){
                     y++;
-                    sprintf(psb, "\tXL3 ");
-                    sprintf(psb + strlen(psb), "(crate #%d, ", i);
-                    sprintf(psb + strlen(psb), "port %d, ", XL3_PORT+i);
-                    sprintf(psb + strlen(psb), "socket %d)\n", connected_xl3s[i]);
-                    print_send(psb, view_fdset);	
+                    printsend( "\tXL3 ");
+                    printsend( "(crate #%d, ", i);
+                    printsend( "port %d, ", XL3_PORT+i);
+                    printsend( "socket %d)\n", connected_xl3s[i]);
                 }
             }
             if(FD_ISSET(z, &cont_fdset)){
                 y++;
-                sprintf(psb, "\tController (port %d, socket %d)\n",
+                printsend( "\tController (port %d, socket %d)\n",
                         CONT_PORT, z);
-                print_send(psb, view_fdset);
             }
             if(FD_ISSET(z, &mtc_fdset)){
                 y++;
-                sprintf(psb, "\tSBC/MTC (port %d, socket %d)\n",
+                printsend( "\tSBC/MTC (port %d, socket %d)\n",
                         SBC_PORT, z);
-                print_send(psb, view_fdset);
             }
             if(FD_ISSET(z, &view_fdset)){
                 y++;
-                sprintf(psb, "\tViewer (port %d, socket %d)\n",
+                printsend( "\tViewer (port %d, socket %d)\n",
                         VIEW_PORT, z);
-                print_send(psb, view_fdset);
             }
         }
     }
     if(y == 0){
-        print_send("\tno connected boards\n", view_fdset);
+        printsend("\tno connected boards\n");
     }
 }
 int printsend(char *fmt, ... ){
@@ -443,7 +428,7 @@ int printsend(char *fmt, ... ){
     va_list arg;
     char psb[5000];
     va_start(arg, fmt);
-    ret = vsprintf(psb, fmt, arg);
+    ret = vsprintf(psb,fmt, arg);
     fputs(psb, stdout);
 
     fd_set outset;
@@ -474,78 +459,3 @@ int printsend(char *fmt, ... ){
     }
     return ret;
 }
-
-/* int print_send (3.K) */
-int print_send(char *input, fd_set suggested){
-    /*
-       This is aprintsend() replacement function that:
-       1. prints the given string(/input/)
-       2. attempts to send the given string(/input/) to all of
-       the file descriptors in fd_set /suggested/.
-
-       print_send() accesses the global "fdmax", defined in mac_daq.c, for its select() function.
-       print_send() also accessed the global "write_log", defined in mac_daq.c, to determine
-       whether or not to write all output to a log file, too.
-
-       By sprintf()ing any message into a buffer and feeding that buffer, along with
-       a fd_set to look in for writeable sockets, this function can be used to send to
-       the connected viewers any message that is also printed to the screen. 
-
-       If one wanted to also send all of these messages to the controller, or, say, 
-       another type of client, all that needs to be done is when accepting them
-       (in accept_connection(), most likely) add:
-       FD_SET(socket, &view_fdset);
-       where "socket" is the socket of the new connection. 
-     */
-
-    int printed_bytes, select_return, x;
-    int sent_bytes = 0;
-
-    // create an fd_set for use with the select() function
-    fd_set outset;
-    // clear the fd_set so nothing funky happens
-    FD_ZERO(&outset);
-
-    // print input to the screen
-    printed_bytes =printsend("%s", input);
-
-    // make sure that there is a writeable file descriptor
-    // in the suggested fd_set other than the view listener
-    // and then write() /input/ to them
-    int i;
-    int count = 0;
-    for(i = 0; i <= fdmax; i++){
-        if (FD_ISSET(i, &suggested)){
-            // everytime i is a member of the
-            // fd_set, increase the total count
-            count++; 
-        }
-    }
-    if(count > 1){	// there will always be one: the view listener
-        outset = suggested;
-        select_return = select(fdmax+1, NULL, &outset, NULL, 0);
-        // if there were writeable file descriptors
-        if(select_return > 0){
-            for(x = 0; x <= fdmax; x++){
-                if(FD_ISSET(x, &outset)){
-                    // send /input/ to each writeable file descriptor
-                    sent_bytes += write(x, input, printed_bytes);
-                }
-            }
-        }
-    }
-
-    // if not silenced, write to the log file ps_log_file
-    if(write_log && ps_log_file){
-        fprintf(ps_log_file, "%s", input);
-    } 
-
-    // if the psb has something in it, clear it
-    if(strlen(psb) > 0){
-        memset(psb, '\0', sizeof(psb));
-    }
-
-    // return the total number of sent bytes
-    return sent_bytes;
-}
-

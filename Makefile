@@ -3,11 +3,12 @@ SRCS = $(OBJS:.o=.c)
 
 CC = gcc
 
-LIBS = -lpillowtalk -lm
+LIBS = -lm -lcurl
 
 all: penn_daq tut vwr
 
 penn_daq: $(OBJS)
+	python penn_daq_gen.py
 	gcc -o $@ $(OBJS) $(LIBS) -g
 
 tut:

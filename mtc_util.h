@@ -48,6 +48,15 @@ int mtc_write(char *buffer);
 int mtc_xilinxload(void);
 int mtc_init(char *buffer);
 
+int start_pulser(char *buffer);
+int stop_pulser(char *buffer);
+int enable_pedestal_cmd(char *buffer);
+int disable_pedestal_cmd(char *buffer);
+int unset_gt_crate_mask_cmd(char *buffer);
+int set_gt_crate_mask_cmd(char *buffer);
+int unset_ped_crate_mask_cmd(char *buffer);
+int set_ped_crate_mask_cmd(char *buffer);
+int setup_pedestals_cmd(char *buffer);
 int set_gt_mask_cmd(char *buffer);
 int unset_gt_mask_cmd(char *buffer);
 void unset_gt_mask(unsigned long raw_trig_types);

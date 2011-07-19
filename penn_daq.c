@@ -643,10 +643,26 @@ int process_command(char *buffer){ //DATABASE
         set_gt_mask_cmd(buffer);
     else if (strncmp(buffer, "unset_gt_mask",11) == 0)
         unset_gt_mask_cmd(buffer);
+    else if (strncmp(buffer, "setup_pedestals",15) == 0)
+        setup_pedestals_cmd(buffer);
     else if (strncmp(buffer, "set_thresholds",14) == 0)
         set_thresholds(buffer);
     else if (strncmp(buffer, "trigger_scan",12) == 0)
         trigger_scan(buffer);
+    else if (strncmp(buffer, "start_pulser",12) == 0)
+        start_pulser(buffer);
+    else if (strncmp(buffer, "enable_pedestal",15) == 0)
+        enable_pedestal(buffer);
+    else if (strncmp(buffer, "disable_pedestal",16) == 0)
+        disable_pedestal(buffer);
+    else if (strncmp(buffer, "unset_gt_crate_mask",19) == 0)
+        unset_gt_crate_mask_cmd(buffer);
+    else if (strncmp(buffer, "set_gt_crate_mask",17) == 0)
+        set_gt_crate_mask_cmd(buffer);
+    else if (strncmp(buffer, "unset_ped_crate_mask",20) == 0)
+        unset_ped_crate_mask_cmd(buffer);
+    else if (strncmp(buffer, "set_ped_crate_mask",18) == 0)
+        set_ped_crate_mask_cmd(buffer);
     else if (strncmp(buffer, "connect_to_SBC", 14) == 0){
         kill_SBC_process();
         connect_to_SBC(SBC_PORT, server);

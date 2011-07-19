@@ -384,22 +384,6 @@ int readout_add_mtc(char *buffer)
 
     return 0;
 }
-
-int stop_pulser(char *buffer)
-{
-    if (sbc_is_connected == 0){
-        printsend("SBC not connected.\n");
-        
-        return -1;
-    }
-    disable_pulser();
-    //disable trigger enables
-    unset_ped_crate_mask(MASKALL);
-    unset_gt_crate_mask(MASKALL);
-
-    return 0;
-}
-
 int end_readout(char *buffer)
 {
     disable_pulser();

@@ -20,7 +20,13 @@ int trigger_scan(char *buffer)
 {
     int trigger = 13;
     int crate = 2;
+    int nhitper = 32;
+    int startcounts = 3950;
     uint16_t slot_mask = 0x4000;
+    char filename[100];
+    sprintf(filename,"trigger_scan.dat");
+    FILE *file;
+
     char *words,*words2;
     words = strtok(buffer, " ");
     while (words != NULL){
@@ -29,7 +35,7 @@ int trigger_scan(char *buffer)
 		words2 = strtok(NULL, " ");
 		trigger = atoi(words2);
 		if (trigger > 13 || trigger < 0){
-		    printf("Invalid trigger, resetting to default (13)\n");
+		    printsend("Invalid trigger, resetting to default (13)\n");
 		    trigger = 13;
 		}
 	    }
@@ -41,10 +47,23 @@ int trigger_scan(char *buffer)
 		words2 = strtok(NULL, " ");
 		slot_mask = strtoul(words2,(char**) NULL,16);
 	    }
+	    if (words[1] == 'f'){
+		words2 = strtok(NULL, " ");
+		sprintf(filename,"%s",words2);
+	    }
+	    if (words[1] == 'n'){
+		words2 = strtok(NULL, " ");
+		nhitper = atoi(words2);
+	    }
+	    if (words[1] == 'b'){
+		words2 = strtok(NULL, " ");
+		startcounts = atoi(words2);
+	    }
 	    if (words[1] == 'h'){
-		sprintf(psb,"Usage: set_gt_mask -t [raw trigs to add (hex)]"
-			" -c (clear gt mask first)\n");
-		print_send(psb, view_fdset);
+		printsend("Usage: trigger_scan -c [crate num (int)]"
+			" -s [slot mask (hex)] -f [output file name]"
+			" -n [nhit to do per fec (int)]"
+			" -b [dac level to start at (int)]\n");
 		return 0;
 	    }
 	}
@@ -54,6 +73,8 @@ int trigger_scan(char *buffer)
         printsend("SBC not connected.\n");
         return -1;
     }
+    
+    file = fopen(filename,"w");
 
     printsend("starting a trigger scan\n");
     int nhit;
@@ -87,9 +108,9 @@ int trigger_scan(char *buffer)
     unset_gt_mask(0xFFFFFFFF);
     set_gt_mask(1);
 
-    float values[32*16][150];
+    float values[32*16][500];
     for (i=0;i<32*16;i++)
-	for (j=0;j<150;j++)
+	for (j=0;j<500;j++)
 	    values[i][j] = -999.;
     for (i=0;i<16;i++){
 	pedestals[i] = 0x0;
@@ -104,15 +125,16 @@ int trigger_scan(char *buffer)
     // now we turn each channel on one at a time
     for (i=0;i<16;i++){
 	if ((0x1<<i) & slot_mask){
-	    for (nhit=0;nhit<32;nhit++){
+	    for (nhit=0;nhit<nhitper;nhit++){
 		pedestals[i] |= 0x1<<nhit;
+		// FIXME hack for the bad channel on one of our fecs
 		if (i == 7)
 		    pedestals[i] &= 0xFFF7FFFF;
 		xl3_rw(PED_ENABLE_R + i*FEC_SEL + WRITE_REG,pedestals[i],&result,crate);
 
 		// loop over thresholds
-		for (ithresh=0;ithresh<145;ithresh++){
-		    counts[trigger] = 3950+ithresh;
+		for (ithresh=0;ithresh<(4095-startcounts);ithresh++){
+		    counts[trigger] = startcounts+ithresh;
 		    load_mtc_dacs_counts(counts);
 
 		    // now get current gt count
@@ -136,9 +158,11 @@ int trigger_scan(char *buffer)
     unset_gt_mask(MASKALL);
 
     for (i=0;i<32*num_slots;i++)
-        for (j=0;j<145;j++)
-            printsend("%d %d %f\n",i,j,values[i][j]);
+        for (j=0;j<(4095-startcounts);j++)
+	    if ((i%32) < nhitper)
+		fprintf(file,"%d %d %f\n",i,j,values[i][j]);
 
+    fclose(file); 
     return 0;
 }
 
@@ -356,6 +380,48 @@ void set_gt_mask(uint32_t raw_trig_types){
  *  jrk 1 Sept. 1997 (modified 8 Sept 1997 M. Neubauer)
  */
 
+int unset_ped_crate_mask_cmd(char *buffer){
+    uint32_t crates = 0xFFFFF;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+        if (words[0] == '-'){
+            if (words[1] == 'c'){
+                words2 = strtok(NULL, " ");
+                crates = strtoul(words2,(char **) NULL,16);
+            }
+            if (words[1] == 'h'){
+                printsend("Usage: unset_ped_crate_mask -c [crate_mask (hex)]\n");
+                return 0;
+            }
+        }
+        words = strtok(NULL, " ");
+    }
+    unset_ped_crate_mask(crates);
+}
+ 
+int set_ped_crate_mask_cmd(char *buffer){
+    uint32_t crates = 0x0;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+        if (words[0] == '-'){
+            if (words[1] == 'c'){
+                words2 = strtok(NULL, " ");
+                crates = strtoul(words2,(char **) NULL,16);
+            }
+            if (words[1] == 'h'){
+                printsend("Usage: set_ped_crate_mask -c [crate_mask (hex)]\n");
+                return 0;
+            }
+        }
+        words = strtok(NULL, " ");
+    }
+    set_ped_crate_mask(crates);
+}
+ 
+
+
 void unset_ped_crate_mask(unsigned long crates) {
     uint32_t temp;
     mtc_reg_read(MTCPmskReg, &temp);
@@ -375,6 +441,47 @@ uint32_t set_ped_crate_mask(uint32_t crates){
  * Mask out crates for global trigger lines, according to mnemonics.
  *
  */
+
+int unset_gt_crate_mask_cmd(char *buffer){
+    uint32_t crates = 0xFFFFF;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+        if (words[0] == '-'){
+            if (words[1] == 'c'){
+                words2 = strtok(NULL, " ");
+                crates = strtoul(words2,(char **) NULL,16);
+            }
+            if (words[1] == 'h'){
+                printsend("Usage: unset_gt_crate_mask -c [crate_mask (hex)]\n");
+                return 0;
+            }
+        }
+        words = strtok(NULL, " ");
+    }
+    unset_gt_crate_mask(crates);
+}
+ 
+int set_gt_crate_mask_cmd(char *buffer){
+    uint32_t crates = 0x0;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+        if (words[0] == '-'){
+            if (words[1] == 'c'){
+                words2 = strtok(NULL, " ");
+                crates = strtoul(words2,(char **) NULL,16);
+            }
+            if (words[1] == 'h'){
+                printsend("Usage: set_gt_crate_mask -c [crate_mask (hex)]\n");
+                return 0;
+            }
+        }
+        words = strtok(NULL, " ");
+    }
+    set_gt_crate_mask(crates);
+}
+ 
 
 void unset_gt_crate_mask(unsigned long crates) {
     uint32_t temp;
@@ -829,6 +936,67 @@ void reset_memory() {
 
 } 
 
+int setup_pedestals_cmd(char *buffer)
+{
+    float frequency = 0;
+    uint32_t pedestal_width = 25;
+    uint32_t coarse_delay = 150;
+
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+	if (words[0] == '-'){
+	    if (words[1] == 't'){
+		words2 = strtok(NULL, " ");
+		frequency = atof(words2);
+	    }
+	    if (words[1] == 'w'){
+		words2 = strtok(NULL, " ");
+		pedestal_width = atoi(words2);
+	    }
+	    if (words[1] == 'd'){
+		words2 = strtok(NULL, " ");
+		coarse_delay = atoi(words2);
+	    }
+	    if (words[1] == 'h'){
+		printsend("Usage: setup_pedestals -f [frequency (float)]"
+			" -w [pedestal width (int)] -d [coarse delay (int)]\n");
+		return 0;
+	    }
+	}
+	words = strtok(NULL, " ");
+    }
+    int result;
+    float fdelay_set;
+    const uint16_t SP_LOCKOUT_WIDTH = DEFAULT_LOCKOUT_WIDTH;
+    const uint32_t SP_GT_MASK = DEFAULT_GT_MASK;
+    const uint32_t SP_PED_CRATE_MASK = DEFAULT_PED_CRATE_MASK;
+    const uint32_t SP_GT_CRATE_MASK = DEFAULT_GT_CRATE_MASK;
+    result = 0;
+    result += set_lockout_width(SP_LOCKOUT_WIDTH);
+    if (!result){
+        result += set_pulser_frequency(frequency);
+    }
+    if (!result){
+        result += set_pedestal_width(pedestal_width);
+    }
+    if (!result){
+        result += set_coarse_delay(coarse_delay);
+    }
+    if (!result){
+        fdelay_set = set_fine_delay(0);
+    }
+    enable_pulser();
+    enable_pedestal();
+    if (result != 0){
+        printsend("new_daq: setup pedestals failed\n");
+        return -1;
+    }else{
+        //printsend("new_daq: setup_pedestals complete\n");
+        return 0;
+    }
+
+}
 
 // sets up the pedestal by setting pulser frequency, the lockout width, and
 // the delays.
@@ -982,3 +1150,49 @@ int get_gt_count(uint32_t *count)
     *count &= 0x00FFFFFF;
     return 0;
 }
+
+int stop_pulser(char *buffer)
+{
+    if (sbc_is_connected == 0){
+        printsend("SBC not connected.\n");
+        
+        return -1;
+    }
+    disable_pulser();
+    return 0;
+}
+
+int start_pulser(char *buffer)
+{
+    if (sbc_is_connected == 0){
+        printsend("SBC not connected.\n");
+        
+        return -1;
+    }
+    enable_pulser();
+    return 0;
+}
+
+int disable_pedestal_cmd(char *buffer)
+{
+    if (sbc_is_connected == 0){
+        printsend("SBC not connected.\n");
+        
+        return -1;
+    }
+    disable_pedestal();
+    return 0;
+}
+
+int enable_pedestal_cmd(char *buffer)
+{
+    if (sbc_is_connected == 0){
+        printsend("SBC not connected.\n");
+        
+        return -1;
+    }
+    enable_pedestal();
+    return 0;
+}
+
+

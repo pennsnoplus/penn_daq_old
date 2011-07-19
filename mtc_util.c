@@ -18,6 +18,38 @@ SBC_Packet aPacket;
 
 int trigger_scan(char *buffer)
 {
+    int trigger = 13;
+    int crate = 2;
+    uint16_t slot_mask = 0x4000;
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+	if (words[0] == '-'){
+	    if (words[1] == 't'){
+		words2 = strtok(NULL, " ");
+		trigger = atoi(words2);
+		if (trigger > 13 || trigger < 0){
+		    printf("Invalid trigger, resetting to default (13)\n");
+		    trigger = 13;
+		}
+	    }
+	    if (words[1] == 'c'){
+		words2 = strtok(NULL, " ");
+		crate = atoi(words2);
+	    }
+	    if (words[1] == 's'){
+		words2 = strtok(NULL, " ");
+		slot_mask = strtoul(words2,(char**) NULL,16);
+	    }
+	    if (words[1] == 'h'){
+		sprintf(psb,"Usage: set_gt_mask -t [raw trigs to add (hex)]"
+			" -c (clear gt mask first)\n");
+		print_send(psb, view_fdset);
+		return 0;
+	    }
+	}
+	words = strtok(NULL, " ");
+    }
     if (sbc_is_connected == 0){
 	sprintf(psb,"SBC not connected.\n");
 	print_send(psb, view_fdset);
@@ -26,12 +58,11 @@ int trigger_scan(char *buffer)
 
     printf("starting a trigger scan\n");
     int nhit;
-    uint32_t select_reg,pedestals,result,beforegt,aftergt;
+    uint32_t select_reg,pedestals[16],result,beforegt,aftergt;
     uint32_t gtdelay = 150;
     uint16_t ped_width = 25;
-    uint32_t crate_num = 2;
     int slot_num = 14;
-    
+
     int counts[14];
     int i,j;
     for (i=0;i<14;i++){
@@ -57,43 +88,55 @@ int trigger_scan(char *buffer)
     unset_gt_mask(0xFFFFFFFF);
     set_gt_mask(1);
 
-    select_reg = FEC_SEL*slot_num;
-    pedestals = 0x0;
-    float values[32][150];
-    for (i=0;i<32;i++)
+    float values[32*16][150];
+    for (i=0;i<32*16;i++)
 	for (j=0;j<150;j++)
 	    values[i][j] = -999.;
+    for (i=0;i<16;i++){
+	pedestals[i] = 0x0;
+	if ((0x1<<i) & slot_mask)
+	    xl3_rw(PED_ENABLE_R + FEC_SEL*i + WRITE_REG,pedestals[i],&result,crate);
+    }
 
     int ithresh;
+    int num_slots = 0;
+
 
     // now we turn each channel on one at a time
-    for (nhit=0;nhit<32;nhit++){
-	pedestals |= 0x1<<nhit;
-	xl3_rw(PED_ENABLE_R + select_reg + WRITE_REG,pedestals,&result,crate_num);
+    for (i=0;i<16;i++){
+	if ((0x1<<i) & slot_mask){
+	    for (nhit=0;nhit<32;nhit++){
+		pedestals[i] |= 0x1<<nhit;
+		if (i == 7)
+		    pedestals[i] &= 0xFFF7FFFF;
+		xl3_rw(PED_ENABLE_R + i*FEC_SEL + WRITE_REG,pedestals[i],&result,crate);
 
-	// loop over thresholds
-	for (ithresh=0;ithresh<145;ithresh++){
-	    counts[13] = 3950+ithresh;
-	    load_mtc_dacs_counts(counts);
+		// loop over thresholds
+		for (ithresh=0;ithresh<145;ithresh++){
+		    counts[trigger] = 3950+ithresh;
+		    load_mtc_dacs_counts(counts);
 
-	    // now get current gt count
-	    mtc_reg_read(MTCOcGtReg,&beforegt);
+		    // now get current gt count
+		    mtc_reg_read(MTCOcGtReg,&beforegt);
 
 
-	    // send 20 pulses
-	    multi_softgt(500);
+		    // send 20 pulses
+		    multi_softgt(500);
 
-	    // now get final gt count
-	    mtc_reg_read(MTCOcGtReg,&aftergt);
+		    // now get final gt count
+		    mtc_reg_read(MTCOcGtReg,&aftergt);
 
-	    uint32_t diff = aftergt-beforegt;
-	    values[nhit][ithresh] = (float) diff/500.0;
+		    uint32_t diff = aftergt-beforegt;
+		    values[32*num_slots+nhit][ithresh] = (float) diff/500.0;
+		}
+	    }
+	    num_slots++;
 	}
     }
 
     unset_gt_mask(MASKALL);
 
-    for (i=0;i<32;i++)
+    for (i=0;i<32*num_slots;i++)
 	for (j=0;j<145;j++)
 	    printf("%d %d %f\n",i,j,values[i][j]);
 
@@ -119,7 +162,7 @@ int mtc_xilinxload(void)
     aPacket.cmdHeader.destination = 0x3;
     aPacket.cmdHeader.cmdID = 0x1;
     aPacket.cmdHeader.numberBytesinPayload = sizeof(SNOMtc_XilinxLoadStruct) + howManybits;
-    printf("numbytes is %d, size is %d\n",(int)aPacket.cmdHeader.numberBytesinPayload,(int)sizeof(SNOMtc_XilinxLoadStruct));
+    printf("numbytes is %d, size is %d\n",aPacket.cmdHeader.numberBytesinPayload,sizeof(SNOMtc_XilinxLoadStruct));
     aPacket.numBytes = aPacket.cmdHeader.numberBytesinPayload+256+16;
     SNOMtc_XilinxLoadStruct *payloadPtr = (SNOMtc_XilinxLoadStruct *)aPacket.payload;
     payloadPtr->baseAddress = 0x7000;

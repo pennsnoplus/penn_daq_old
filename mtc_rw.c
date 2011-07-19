@@ -40,7 +40,9 @@ int connect_to_SBC(int portno, struct hostent *server, char *buffer){
     // establish the socket
 
     int old_school=0; // by default we don't do it the old way 
+    int use_ssh_file=0; // by default we use the default 
     char *words,*words2;
+    char ssh_file[65];
     words = strtok(buffer, " ");
     while (words != NULL){
         if (words[0] == '-'){
@@ -52,8 +54,13 @@ int connect_to_SBC(int portno, struct hostent *server, char *buffer){
 		printsend("./OrcaReadout \n");
 
             }
+            if (words[1] == 'f'){
+                words2 = strtok(NULL, " ");
+                sprintf(ssh_file," -i %s",words2);
+		use_ssh_file=1;
+            }
             if (words[1] == 'h'){
-                printsend("Usage: if old school -t, ssh passwords coming soon!\n");
+                printsend("Usage: if old school  use -t, if you want to use a special ssh key file use -f /absolute/path/to/file \n");
                 return 0;
             }
         }
@@ -64,9 +71,11 @@ int connect_to_SBC(int portno, struct hostent *server, char *buffer){
     char bash_command[500];
     char kill_screen[500];
     char kill_orcareadout[500];
-    sprintf(kill_orcareadout,"ssh -t daq@10.0.0.30 \"killall OrcaReadout >> /dev/null;  exit >> /dev/null\" >> /dev/null");
-    sprintf(kill_screen,"ssh -t daq@10.0.0.30 \"killall screen >> /dev/null; screen -wipe >> /dev/null; exit >> /dev/null\" >> /dev/null");
-    sprintf(bash_command,"ssh -t daq@10.0.0.30 \"cd ORCA_dev >> /dev/null; screen -dmS orca ./OrcaReadout >> /dev/null; screen -d >> /dev/null; exit >> /dev/null\" >> /dev/null");
+
+    if(use_ssh_file)
+    sprintf(bash_command,"ssh -t daq@10.0.0.30 %s \"killall OrcaReadout >> /dev/null; killall screen >> /dev/null; screen -wipe >> /dev/null;  cd ORCA_dev >> /dev/null; screen -dmS orca ./OrcaReadout >> /dev/null; screen -d >> /dev/null; exit\" >> /dev/null",ssh_file);
+    else
+    sprintf(bash_command,"ssh -t daq@10.0.0.30 \"killall OrcaReadout >> /dev/null; killall screen >> /dev/null; screen -wipe >> /dev/null; cd ORCA_dev >> /dev/null; screen -dmS orca ./OrcaReadout >> /dev/null; screen -d >> /dev/null; exit\" >> /dev/null");
 
     int Nretrys=5;  // try 5 times
     int counter=0;
@@ -90,8 +99,13 @@ int connect_to_SBC(int portno, struct hostent *server, char *buffer){
             return -1;
         }
         else if (!ALREADY_CONNECTED) {
-            printsend( "Trying to connect with screen \n");
-           if(!old_school) system(bash_command);
+           if(!old_school) {
+		printsend( "Trying to connect with screen \n");
+	       system(bash_command);
+	   }
+	   else 
+		printsend( "Trying to connect the old school way \n");
+	    
             mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
         }
         bzero((char *) &serv_addr, sizeof(serv_addr));

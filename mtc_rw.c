@@ -26,7 +26,7 @@ int kill_SBC_process(){
 
 }
 
-int connect_to_SBC(int portno, struct hostent *server){
+int connect_to_SBC(int portno, struct hostent *server, char *buffer){
     /*
        This function connects to the SBC/MTC, which will not connect automatically.
        Although there is a section of the main listener code where it will try to
@@ -38,6 +38,28 @@ int connect_to_SBC(int portno, struct hostent *server){
      */
 
     // establish the socket
+
+    int old_school=0; // by default we don't do it the old way 
+    char *words,*words2;
+    words = strtok(buffer, " ");
+    while (words != NULL){
+        if (words[0] == '-'){
+            if (words[1] == 't'){
+		old_school=1; // no attempt to ssh in via screen
+		printsend("Make sure you open up another terminal and ssh in to the SBC\n");
+		printsend("ssh daq@10.0.0.30 \n");
+		printsend("cd ORCA_dev/ \n");
+		printsend("./OrcaReadout \n");
+
+            }
+            if (words[1] == 'h'){
+                printsend("Usage: if old school -t, ssh passwords coming soon!\n");
+                return 0;
+            }
+        }
+        words = strtok(NULL, " ");
+    }
+
 
     char bash_command[500];
     char kill_screen[500];
@@ -69,12 +91,7 @@ int connect_to_SBC(int portno, struct hostent *server){
         }
         else if (!ALREADY_CONNECTED) {
             printsend( "Trying to connect with screen \n");
-            usleep(100);
-            system(kill_orcareadout);
-            usleep(100);
-            system(kill_screen);
-            usleep(100);
-            system(bash_command);
+           if(!old_school) system(bash_command);
             mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
         }
         bzero((char *) &serv_addr, sizeof(serv_addr));

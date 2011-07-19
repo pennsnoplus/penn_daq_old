@@ -664,8 +664,7 @@ int process_command(char *buffer){ //DATABASE
     else if (strncmp(buffer, "set_ped_crate_mask",18) == 0)
         set_ped_crate_mask_cmd(buffer);
     else if (strncmp(buffer, "connect_to_SBC", 14) == 0){
-        kill_SBC_process();
-        connect_to_SBC(SBC_PORT, server);
+        connect_to_SBC(SBC_PORT, server, buffer);
     }
     else if (strncmp(buffer, "kill_SBC_process", 16) == 0)
         kill_SBC_process();

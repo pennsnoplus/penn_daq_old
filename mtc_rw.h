@@ -5,7 +5,7 @@ struct sockaddr_in serv_addr;
 SBC_Packet gPacket;
 
 int kill_SBC_process();
-int connect_to_SBC(int portno, struct hostent *server);
+int connect_to_SBC(int portno, struct hostent *server, char *buffer);
 int mtc_reg_write(uint32_t address, uint32_t data);
 int mtc_reg_read(uint32_t address, uint32_t *data);
 int mtc_multi_write(uint32_t address, uint32_t data, int num_writes);

@@ -21,7 +21,6 @@ int trigger_scan(char *buffer)
     int trigger = 13;
     int crate = 2;
     int nhitper = 32;
-    int startcounts = 3950;
     uint16_t slot_mask = 0x4000;
     char filename[100];
     sprintf(filename,"trigger_scan.dat");
@@ -55,15 +54,10 @@ int trigger_scan(char *buffer)
 		words2 = strtok(NULL, " ");
 		nhitper = atoi(words2);
 	    }
-	    if (words[1] == 'b'){
-		words2 = strtok(NULL, " ");
-		startcounts = atoi(words2);
-	    }
 	    if (words[1] == 'h'){
 		printsend("Usage: trigger_scan -c [crate num (int)]"
 			" -s [slot mask (hex)] -f [output file name]"
-			" -n [nhit to do per fec (int)]"
-			" -b [dac level to start at (int)]\n");
+			" -n [nhit to do per fec (int)]\n");
 		return 0;
 	    }
 	}
@@ -111,7 +105,7 @@ int trigger_scan(char *buffer)
     float values[32*16][500];
     for (i=0;i<32*16;i++)
 	for (j=0;j<500;j++)
-	    values[i][j] = -999.;
+	    values[i][j] = 0.;
     for (i=0;i<16;i++){
 	pedestals[i] = 0x0;
 	if ((0x1<<i) & slot_mask)
@@ -120,6 +114,8 @@ int trigger_scan(char *buffer)
 
     int ithresh;
     int num_slots = 0;
+    int zerocount = 0;
+    int highestcount = 0;
 
 
     // now we turn each channel on one at a time
@@ -133,8 +129,12 @@ int trigger_scan(char *buffer)
 		xl3_rw(PED_ENABLE_R + i*FEC_SEL + WRITE_REG,pedestals[i],&result,crate);
 
 		// loop over thresholds
-		for (ithresh=0;ithresh<(4095-startcounts);ithresh++){
-		    counts[trigger] = startcounts+ithresh;
+		zerocount = 0;
+		for (ithresh=0;ithresh<4095;ithresh++){
+		    if (ithresh > highestcount)
+			highestcount = ithresh;
+
+		    counts[trigger] = 4095-ithresh;
 		    load_mtc_dacs_counts(counts);
 
 		    // now get current gt count
@@ -149,6 +149,11 @@ int trigger_scan(char *buffer)
 
 		    uint32_t diff = aftergt-beforegt;
 		    values[32*num_slots+nhit][ithresh] = (float) diff/500.0;
+		    if (diff == 0.){
+			zerocount++;
+			if (zerocount > 4)
+			    break;
+		    }
 		}
 	    }
 	    num_slots++;
@@ -158,7 +163,7 @@ int trigger_scan(char *buffer)
     unset_gt_mask(MASKALL);
 
     for (i=0;i<32*num_slots;i++)
-        for (j=0;j<(4095-startcounts);j++)
+        for (j=0;j<highestcount;j++)
 	    if ((i%32) < nhitper)
 		fprintf(file,"%d %d %f\n",i,j,values[i][j]);
 

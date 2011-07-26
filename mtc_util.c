@@ -20,9 +20,9 @@ int trigger_scan(char *buffer)
 {
     int trigger = 13;
     int crate_mask = 0x4;
-    int nhitper = 32;
+    int total_nhit = -1;
     uint32_t slot_mask[20];
-    int i,j,icrate,ifec;
+    int i,j,icrate,ifec,ithresh,inhit;
     for (i=0;i<20;i++){
         slot_mask[i] = 0xFFFF;
     }
@@ -54,11 +54,11 @@ int trigger_scan(char *buffer)
 		sprintf(filename,"%s",words2);
 	    }else if (words[1] == 'n'){
 		words2 = strtok(NULL, " ");
-		nhitper = atoi(words2);
+		total_nhit = atoi(words2);
 	    }else if (words[1] == 'h'){
-		printsend("Usage: trigger_scan -c [crate num (int)]"
-			" -s [slot mask (hex)] -f [output file name]"
-			" -n [nhit to do per fec (int)]\n");
+		printsend("Usage: trigger_scan -c [crate mask (hex)]"
+			" -s [slot mask for all crates (hex)] -(00 - 18) [slot mask for crate (00 - 18) (hex)] -f [output file name]"
+			" -n [max nhit to scan up to. defaults to maximum for number of slots masked in (int)]\n");
 		return 0;
             }else if (words[1] == '0'){
                 if (words[2] == '0'){
@@ -136,8 +136,7 @@ int trigger_scan(char *buffer)
     file = fopen(filename,"w");
 
     printsend("starting a trigger scan\n");
-    int nhit;
-    uint32_t select_reg,pedestals,result,beforegt,aftergt;
+    uint32_t select_reg,result,beforegt,aftergt;
     uint32_t gtdelay = 150;
     uint16_t ped_width = 25;
     int slot_num = 14;
@@ -168,66 +167,151 @@ int trigger_scan(char *buffer)
     unset_gt_mask(0xFFFFFFFF);
     set_gt_mask(1);
 
-    float values[33][500];
-    for (i=0;i<33;i++)
-	for (j=0;j<500;j++)
-	    values[i][j] = 0.;
+    float values[10000];
+
+    uint32_t pedestals[19][16];
+    int num_fecs = 0;
     for (i=0;i<19;i++){
 	if ((0x1<<i) & crate_mask){
 	    for (j=0;j<16;j++){
 		if ((0x1<<j) & slot_mask[i]){
 		    xl3_rw(PED_ENABLE_R + FEC_SEL*j + WRITE_REG,0x0,&result,i);
+		    num_fecs++;
+		    pedestals[i][j] = 0x0;
 		}
 	    }
 	}
     }
 
-    int ithresh;
+    // now we see our max number of nhit
+    if (total_nhit < 0){
+	total_nhit = num_fecs*32;
+    }else if(total_nhit > num_fecs*32){
+	printf("you dont have enough fecs to test that many nhit\n");
+	total_nhit = num_fecs*32;
+    }
+    printf("Testing nhit up to %d\n",total_nhit);
+
+
     int current_nhit = 0;
+    int min_nhit = 0;
+    int last_zero = 0;
+    int one_count,noise_count;
+    int nhit_status;
 
-    // now we turn each channel on one at a time
-    for (icrate=0;icrate<19;icrate++){
-	if ((0x1<<icrate) & crate_mask){
-	    for (ifec=0;ifec<16;ifec++){
-		if ((0x1<<ifec) & slot_mask[i]){
-		    // loop over thresholds
-		    for (ithresh=0;ithresh<4095;ithresh++){
-			counts[trigger] = 4095-ithresh;
-			load_mtc_dacs_counts(counts);
-			// loop over nhit from 1 to 32
-			for (nhit=1;nhit<=nhitper;nhit++){
-			    pedestals = 0x0;
-			    for (i=0;i<nhit;i++){
-				pedestals |= 0x1<<i;
+    // we loop over threshold, coming down from 4095
+    for (ithresh=0;ithresh<4095;ithresh++){
+	counts[trigger] = 4095-ithresh;
+	load_mtc_dacs_counts(counts);
+
+	for (i=0;i<10000;i++)
+	    values[i] = -1.;
+	one_count = 0;
+	last_zero = 0;
+
+	// now we want to loop over nhit
+	// we loop over the small subset of nhit that interests us
+	for (inhit=min_nhit;inhit<total_nhit;inhit++){
+
+	    // we need to get our pedestals set right
+	    // first we set up all the fully enabled fecs
+	    int full_fecs = inhit/32;
+	    int unfull_fec = inhit%32;
+	    uint32_t unfull_pedestal = 0x0;
+	    for (i=0;i<unfull_fec;i++){
+		unfull_pedestal |= 0x1<<i;
+	    }
+
+	    for (icrate=0;icrate<19;icrate++){
+		if (((0x1<<icrate) & crate_mask)){
+		    for (ifec=0;ifec<16;ifec++){
+			if (((0x1<<ifec) & slot_mask[icrate])){
+			    if (pedestals[icrate][ifec] == 0xFFFFFFFF){
+				if (full_fecs > 0){
+				    // we should keep this one fully on
+				    full_fecs--;
+				}else if (full_fecs == 0){
+				    // this one should have the leftovers
+				    full_fecs--;
+				    pedestals[icrate][ifec] = unfull_pedestal;
+				    xl3_rw(PED_ENABLE_R + ifec*FEC_SEL + WRITE_REG,pedestals[icrate][ifec],&result,icrate);
+				}else{
+				    // turn this one back off
+				    pedestals[icrate][ifec] = 0x0;
+				    xl3_rw(PED_ENABLE_R + ifec*FEC_SEL + WRITE_REG,pedestals[icrate][ifec],&result,icrate);
+				}
+			    }else{
+				if (full_fecs > 0){
+				    // turn this one back fully on
+				    pedestals[icrate][ifec] = 0xFFFFFFFF;
+				    xl3_rw(PED_ENABLE_R + ifec*FEC_SEL + WRITE_REG,pedestals[icrate][ifec],&result,icrate);
+				    full_fecs--;
+				}else if (full_fecs == 0){
+				    // this one should have the leftovers
+				    full_fecs--;
+				    pedestals[icrate][ifec] = unfull_pedestal;
+				    xl3_rw(PED_ENABLE_R + ifec*FEC_SEL + WRITE_REG,pedestals[icrate][ifec],&result,icrate);
+				}else if (pedestals[icrate][ifec] == 0x0){
+				    // this one can stay off
+				}else{
+				    // turn this one fully off
+				    pedestals[icrate][ifec] = 0x0;
+				    xl3_rw(PED_ENABLE_R + ifec*FEC_SEL + WRITE_REG,pedestals[icrate][ifec],&result,icrate);
+				}
 			    }
-
-			    xl3_rw(PED_ENABLE_R + i*FEC_SEL + WRITE_REG,pedestals,&result,icrate);
-
-			    // send 20 pulses
-			    multi_softgt(500);
-
-			    // now get final gt count
-			    mtc_reg_read(MTCOcGtReg,&aftergt);
-
-			    uint32_t diff = aftergt-beforegt;
-			    values[nhit][ithresh] = (float) diff/500.0;
-
-			    current_nhit++;
-			} // end loop over nhit
-		    } // end loop over thresholds
-		    
-		    // now write out this fecs worth of results to file
-		    for (i=1;i<nhitper;i++){
-			for (j=0;j<4095;j++){
-			    fprintf(file,"%d %d %f\n",i+current_nhit-nhitper,j,values[i][j]);
 			}
 		    }
+		}
+	    }
+
+	    // we are now sitting at the correct nhit
+	    // and we have the right threshold set
+	    // lets do this trigger check thing
+
+	    // send 500 pulses
+	    multi_softgt(500);
+
+	    // now get final gt count
+	    mtc_reg_read(MTCOcGtReg,&aftergt);
+
+	    uint32_t diff = aftergt-beforegt;
+
+	    values[inhit] = diff/500.0;
+
+	    // we will start at an nhit based on where we
+	    // start seeing more than zero triggers
+	    if (diff == 0.){
+		last_zero = inhit;
+	    }
+	    // we will stop at an nhit based on where we
+	    // hit the triangle of bliss
+	    if (diff == 1.){
+		one_count++;
+	    }
+	    // we will also stop if we are stuck in the noise
+	    // for too long, meaning we arent at a high enough
+	    // threshold to see the triangle of bliss
+	    if (diff > 5.){
+		noise_count++;
+	    }
 
 
-		} // end if slot_mask
-	    } // end loop over slots
-	} // end if crate mask
-    } // end loop over crates
+	    if (one_count > 5 || noise_count > 50){
+		// we are done with this threshold
+		min_nhit = last_zero-5; 
+		break; // break out of nhit loop
+	    }
+	} // loop over nhit
+
+	// now write out this thresholds worth of results to file
+	for (i=1;i<10000;i++){
+	    // only print out nhit we tested
+	    if (values[i] >= 0){
+		fprintf(file,"%d %d %f\n",ithresh,i,values[i]);
+		printf("Finished %d\n",ithresh);
+	    }
+	}
+    } // end loop over threshold
 
     unset_gt_mask(MASKALL);
 

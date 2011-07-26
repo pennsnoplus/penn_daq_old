@@ -185,10 +185,10 @@ int ped_run(char *buffer)
     //enable GT/PED only for selected crate
     unset_ped_crate_mask(MASKALL);
     unset_gt_crate_mask(MASKALL);
-    //set_ped_crate_mask(0x1<<crate);
-    //set_gt_crate_mask(0x1<<crate);
-    set_ped_crate_mask(MASKALL);
-    set_gt_crate_mask(MASKALL);
+    set_ped_crate_mask(0x1<<crate);
+    set_gt_crate_mask(0x1<<crate);
+    //set_ped_crate_mask(MASKALL);
+    //set_gt_crate_mask(MASKALL);
     set_ped_crate_mask(MSK_TUB);
     set_gt_crate_mask(MSK_TUB);
 

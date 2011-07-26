@@ -824,10 +824,10 @@ static int setup_softgt(uint32_t crate_num)
     unset_gt_crate_mask(MASKALL);
     unset_ped_crate_mask(MASKALL);
     mtc_crate_mask = get_mtc_crate_mask(crate_num);
-    //set_gt_crate_mask(mtc_crate_mask);
-    //set_ped_crate_mask(mtc_crate_mask);
-    set_gt_crate_mask(MASKALL);
-    set_ped_crate_mask(MASKALL);
+    set_gt_crate_mask(mtc_crate_mask);
+    set_ped_crate_mask(mtc_crate_mask);
+    //set_gt_crate_mask(MASKALL);
+    //set_ped_crate_mask(MASKALL);
     set_gt_crate_mask(MSK_TUB);
     set_ped_crate_mask(MSK_TUB);
     return 0;

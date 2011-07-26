@@ -139,10 +139,10 @@ int cmos_m_gtvalid(char *buffer)
     enable_pulser();
     unset_gt_crate_mask(MASKALL);
     unset_ped_crate_mask(MASKALL);
-    //set_gt_crate_mask(0x1<<cn);
-    //set_ped_crate_mask(0x1<<cn);
-    set_gt_crate_mask(MASKALL);
-    set_ped_crate_mask(MASKALL);
+    set_gt_crate_mask(0x1<<cn);
+    set_ped_crate_mask(0x1<<cn);
+    //set_gt_crate_mask(MASKALL);
+    //set_ped_crate_mask(MASKALL);
 
 
 

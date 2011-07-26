@@ -19,9 +19,13 @@ SBC_Packet aPacket;
 int trigger_scan(char *buffer)
 {
     int trigger = 13;
-    int crate = 2;
+    int crate_mask = 0x4;
     int nhitper = 32;
-    uint16_t slot_mask = 0x4000;
+    uint32_t slot_mask[20];
+    int i,j,icrate,ifec;
+    for (i=0;i<20;i++){
+        slot_mask[i] = 0xFFFF;
+    }
     char filename[100];
     sprintf(filename,"trigger_scan.dat");
     FILE *file;
@@ -30,36 +34,97 @@ int trigger_scan(char *buffer)
     words = strtok(buffer, " ");
     while (words != NULL){
 	if (words[0] == '-'){
-	    if (words[1] == 't'){
+	    if (words[1] == 'c'){
+                words2 = strtok(NULL, " ");
+                crate_mask = strtoul(words2,(char**)NULL,16);
+            }else if (words[1] == 's'){
+                words2 = strtok(NULL, " ");
+                for (i=0;i<20;i++){
+                    slot_mask[i] = strtoul(words2,(char**)NULL,16);
+                }
+	    }else if (words[1] == 't'){
 		words2 = strtok(NULL, " ");
 		trigger = atoi(words2);
 		if (trigger > 13 || trigger < 0){
 		    printsend("Invalid trigger, resetting to default (13)\n");
 		    trigger = 13;
 		}
-	    }
-	    if (words[1] == 'c'){
-		words2 = strtok(NULL, " ");
-		crate = atoi(words2);
-	    }
-	    if (words[1] == 's'){
-		words2 = strtok(NULL, " ");
-		slot_mask = strtoul(words2,(char**) NULL,16);
-	    }
-	    if (words[1] == 'f'){
+	    }else if (words[1] == 'f'){
 		words2 = strtok(NULL, " ");
 		sprintf(filename,"%s",words2);
-	    }
-	    if (words[1] == 'n'){
+	    }else if (words[1] == 'n'){
 		words2 = strtok(NULL, " ");
 		nhitper = atoi(words2);
-	    }
-	    if (words[1] == 'h'){
+	    }else if (words[1] == 'h'){
 		printsend("Usage: trigger_scan -c [crate num (int)]"
 			" -s [slot mask (hex)] -f [output file name]"
 			" -n [nhit to do per fec (int)]\n");
 		return 0;
-	    }
+            }else if (words[1] == '0'){
+                if (words[2] == '0'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[0] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '1'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[1] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '2'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[2] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '3'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[3] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '4'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[4] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '5'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[5] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '6'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[6] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '7'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[7] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '8'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[8] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '9'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[9] = strtoul(words2, (char **) NULL, 16);
+                }
+            }else if (words[1] == '1'){
+                if (words[2] == '0'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[10] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '1'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[11] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '2'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[12] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '3'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[13] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '4'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[14] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '5'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[15] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '6'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[16] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '7'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[17] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '8'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[18] = strtoul(words2, (char **) NULL, 16);
+                }else if (words[2] == '9'){
+                    words2 = strtok(NULL, " ");
+                    slot_mask[19] = strtoul(words2, (char **) NULL, 16);
+                }
+            }
 	}
 	words = strtok(NULL, " ");
     }
@@ -72,13 +137,12 @@ int trigger_scan(char *buffer)
 
     printsend("starting a trigger scan\n");
     int nhit;
-    uint32_t select_reg,pedestals[16],result,beforegt,aftergt;
+    uint32_t select_reg,pedestals,result,beforegt,aftergt;
     uint32_t gtdelay = 150;
     uint16_t ped_width = 25;
     int slot_num = 14;
 
     int counts[14];
-    int i,j;
     for (i=0;i<14;i++){
         counts[i] = 10; 
     }
@@ -95,79 +159,77 @@ int trigger_scan(char *buffer)
     //enable GT/PED only for selected crate
     unset_ped_crate_mask(MASKALL);
     unset_gt_crate_mask(MASKALL);
-    //set_ped_crate_mask(0x1<<crate_num);
-    //set_gt_crate_mask(0x1<<crate_num);
-    set_ped_crate_mask(0xFFFFFFFF);
-    set_gt_crate_mask(0xFFFFFFFF);
+    set_ped_crate_mask(crate_mask);
+    set_gt_crate_mask(crate_mask);
+    //set_ped_crate_mask(0xFFFFFFFF);
+    //set_gt_crate_mask(0xFFFFFFFF);
+
+    //enable only nhit100 trigger
     unset_gt_mask(0xFFFFFFFF);
     set_gt_mask(1);
 
-    float values[33*16][500];
-    for (i=0;i<33*16;i++)
+    float values[33][500];
+    for (i=0;i<33;i++)
 	for (j=0;j<500;j++)
 	    values[i][j] = 0.;
-    for (i=0;i<16;i++){
-	pedestals[i] = 0x0;
-	if ((0x1<<i) & slot_mask)
-	    xl3_rw(PED_ENABLE_R + FEC_SEL*i + WRITE_REG,pedestals[i],&result,crate);
-    }
-
-    int ithresh;
-    int num_slots = 0;
-    int min_nhit = 0;
-    int max_ithresh = 0;
-    int nhit_zero[33];
-    for (i=0;i<33;i++)
-	nhit_zero[i] = 0;
-
-    // now we turn each channel on one at a time
-    for (i=0;i<16;i++){
-	if ((0x1<<i) & slot_mask){
-	    // loop over thresholds
-	    for (ithresh=0;ithresh<4095;ithresh++){
-		counts[trigger] = 4095-ithresh;
-		load_mtc_dacs_counts(counts);
-		// loop over nhit
-		for (nhit=min_nhit;nhit<nhitper+1;nhit++){
-		    if (nhit == 0)
-			pedestals[i] = 0x0;
-		    else
-			pedestals[i] |= 0x1<<(nhit-1);
-		    // FIXME hack for the bad channel on one of our fecs
-		    if (i == 7)
-			pedestals[i] &= 0xFFF7FFFF;
-		    xl3_rw(PED_ENABLE_R + i*FEC_SEL + WRITE_REG,pedestals[i],&result,crate);
-
-		    // send 20 pulses
-		    multi_softgt(500);
-
-		    // now get final gt count
-		    mtc_reg_read(MTCOcGtReg,&aftergt);
-
-		    uint32_t diff = aftergt-beforegt;
-		    values[33*num_slots+nhit][ithresh] = (float) diff/500.0;
-		    if (diff == 0.){
-			nhit_zero[nhit]++;
-			if (nhit_zero[nhit] > 4)
-			    if (nhit == min_nhit)
-				min_nhit = nhit+1;
-		    }
-		} // end loop over nhit
-		if (min_nhit == 32){
-		    max_ithresh = ithresh;
-		    break;
+    for (i=0;i<19;i++){
+	if ((0x1<<i) & crate_mask){
+	    for (j=0;j<16;j++){
+		if ((0x1<<j) & slot_mask[i]){
+		    xl3_rw(PED_ENABLE_R + FEC_SEL*j + WRITE_REG,0x0,&result,i);
 		}
-	    } // end loop over thresholds
-	    num_slots++;
+	    }
 	}
     }
 
-    unset_gt_mask(MASKALL);
+    int ithresh;
+    int current_nhit = 0;
 
-    for (i=0;i<33*num_slots;i++)
-	for (j=0;j<max_ithresh;j++)
-	    if ((i%33) <= nhitper)
-		fprintf(file,"%d %d %f\n",i,j,values[i][j]);
+    // now we turn each channel on one at a time
+    for (icrate=0;icrate<19;icrate++){
+	if ((0x1<<icrate) & crate_mask){
+	    for (ifec=0;ifec<16;ifec++){
+		if ((0x1<<ifec) & slot_mask[i]){
+		    // loop over thresholds
+		    for (ithresh=0;ithresh<4095;ithresh++){
+			counts[trigger] = 4095-ithresh;
+			load_mtc_dacs_counts(counts);
+			// loop over nhit from 1 to 32
+			for (nhit=1;nhit<=nhitper;nhit++){
+			    pedestals = 0x0;
+			    for (i=0;i<nhit;i++){
+				pedestals |= 0x1<<i;
+			    }
+
+			    xl3_rw(PED_ENABLE_R + i*FEC_SEL + WRITE_REG,pedestals,&result,icrate);
+
+			    // send 20 pulses
+			    multi_softgt(500);
+
+			    // now get final gt count
+			    mtc_reg_read(MTCOcGtReg,&aftergt);
+
+			    uint32_t diff = aftergt-beforegt;
+			    values[nhit][ithresh] = (float) diff/500.0;
+
+			    current_nhit++;
+			} // end loop over nhit
+		    } // end loop over thresholds
+		    
+		    // now write out this fecs worth of results to file
+		    for (i=1;i<nhitper;i++){
+			for (j=0;j<4095;j++){
+			    fprintf(file,"%d %d %f\n",i+current_nhit-nhitper,j,values[i][j]);
+			}
+		    }
+
+
+		} // end if slot_mask
+	    } // end loop over slots
+	} // end if crate mask
+    } // end loop over crates
+
+    unset_gt_mask(MASKALL);
 
     fclose(file); 
     return 0;

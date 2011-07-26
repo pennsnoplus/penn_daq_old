@@ -195,10 +195,10 @@ int chinj_scan(char *buffer)
         //enable GT/PED only for selected crate
         unset_ped_crate_mask(MASKALL);
         unset_gt_crate_mask(MASKALL);
-        //set_ped_crate_mask(0x1<<crate);
-        //set_gt_crate_mask(0x1<<crate);
-        set_ped_crate_mask(MASKALL);
-        set_gt_crate_mask(MASKALL);
+        set_ped_crate_mask(0x1<<crate);
+	set_gt_crate_mask(0x1<<crate);
+        //set_ped_crate_mask(MASKALL);
+        //set_gt_crate_mask(MASKALL);
 
         // send the softgts
         multi_softgt(num_pedestals*NUM_CELLS);

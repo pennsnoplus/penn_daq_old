@@ -160,10 +160,10 @@ int crate_cbal(char * buffer)
     setup_pedestals(0.0,50,125,0);
     unset_gt_crate_mask(MASKALL);
     unset_ped_crate_mask(MASKALL); // unmask all crates
-    //set_gt_crate_mask(0x1<<crate);
-    //set_ped_crate_mask(0x1<<crate); // add our crate to mask
-    set_gt_crate_mask(MASKALL);
-    set_ped_crate_mask(MASKALL); // add our crate to mask
+    set_gt_crate_mask(0x1<<crate);
+    set_ped_crate_mask(0x1<<crate); // add our crate to mask
+    //set_gt_crate_mask(MASKALL);
+    //set_ped_crate_mask(MASKALL); // add our crate to mask
     set_gt_crate_mask(MSK_TUB);
     set_ped_crate_mask(MSK_TUB); // add TUB to mask
 

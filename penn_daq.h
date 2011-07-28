@@ -7,6 +7,10 @@ typedef u_char  byte;
 #define MAX_XL3_CON 19
 #define XL3_PORT 44601
 
+// Monitor
+#define MAX_MON_CON 1
+#define MON_PORT 44598
+
 // Controller
 #define MAX_CONT_CON 1
 #define CONT_PORT 44600
@@ -34,8 +38,8 @@ typedef u_char  byte;
 #define SECONDS 20
 #define USECONDS 0
 //_!_END_DEFINTIONS_!_
-// the total number of pending requests (10 is a good guestimate; this number isn't all that important)
-#define MAX_PENDING_CONS 10
+// the total number of pending requests (11 is a good guestimate; this number isn't all that important)
+#define MAX_PENDING_CONS 11
 // the number of packet/socket pairs to be stored to be sent out
 #define BACKLOG 100
 // timeout values
@@ -56,7 +60,8 @@ typedef u_char  byte;
 #define DB_VIEWDOC "_design/view_doc/_view"
 
 
-#define kSBC_MaxPayloadSizeBytes    1024*400
+//#define kSBC_MaxPayloadSizeBytes    1024*400
+#define kSBC_MaxPayloadSizeBytes 1440
 #define kSBC_MaxMessageSizeBytes    256
 #define MAX_ACKS_SIZE		    80
 #define MAX_FEC_COMMANDS	    60000

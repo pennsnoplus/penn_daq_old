@@ -29,13 +29,28 @@ void setup_listeners(){
     FD_ZERO(&funcreadable_fdset);
     FD_ZERO(&listener_fdset);
 
+	FD_ZERO(&mon_fdset);
+
     // ##  Bind Non-XL3 Listeners (1.3)  ##
     sbc_listener  = bind_listener("0.0.0.0", SBC_PORT);
     cont_listener = bind_listener("0.0.0.0", CONT_PORT);
     view_listener = bind_listener("0.0.0.0", VIEW_PORT);
 
-    //##  Add Non-XL3 Listeners (1.4)  ##
+	mon_listener = bind_listener("0.0.0.0", MON_PORT);
 
+    //##  Add Non-XL3 Listeners (1.4)  ##
+	if (listen(mon_listener, MAX_PENDING_CONS) == -1){
+		printsend("listen error: adding monitor listener\n");
+		sigint_func(SIGINT);
+	}
+	else{
+		FD_SET(mon_listener, &all_fdset);
+		FD_SET(mon_listener, &listener_fdset);
+		FD_SET(mon_listener, &mon_fdset);
+		if (fdmax < mon_listener){
+			fdmax = mon_listener;
+		}
+	}
     // add sbc listener
     if (listen(sbc_listener, MAX_PENDING_CONS) == -1){
         printsend("listen error: adding SBC/MTC client listener\n");
@@ -319,6 +334,12 @@ int accept_connection(int socket, int listener_port){
                 FD_SET(newfd, &mtc_fdset);
                 mtc_sock = newfd;
             }
+			else if(listener_port == MON_PORT){
+				FD_SET(newfd, &mon_fdset);
+				printsend("new_daq: connection: MONITOR (%s) on socket %d\n",
+						inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), newfd);
+				mon_sock = newfd;
+			}
             else if(listener_port == CONT_PORT){
                 FD_SET(newfd, &cont_fdset);
 
@@ -373,6 +394,11 @@ void close_con(int con_fd, char name[]){
         printsend( "port %d, ", CONT_PORT);
         FD_CLR(con_fd, &cont_fdset);
     }
+	else if(FD_ISSET(con_fd, &mon_fdset)){
+		printsend( "port %d, ", MON_PORT);
+		mon_sock = 0;
+		FD_CLR(con_fd, &mon_fdset);
+	}
     else{
         printsend( "port %d, ", VIEW_PORT);
         FD_CLR(con_fd, &view_fdset);
@@ -390,33 +416,36 @@ void print_connected(void){
      */
     int z,i;
     int y = 0;
-    printsend("CONNECTED CLIENTS:\n");
-    for(z = 0; z <= fdmax; z++){
-        if(!FD_ISSET(z, &listener_fdset)){	
-            for (i=0;i<MAX_XL3_CON;i++){ 
-                if(connected_xl3s[i] == z){
-                    y++;
-                    printsend( "\tXL3 ");
-                    printsend( "(crate #%d, ", i);
-                    printsend( "port %d, ", XL3_PORT+i);
-                    printsend( "socket %d)\n", connected_xl3s[i]);
-                }
-            }
-            if(FD_ISSET(z, &cont_fdset)){
+	printsend("CONNECTED CLIENTS:\n");
+	for(z=0; z <= fdmax; z++){
+		if (!FD_ISSET(z, &listener_fdset)){
+			if (FD_ISSET(z, &xl3_fdset)){
+				for(i=0; i<MAX_XL3_CON; i++){
+					if(connected_xl3s[i]==z){
+						y++;
+						printsend("\tXL3 (crate #%d, port %d, socket %d)\n", i, XL3_PORT+i, connected_xl3s[i]);
+					}
+				}
+			}
+            else if(FD_ISSET(z, &cont_fdset)){
                 y++;
                 printsend( "\tController (port %d, socket %d)\n",
                         CONT_PORT, z);
             }
-            if(FD_ISSET(z, &mtc_fdset)){
+            else if(FD_ISSET(z, &mtc_fdset)){
                 y++;
                 printsend( "\tSBC/MTC (port %d, socket %d)\n",
                         SBC_PORT, z);
             }
-            if(FD_ISSET(z, &view_fdset)){
+            else if(FD_ISSET(z, &view_fdset)){
                 y++;
                 printsend( "\tViewer (port %d, socket %d)\n",
                         VIEW_PORT, z);
             }
+			else if(FD_ISSET(z, &mon_fdset)){
+				y++;
+				printsend("Monitor (port %d, socket %d)\n", MON_PORT, z);
+			}
         }
     }
     if(y == 0){

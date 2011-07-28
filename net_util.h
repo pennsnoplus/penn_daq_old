@@ -13,6 +13,7 @@
 fd_set xl3_fdset;			// fd_set for the xl3 boards
 fd_set mtc_fdset;			// fd_set for the SBC/MTC board/server
 fd_set cont_fdset;			// fd_set for the control client
+fd_set mon_fdset;			// fd_set for the monitor client
 
 // view_fdset is the fd_set that printsend() looks to for possible sockets to write to.
 // Adding other types of clients to view_fdset lets printsend() also try to write all
@@ -35,10 +36,11 @@ int fdmax;			// highest file descriptor number - this is used in the select() ca
 // in the printsend() function.
 
 // listeners
-int sbc_listener, cont_listener, view_listener;
+int sbc_listener, cont_listener, view_listener, mon_listener;
 // sockets for the MTC/SBC, controller (only one of each)
 int mtc_sock;
 int control_sock;
+int mon_sock;
 
 // array of sockets for accepting the xl3s on MAX_XL3_CON different ports
 int xl3_listener_array[MAX_XL3_CON];

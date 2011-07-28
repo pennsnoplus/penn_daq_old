@@ -177,6 +177,7 @@ int main(int argc, char *argv[]){
     printsend("SBC/MTC\t\t%d\n", SBC_PORT);
     printsend("CONTROLLER\t%d\n", CONT_PORT);
     printsend("VIEWERs\t\t%d\n\n", VIEW_PORT);
+	printsend("MONITORs\t\t%d\n\n", MON_PORT);
 
     printsend("waiting for connections...\n");
     //printsend("it is highly recommended that you connect an sbc with 'connect_to_SBC'\n");
@@ -255,6 +256,16 @@ int main(int argc, char *argv[]){
                                 reject_connection(cont_listener, CONT_PORT, t-1, MAX_CONT_CON, "CONTROLLER");
                             }
                         }
+						/* Monitor request */
+						else if(a == mon_listener){
+							t = num_fds(mon_fdset, fdmax);
+							if (t < MAX_MON_CON+1){ // account for the listener
+								new_fd = accept_connection(mon_listener, MON_PORT);
+							}
+							else{
+								reject_connection(mon_listener, MON_PORT, t-1, MAX_MON_CON, "MONITOR");
+							}
+						}
                         /* Viewer request (2.3.1.3) */
                         else if(a == view_listener){	// you have to account for the listener
                             t = num_fds(view_fdset, fdmax);
@@ -316,6 +327,20 @@ int main(int argc, char *argv[]){
                         }
                         memset(c_packet, '\0', MAX_PACKET_SIZE);
                     } // End XL3 data
+					else if(FD_ISSET(a, &mon_fdset)){
+						numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
+						if(numbytes == 0){
+							close_con(a, "MONITOR");
+						}
+						else if(numbytes < 0){
+							printsend("receive error: receiving monitor data\n");
+							close_con(a, "CONTROLLER");
+						}
+						else{
+							printsend("MONITOR (socket %d): %s\n", a, c_packet);
+							memset(c_packet, '\0', MAX_PACKET_SIZE);
+						}
+					}
                     /* Controller data (2.3.2.2) */
                     else if(FD_ISSET(a, &cont_fdset)){
                         numbytes = recv(a, c_packet, MAX_PACKET_SIZE, 0);
@@ -516,7 +541,9 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
             
             break;
         case MEGA_BUNDLE_ID:
-            store_mega_bundle(packet->cmdHeader.num_bundles);
+            //store_mega_bundle(packet->cmdHeader.num_bundles);
+			process_mega_bundle(packet);
+
             break;
         case CMD_ACK_ID:
             // something with CMD_ACK_ID //FIXME
@@ -706,7 +733,28 @@ int store_mega_bundle(int nbundles){ // a mega_bundle
         
         rec_fake_bytes=0;
     }
+	return 0;
 }
+int process_mega_bundle(XL3_Packet *packet){
+	if(mon_sock){
+		printsend("process_mega_bundle: sending mega_bundle to monitor\n");
+		fd_set outset;
+		FD_ZERO(&outset);
+		outset = mon_fdset;
+		int select_return, x;
+		select_return = select(fdmax+1, NULL, &outset, NULL, 0);
+		if(select_return > 0){
+			printsend("sizeof(packet->payload)= %d\n", (int)sizeof(packet->payload));
+			write(mon_sock, packet->payload, sizeof(packet->payload));
+		}
+	}
+	else{
+		printsend("process_mega_bundle: error: no monitor connection\n");
+	}
+	return 0;
+}
+
+
 
 ///////////////////////////////////////////////
 // ######### VARIOUS UTILITIES ############# //

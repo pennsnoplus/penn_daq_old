@@ -19,4 +19,5 @@ vwr:
 	gcc -lreadline -lncurses -o vwr vwr.c
 
 clean: 
-	-$(RM) core *.o penn_daq tut vwr
+	-$(RM) core *.o
+

@@ -20,6 +20,7 @@ int trigger_scan(char *buffer)
 {
     int trigger = 13;
     int crate_mask = 0x4;
+    int min_thresh = 0;
     int total_nhit = -1;
     uint32_t slot_mask[20];
     int i,j,icrate,ifec,ithresh,inhit;
@@ -55,10 +56,15 @@ int trigger_scan(char *buffer)
 	    }else if (words[1] == 'n'){
 		words2 = strtok(NULL, " ");
 		total_nhit = atoi(words2);
+            }else if (words[1] == 'm'){
+                words2 = strtok(NULL, " ");
+                min_thresh = atoi(words2);
 	    }else if (words[1] == 'h'){
 		printsend("Usage: trigger_scan -c [crate mask (hex)]"
+                        " -t [trigger id to enable in mask (0-13)]"
 			" -s [slot mask for all crates (hex)] -(00 - 18) [slot mask for crate (00 - 18) (hex)] -f [output file name]"
-			" -n [max nhit to scan up to. defaults to maximum for number of slots masked in (int)]\n");
+			" -n [max nhit to scan up to. defaults to maximum for number of slots masked in (int)]"
+                        " -m [minimum threshold to scan down to in adc counts. defaults to 0.]\n");
 		return 0;
             }else if (words[1] == '0'){
                 if (words[2] == '0'){
@@ -160,12 +166,6 @@ int trigger_scan(char *buffer)
     unset_gt_crate_mask(MASKALL);
     set_ped_crate_mask(crate_mask);
     set_gt_crate_mask(crate_mask);
-    //set_ped_crate_mask(0xFFFFFFFF);
-    //set_gt_crate_mask(0xFFFFFFFF);
-
-    //enable only nhit100 trigger
-    unset_gt_mask(0xFFFFFFFF);
-    set_gt_mask(1);
 
     float values[10000];
 
@@ -200,13 +200,18 @@ int trigger_scan(char *buffer)
     int nhit_status;
 
     // we loop over threshold, coming down from 4095
-    for (ithresh=0;ithresh<4095;ithresh++){
+    for (ithresh=0;ithresh<4095-min_thresh;ithresh++){
 	counts[trigger] = 4095-ithresh;
+
+        // disable triggers while programming dacs due to noise
+        unset_gt_mask(0xFFFFFFFF);
 	load_mtc_dacs_counts(counts);
+        set_gt_mask(1<<(trigger-1));
 
 	for (i=0;i<10000;i++)
 	    values[i] = -1.;
 	one_count = 0;
+        noise_count = 0;
 	last_zero = 0;
 
 	// now we want to loop over nhit
@@ -268,37 +273,41 @@ int trigger_scan(char *buffer)
 	    // and we have the right threshold set
 	    // lets do this trigger check thing
 
+            // initial gt count
+	    mtc_reg_read(MTCOcGtReg,&beforegt);
+
 	    // send 500 pulses
 	    multi_softgt(500);
 
 	    // now get final gt count
 	    mtc_reg_read(MTCOcGtReg,&aftergt);
 
-	    uint32_t diff = aftergt-beforegt;
+            // top bits are junk
+	    uint32_t diff = (aftergt & 0x00ffffff) - (beforegt & 0x00ffffff);
 
-	    values[inhit] = diff/500.0;
+	    values[inhit] = (float) diff / 500.0;
 
 	    // we will start at an nhit based on where we
 	    // start seeing more than zero triggers
-	    if (diff == 0.){
+	    if (values[inhit] == 0.){
 		last_zero = inhit;
 	    }
 	    // we will stop at an nhit based on where we
 	    // hit the triangle of bliss
-	    if (diff == 1.){
+	    if (values[inhit] > 0.9 && values[inhit] < 1.1){
 		one_count++;
 	    }
 	    // we will also stop if we are stuck in the noise
 	    // for too long, meaning we arent at a high enough
 	    // threshold to see the triangle of bliss
-	    if (diff > 5.){
+	    if (values[inhit] > 1.2){
 		noise_count++;
 	    }
 
 
-	    if (one_count > 5 || noise_count > 50){
+	    if (one_count > 5 || noise_count > 25){
 		// we are done with this threshold
-		min_nhit = last_zero-5; 
+		min_nhit = last_zero < 5 ? 0 : last_zero-5; 
 		break; // break out of nhit loop
 	    }
 	} // loop over nhit

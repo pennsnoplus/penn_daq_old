@@ -25,7 +25,7 @@ typedef u_char  byte;
 #define SBC_SERVER "10.0.0.30"
 
 // Xilinx
-#define MTC_XILINX_LOCATION "/home/neutrino/select_DAQ/daq_v3.04_c/data/mtcxilinx.rbt"
+#define MTC_XILINX_LOCATION "data/mtcxilinx.rbt"
 
 // CoucHDB
 #define DB_SERVER "http://localhost:5984"

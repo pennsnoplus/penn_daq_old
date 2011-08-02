@@ -201,7 +201,7 @@ int trigger_scan(char *buffer)
 
     // we loop over threshold, coming down from 4095
     for (ithresh=0;ithresh<4095-min_thresh;ithresh++){
-	counts[trigger] = 4095-ithresh;
+	counts[trigger-1] = 4095-ithresh;
 
         // disable triggers while programming dacs due to noise
         unset_gt_mask(0xFFFFFFFF);

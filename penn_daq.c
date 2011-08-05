@@ -11,6 +11,7 @@
 #include <sys/select.h>
 
 #include "include/xl_regs.h"
+#include "include/Record_Info.h"
 
 //#include "pouch.h"
 //#include "json.h"
@@ -559,7 +560,6 @@ void proc_xl3_rslt(XL3_Packet *packet, int crate_number, int numbytes){
             printsend( "XL3 (crate %d, port %d): OTHER: %d (%08x)\n",
                     crate_number, crate_number+XL3_PORT,
                     (int)packet->cmdHeader.packet_type,*(uint32_t *) &(packet->cmdHeader));
-            
             break;
     }
 }
@@ -736,20 +736,40 @@ int store_mega_bundle(int nbundles){ // a mega_bundle
 	return 0;
 }
 int process_mega_bundle(XL3_Packet *packet){
+	XL3_CommandHeader cmhdr = (XL3_CommandHeader)(packet->cmdHeader);
+	PMTBundle *bndl_array = (PMTBundle *)(packet->payload);
+	//char *bdata = (char *)packet;
+	//int z;
+	//for(z = 0; z < sizeof(XL3_Packet); z++){
+		//printf("%d : %08x\n", z, (int)(*(bdata+z)));
+	//}
+	//printf("Num bundles = %d\n", cmhdr.num_bundles);
+	//printf("Packet type = %08x", cmhdr.packet_type);
+	//printf("Packet num = %08x", cmhdr.packet_num);
+	//printf("First PMT Bundle\n");
+	//printf("word1= %08x\nword2= %08x\nword3= %08x\n", bndl_array[0].word1, bndl_array[0].word2, bndl_array[0].word3);
+	//uint32_t _qlx, _qhs, _qhl;
+	//_qlx = (uint32_t) UNPK_QLX((uint32_t *)&bndl_array[0]);
+	//_qhs = (uint32_t) UNPK_QHS((uint32_t *)&bndl_array[0]);
+	//_qhl = (uint32_t) UNPK_QHL((uint32_t *)&bndl_array[0]);
+	//printf("qhl= %d\nqhs= %d\nqlx= %d\n", _qhl, _qhs, _qlx);
+	//printf("---------------\n");
+	
 	if(mon_sock){
-		printsend("process_mega_bundle: sending mega_bundle to monitor\n");
+		//printsend("process_mega_bundle: sending mega_bundle to monitor\n");
 		fd_set outset;
 		FD_ZERO(&outset);
 		outset = mon_fdset;
 		int select_return, x;
 		select_return = select(fdmax+1, NULL, &outset, NULL, 0);
 		if(select_return > 0){
-			printsend("sizeof(packet->payload)= %d\n", (int)sizeof(packet->payload));
-			write(mon_sock, packet->payload, sizeof(packet->payload));
+			//printsend("sizeof(packet->payload)= %d\n", (int)sizeof(packet->payload));
+			//write(mon_sock, packet->payload, sizeof(packet->payload));
+			write(mon_sock, packet, sizeof(XL3_Packet)); 
 		}
 	}
 	else{
-		printsend("process_mega_bundle: error: no monitor connection\n");
+		//printsend("process_mega_bundle: error: no monitor connection\n");
 	}
 	return 0;
 }

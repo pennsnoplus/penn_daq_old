@@ -21,6 +21,8 @@ int trigger_scan(char *buffer)
     int trigger = 13;
     int crate_mask = 0x4;
     int min_thresh = 0;
+    int thresh_dac = 0;
+    int quick_mode = 0;
     int total_nhit = -1;
     uint32_t slot_mask[20];
     int i,j,icrate,ifec,ithresh,inhit;
@@ -59,12 +61,19 @@ int trigger_scan(char *buffer)
             }else if (words[1] == 'm'){
                 words2 = strtok(NULL, " ");
                 min_thresh = atoi(words2);
+            }else if (words[1] == 'd'){
+                words2 = strtok(NULL, " ");
+                thresh_dac = atoi(words2);
+            }else if (words[1] == 'q'){
+                quick_mode = 1;
 	    }else if (words[1] == 'h'){
 		printsend("Usage: trigger_scan -c [crate mask (hex)]"
                         " -t [trigger id to enable in mask (0-13)]"
 			" -s [slot mask for all crates (hex)] -(00 - 18) [slot mask for crate (00 - 18) (hex)] -f [output file name]"
 			" -n [max nhit to scan up to. defaults to maximum for number of slots masked in (int)]"
-                        " -m [minimum threshold to scan down to in adc counts. defaults to 0.]\n");
+                        " -m [minimum threshold to scan down to in adc counts. defaults to 0.]"
+                        " -d [threshold dac to program (defaults to correct one for chosen trigger id) (int)"
+                        " -q (enables quick mode; only samples every 10th dac count)\n");
 		return 0;
             }else if (words[1] == '0'){
                 if (words[2] == '0'){
@@ -201,7 +210,12 @@ int trigger_scan(char *buffer)
 
     // we loop over threshold, coming down from 4095
     for (ithresh=0;ithresh<4095-min_thresh;ithresh++){
-	counts[trigger-1] = 4095-ithresh;
+        if(ithresh>50 && quick_mode==1) ithresh += 9;
+        if(thresh_dac != 0)
+  	    counts[thresh_dac] = 4095-ithresh;
+        else
+  	    counts[trigger-1] = 4095-ithresh;
+        
 
         // disable triggers while programming dacs due to noise
         unset_gt_mask(0xFFFFFFFF);

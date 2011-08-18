@@ -24,8 +24,7 @@
 int sbc_control(int portno, struct hostent *server, char *buffer){
     int sbc_action = -1;
     char identity_file[100] = "";
-    //char base_cmd[100] = "ssh daq@10.0.0.30";
-    char base_cmd[100] = "ssh localhost";
+    char base_cmd[100] = "ssh daq@10.0.0.30";
 
     // parse command-line arguments
     char* words;

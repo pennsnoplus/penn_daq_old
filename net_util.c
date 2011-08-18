@@ -15,7 +15,7 @@
 
 void setup_listeners(){
 
-    // set the server for connect_to_SBC()
+    // set the server for sbc_control()
     server = gethostbyname((char*)SBC_SERVER);
 
     // ##  Clear fd_set's (1.2)  ##

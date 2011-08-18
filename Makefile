@@ -8,11 +8,11 @@ LIBS = -lm -lcurl
 all: penn_daq tut vwr
 
 penn_daq: $(OBJS)
-	python penn_daq_gen.py
+	python ./penn_daq_gen.py
 	gcc -o $@ $(OBJS) $(LIBS) -g
 
 tut:
-	python tut_gen.py
+	python ./tut_gen.py
 	gcc -lreadline -lncurses -o tut tut.c
 
 vwr:

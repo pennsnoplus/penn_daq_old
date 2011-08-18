@@ -109,8 +109,7 @@ COMMAND commands[] = {
     { "set_gt_crate_mask", (Function *)NULL, (char *)NULL },
     { "unset_ped_crate_mask", (Function *)NULL, (char *)NULL },
     { "set_ped_crate_mask", (Function *)NULL, (char *)NULL },
-    { "connect_to_SBC", (Function *)NULL, (char *)NULL },
-    { "kill_SBC_process", (Function *)NULL, (char *)NULL },
+    { "sbc_control", (Function *)NULL, (char *)NULL },
     { "clear_screen", (Function *)NULL, (char *)NULL },
     //_!_end_commands_!_
     { (char *)NULL, (Function *)NULL, (char*)NULL }

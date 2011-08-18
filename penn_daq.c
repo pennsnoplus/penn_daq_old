@@ -181,7 +181,6 @@ int main(int argc, char *argv[]){
 	printsend("MONITORs\t\t%d\n\n", MON_PORT);
 
     printsend("waiting for connections...\n");
-    //printsend("it is highly recommended that you connect an sbc with 'connect_to_SBC'\n");
     
     // note- it's very unlikely that all of the commands will work properly without
     //		an SBC/MTC connected as a client. This string is just a reminder to the
@@ -690,11 +689,9 @@ int process_command(char *buffer){ //DATABASE
         unset_ped_crate_mask_cmd(buffer);
     else if (strncmp(buffer, "set_ped_crate_mask",18) == 0)
         set_ped_crate_mask_cmd(buffer);
-    else if (strncmp(buffer, "connect_to_SBC", 14) == 0){
-        connect_to_SBC(SBC_PORT, server, buffer);
+    else if (strncmp(buffer, "sbc_control", 11) == 0){
+        sbc_control(SBC_PORT, server, buffer);
     }
-    else if (strncmp(buffer, "kill_SBC_process", 16) == 0)
-        kill_SBC_process();
     else if (strncmp(buffer, "clear_screen", 12) == 0){
         system("clear");
         printsend("new_daq: cleared screen\n");

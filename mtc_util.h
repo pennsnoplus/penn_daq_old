@@ -39,10 +39,24 @@
 #define MTCC10_0_31Reg (0x8C)
 #define MTCC10_32_52Reg (0x90)
 
+int trigger_scan(char *buffer);
+int set_thresholds(char *buffer);
+
+int mtc_read(char *buffer);
+int mtc_write(char *buffer);
 
 int mtc_xilinxload(void);
 int mtc_init(char *buffer);
 
+int start_pulser(char *buffer);
+int stop_pulser(char *buffer);
+int enable_pedestal_cmd(char *buffer);
+int disable_pedestal_cmd(char *buffer);
+int unset_gt_crate_mask_cmd(char *buffer);
+int set_gt_crate_mask_cmd(char *buffer);
+int unset_ped_crate_mask_cmd(char *buffer);
+int set_ped_crate_mask_cmd(char *buffer);
+int setup_pedestals_cmd(char *buffer);
 int set_gt_mask_cmd(char *buffer);
 int unset_gt_mask_cmd(char *buffer);
 void unset_gt_mask(unsigned long raw_trig_types);
@@ -72,6 +86,7 @@ typedef struct {
     float mtca_dac_values[14];
 } mtc_cons;
 
+int load_mtc_dacs_counts(int *counts);
 int load_mtc_dacs(mtc_cons *mtc_cons_ptr);
 /* load_mtc_dacs()
  * Loads all the mtc/a dac thresholds. Values are taken from a file for now.
@@ -144,11 +159,11 @@ void reset_memory();
 
 
 int setup_pedestals(float pulser_freq, uint32_t pedestal_width, /* in ns */
-		    uint32_t coarse_delay, uint32_t fine_delay);
+        uint32_t coarse_delay, uint32_t fine_delay);
 
 
 int prepare_mtc_pedestals(float pulser_freq, /* in Hz */
-	uint16_t pedestal_width, uint16_t coarse_delay, uint16_t fine_delay /* in ns */);
+        uint16_t pedestal_width, uint16_t coarse_delay, uint16_t fine_delay /* in ns */);
 
 void enable_pedestal();
 void disable_pedestal();

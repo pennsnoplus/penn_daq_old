@@ -9,4 +9,4 @@ int sm_reset(char *buffer);
 int hv_readback(char *buffer);
 int read_local_voltage(char *buffer);
 int hv_ramp_map(char *buffer);
-    
+

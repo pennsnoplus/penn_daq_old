@@ -7,16 +7,16 @@
 #include "mtc_util.h"
 #include "net_util.h"
 #include "db.h"
-#include "pillowtalk.h"
+//#include "pouch.h"
+//#include "json.h"
 
 
 int mtc_init(char *buffer)
 {
 
     if (sbc_is_connected == 0){
-	sprintf(psb,"SBC not connected.\n");
-	print_send(psb, view_fdset);
-	return -1;
+        printsend("SBC not connected.\n");
+        return -1;
     }
 
 
@@ -31,41 +31,44 @@ int mtc_init(char *buffer)
     int x_init = 0;
     word = strtok(buffer, " ");
     while (word != NULL){
-	if (word[0] == '-'){
-	    if (word[1] == 'x')
-		x_init = 1;
-	    if (word[1] == 'h'){
-		sprintf(psb,"Usage: mtc_init -x (enables xilinx load)\n");
-		print_send(psb, view_fdset);
-		return 0;
-	    }
-	}
-	word = strtok(NULL, " ");
+        if (word[0] == '-'){
+            if (word[1] == 'x')
+                x_init = 1;
+            if (word[1] == 'h'){
+                printsend("Usage: mtc_init -x (enables xilinx load)\n");
+                return 0;
+            }
+        }
+        word = strtok(NULL, " ");
     }
 
-    printf("made it here fine\n");
+   printsend("made it here fine\n");
     if (x_init == 1)
-	mtc_xilinxload();
+        mtc_xilinxload();
 
     mtc_t *mtc = ( mtc_t * ) malloc( sizeof(mtc_t));
     if ( mtc == ( mtc_t *) NULL )
     {
-	print_send("error: malloc in mtc_init\n", view_fdset);
-	free(mtc);
-	return -1;
+        printsend("error: malloc in mtc_init\n");
+        free(mtc);
+        return -1;
     }
 
-    pt_init();
-    pt_response_t* response = NULL;
+    ;
+    pouch_request *response = pr_init();
     char get_db_address[500];
     sprintf(get_db_address,"http://%s:%s/%s/MTC_doc",DB_ADDRESS,DB_PORT,DB_BASE_NAME);
-    response = pt_get(get_db_address);
-    if (response->response_code != 200){
-	printf("Unable to connect to database. error code %d\n",(int)response->response_code);
-	return -1;
+    pr_set_method(response, GET);
+    pr_set_url(response, get_db_address);
+    pr_do(response);
+    if (response->httpresponse != 200){
+       printsend("Unable to connect to database. error code %d\n",(int)response->httpresponse);
+        return -1;
     }
-    pt_node_t *doc = response->root;
+    JsonNode *doc = json_decode(response->resp.data);
     parse_mtc(doc,mtc);
+    json_delete(doc);
+
 
 
 
@@ -79,18 +82,18 @@ int mtc_init(char *buffer)
     mtc_cons *mtc_cons_ptr = ( mtc_cons * ) malloc( sizeof(mtc_cons));
     if ( mtc_cons_ptr == ( mtc_cons *) NULL )
     {
-	print_send("error: malloc in mtc_init\n", view_fdset);
-	free(mtc);
-	free(mtc_cons_ptr);
-	return -1;
+        printsend("error: malloc in mtc_init\n");
+        free(mtc);
+        free(mtc_cons_ptr);
+        return -1;
     }
 
     for (i=0; i<=13; i++)
     { 
-	raw_dacs[i]=
-	    (u_short) mtc->mtca.triggers[i].threshold;
-	mtc_cons_ptr->mtca_dac_values[i]=
-	    (((float)raw_dacs[i]/2048) * 5000.0) - 5000.0;
+        raw_dacs[i]=
+            (u_short) mtc->mtca.triggers[i].threshold;
+        mtc_cons_ptr->mtca_dac_values[i]=
+            (((float)raw_dacs[i]/2048) * 5000.0) - 5000.0;
     }
 
     load_mtc_dacs(mtc_cons_ptr);
@@ -118,17 +121,16 @@ int mtc_init(char *buffer)
     result += set_pedestal_width(pwid);
 
     // setup PULSE_GT delays
-    print_send("Setting up PULSE_GT delays...\n", view_fdset);
+    printsend("Setting up PULSE_GT delays...\n");
     coarse_delay = (u_short)(((~(u_short)(mtc->mtcd.coarse_delay))
-		& 0xff) * 10);
+                & 0xff) * 10);
     result += set_coarse_delay(coarse_delay);
     fine_delay = (float)(mtc->mtcd.fine_delay)*
-	(float)(mtc->mtcd.fine_slope);
+        (float)(mtc->mtcd.fine_slope);
     fdelay_set = set_fine_delay(fine_delay);
-    sprintf(psb, "PULSE_GET total delay has been set to %f\n",
-	    (float) coarse_delay+fine_delay+
-	    (float)(mtc->mtcd.min_delay_offset));
-    print_send(psb, view_fdset);
+    printsend( "PULSE_GET total delay has been set to %f\n",
+            (float) coarse_delay+fine_delay+
+            (float)(mtc->mtcd.min_delay_offset));
 
     // load 10 MHz counter???? guess not
 
@@ -139,12 +141,11 @@ int mtc_init(char *buffer)
     free(mtc_cons_ptr);
 
     if (result < 0) {
-	print_send("errors in the MTC initialization!\n", view_fdset);
-	return -1;
+        printsend("errors in the MTC initialization!\n");
+        return -1;
     }
 
-    print_send("MTC finished initializing\n", view_fdset);
-    pt_free_response(response);
-    pt_cleanup();
+    printsend("MTC finished initializing\n");
+    pr_free(response);
     return 0;
 }

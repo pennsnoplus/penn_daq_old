@@ -1,37 +1,45 @@
 #ifndef PENN_DAQ_H
 #define PENN_DAQ_H
-
 typedef u_char  byte;
 
-// ############### DEFINITIONS ###################	
-#define MTC_XILINX_LOCATION "/home/neutrino/select_DAQ/daq_v3.04_c/data/mtcxilinx.rbt"
-
-#define TRUE  1
-#define FALSE 0
-
-// what to return on failure, success
-#define FAIL -1
-#define SUCCESS 0
-// number of xl3's allowed to be connected at once
+//_!_DEFINITIONS_!_
+// XL3
 #define MAX_XL3_CON 19
-// number of control boards allowed to be connected at once
-#define MAX_CONT_CON 1
-// number of view clients allowed at once
-#define MAX_VIEW_CON 3
-// number of SBC/MTC boards/servers allowed to be connected at once
-#define MAX_SBC_CON 1
-// the port for XL3 boards to connect to, goes from 44601 for crate 0 to 44619 for crate 18
 #define XL3_PORT 44601
-// the port for the SBC board to connect to
-#define SBC_PORT 44630
-// the server for the sbc
-#define SBC_SERVER "10.0.0.30"
-// the port for a controller client to connect to
+
+// Monitor
+#define MAX_MON_CON 1
+#define MON_PORT 44598
+
+// Controller
+#define MAX_CONT_CON 1
 #define CONT_PORT 44600
-// the port for view clients to connect to
+
+// Viewer
+#define MAX_VIEW_CON 3
 #define VIEW_PORT 44599
-// the total number of pending requests (10 is a good guestimate; this number isn't all that important)
-#define MAX_PENDING_CONS 10
+
+// SBC/MTC
+#define MAX_SBC_CON 1
+#define SBC_PORT 44630
+#define SBC_SERVER "10.0.0.30"
+
+// Xilinx
+#define MTC_XILINX_LOCATION "data/mtcxilinx.rbt"
+
+// CoucHDB
+#define DB_SERVER "http://localhost:5984"
+#define DB_ADDRESS "localhost"
+#define DB_PORT "5984"
+#define DB_BASE_NAME "penndb1"
+#define DB_VIEWDOC "_design/view_doc/_view"
+
+// Maximum request timeouts
+#define SECONDS 20
+#define USECONDS 0
+//_!_END_DEFINTIONS_!_
+// the total number of pending requests (11 is a good guestimate; this number isn't all that important)
+#define MAX_PENDING_CONS 11
 // the number of packet/socket pairs to be stored to be sent out
 #define BACKLOG 100
 // timeout values
@@ -45,13 +53,15 @@ typedef u_char  byte;
 #define MAX_PACKET_SIZE 1444
 
 // database stuff
+#define DB_SERVER "http://localhost:5984"
 #define DB_ADDRESS "localhost"
 #define DB_PORT "5984"
 #define DB_BASE_NAME "penndb1"
 #define DB_VIEWDOC "_design/view_doc/_view"
 
 
-#define kSBC_MaxPayloadSizeBytes    1024*400
+//#define kSBC_MaxPayloadSizeBytes    1024*400
+#define kSBC_MaxPayloadSizeBytes 1440
 #define kSBC_MaxMessageSizeBytes    256
 #define MAX_ACKS_SIZE		    80
 #define MAX_FEC_COMMANDS	    60000
@@ -97,101 +107,101 @@ typedef u_char  byte;
 #define MESSAGE_ID	            (0xEE)
 #define STATUS_ID                   (0xFF)
 
-			
+
 
 // ############### DEFINITION OF STRUCTS ###################	
 
 // structs copied from SBC_Cmds.h 
 typedef struct {
-	int32_t baseAddress;
-	int32_t addressModifier;
-	int32_t programRegOffset;
-	uint32_t errorCode;
-	int32_t fileSize;
+    int32_t baseAddress;
+    int32_t addressModifier;
+    int32_t programRegOffset;
+    uint32_t errorCode;
+    int32_t fileSize;
 } SNOMtc_XilinxLoadStruct;
 
 typedef
-    struct {
-        uint32_t address;        /*first address*/
-        uint32_t addressModifier;
-        uint32_t addressSpace;
-        uint32_t unitSize;        /*1,2,or 4*/
-        uint32_t errorCode;    /*filled on return*/
-        uint32_t numItems;        /*number of items to read*/
-    }
+struct {
+    uint32_t address;        /*first address*/
+    uint32_t addressModifier;
+    uint32_t addressSpace;
+    uint32_t unitSize;        /*1,2,or 4*/
+    uint32_t errorCode;    /*filled on return*/
+    uint32_t numItems;        /*number of items to read*/
+}
 SBC_VmeReadBlockStruct;
 
 typedef
-    struct {
-        uint32_t address;        /*first address*/
-        uint32_t addressModifier;
-        uint32_t addressSpace;
-        uint32_t unitSize;        /*1,2,or 4*/
-        uint32_t errorCode;    /*filled on return*/
-        uint32_t numItems;        /*number Items of data to follow*/
-        /*followed by the requested data, number of items from above*/
-    }
+struct {
+    uint32_t address;        /*first address*/
+    uint32_t addressModifier;
+    uint32_t addressSpace;
+    uint32_t unitSize;        /*1,2,or 4*/
+    uint32_t errorCode;    /*filled on return*/
+    uint32_t numItems;        /*number Items of data to follow*/
+    /*followed by the requested data, number of items from above*/
+}
 SBC_VmeWriteBlockStruct;
 
 
 typedef
-    struct {
-        uint32_t destination;    /*should be kSBC_Command*/
-        uint32_t cmdID;
-        uint32_t numberBytesinPayload;
-    }
+struct {
+    uint32_t destination;    /*should be kSBC_Command*/
+    uint32_t cmdID;
+    uint32_t numberBytesinPayload;
+}
 SBC_CommandHeader;
 typedef
-    struct {
-        uint32_t numBytes;                //filled in automatically
-        SBC_CommandHeader cmdHeader;
-        char message[kSBC_MaxMessageSizeBytes];
-        char payload[kSBC_MaxPayloadSizeBytes];
-    }
+struct {
+    uint32_t numBytes;                //filled in automatically
+    SBC_CommandHeader cmdHeader;
+    char message[kSBC_MaxMessageSizeBytes];
+    char payload[kSBC_MaxPayloadSizeBytes];
+}
 SBC_Packet;
 
 // XL3 structs (same should be on the actual XL3) 
 typedef
-    struct {
-	uint32_t cmd_num;
-        uint16_t packet_num;
-        uint8_t flags;
-        uint32_t address;
-        uint32_t data;
-    }
+struct {
+    uint32_t cmd_num;
+    uint16_t packet_num;
+    uint8_t flags;
+    uint32_t address;
+    uint32_t data;
+}
 FECCommand;
 
 typedef
-    struct {
-	uint32_t howmany;
-	FECCommand cmd[MAX_ACKS_SIZE];
-    }
+struct {
+    uint32_t howmany;
+    FECCommand cmd[MAX_ACKS_SIZE];
+}
 MultiFC;
 
 typedef
-    struct {
-        //uint32_t destination;
-	uint16_t packet_num;
-        uint8_t packet_type;
-	uint8_t num_bundles;
-        //uint32_t numberBytesinPayload;
-    }
+struct {
+    //uint32_t destination;
+    uint16_t packet_num;
+    uint8_t packet_type;
+    uint8_t num_bundles;
+    //uint32_t numberBytesinPayload;
+}
 XL3_CommandHeader;
 
 typedef
-    struct {
-        //uint32_t numBytes;                //filled in automatically
-        XL3_CommandHeader cmdHeader;
-        char payload[kSBC_MaxPayloadSizeBytes];
-    }
+struct {
+    //uint32_t numBytes;                //filled in automatically
+    XL3_CommandHeader cmdHeader;
+    char payload[kSBC_MaxPayloadSizeBytes];
+}
 XL3_Packet;
 
 typedef
-    struct {
-	uint32_t word1;
-	uint32_t word2;
-	uint32_t word3;
-    }
+struct {
+    uint32_t word1;
+    uint32_t word2;
+    uint32_t word3;
+}
 PMTBundle;
 
 
@@ -202,11 +212,8 @@ int count_d;
 MultiFC multifc_buffer;
 int multifc_buffer_full;
 int command_number;
-// allows print_send to send more than simple strings
-char psb[5000];
 // determines whether or not a log is opened for writing
 int write_log; //(by default, false)
-// log file variable for print_send()
 FILE *ps_log_file;
 FILE *cald_test_file;
 // timeout for select functions (any function that reads/writes)
@@ -222,8 +229,8 @@ uint32_t current_hv_level;
 int db_debug;
 
 typedef struct {
-  uint16_t mb_id;
-  uint16_t dc_id[4];
+    uint16_t mb_id;
+    uint16_t dc_id[4];
 } hware_vals_t;
 
 hware_vals_t crate_config[19][16];

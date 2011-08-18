@@ -23,7 +23,7 @@ int crate_cbal(char *buffer);
 #define ISETMDACOFFSET  131
 #define TACREFDAC       133     // number of TACREF dac
 #define VMAXDAC         134     // number of VMAX dac
-#define DEBUG           0       //turn on/off printf debug statements
+#define DEBUG           0       //turn on/offprintsend debug statements
 #define HOWMANY         350     //number of DB entries
 #define FECSLOTS        16
 
@@ -105,5 +105,5 @@ FEC32PMTBundle MakeBundleFromData(uint32_t *buffer);
 int ExtPulser(unsigned long NumPulses);
 
 unsigned int sGetBits(unsigned long value, unsigned int bit_start,
-                      unsigned int num_bits);
+        unsigned int num_bits);
 

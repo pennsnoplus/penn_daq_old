@@ -49,7 +49,7 @@ try:
 	
 	
 	out = tut_lines[:beginning]
-	out.extend(["\t{ \"%s\", (Function *)NULL, (char *)NULL },\n" % com for com in valid_commands])
+	out.extend(["    { \"%s\", (Function *)NULL, (char *)NULL },\n" % com for com in valid_commands])
 	out.extend(tut_lines[end:])
 	
 	# write the updated source to the original file

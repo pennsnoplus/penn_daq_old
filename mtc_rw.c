@@ -13,135 +13,123 @@
 #include "mtc_rw.h"
 #include "mtc_util.h"
 
-int kill_SBC_process(){
-    char bash_command[500];
-    char kill_screen[500];
-    char kill_orcareadout[500];
-    sprintf(kill_orcareadout,"ssh -t daq@10.0.0.30 \"killall OrcaReadout >> /dev/null;  exit >> /dev/null\" >> /dev/null");
-    sprintf(kill_screen,"ssh -t daq@10.0.0.30 \"killall screen >> /dev/null; screen -wipe >> /dev/null; exit >> /dev/null\" >> /dev/null");
 
-    system(kill_orcareadout);
-    system(kill_screen);
-    //system(bash_command);
+/** sbc_control allows remote control of the OrcaReadout process on the SBC and
+  * manages penn_daq's connection to it. The function has three actions:
+  *     connect (-c): starts OrcaReadout and connects to it
+  *     reconnect (-r): closes any existing OrcaReadout connection then does a
+  *                     connect
+  *     kill (-k): kills the remote OrcaReadout process
+ */
+int sbc_control(int portno, struct hostent *server, char *buffer){
+    int sbc_action = -1;
+    char identity_file[100] = "";
+    //char base_cmd[100] = "ssh daq@10.0.0.30";
+    char base_cmd[100] = "ssh localhost";
 
-}
-
-int connect_to_SBC(int portno, struct hostent *server, char *buffer){
-    /*
-       This function connects to the SBC/MTC, which will not connect automatically.
-       Although there is a section of the main listener code where it will try to
-       connect to an SBC/MTC if it receives a request, the mac_daq program will never
-       receive this request. To connect to the SBC, call "connect_to_SBC" from the
-       control terminal. This function ssh's into the SBC, starts the OrcaReadout program,
-       and then tries (from the SBC/MTC ssh session) connect to mac_daq. After mac_daq
-       receives that request, it accept()s and sets up the connection correctly.
-     */
-
-    // establish the socket
-
-    int old_school=0; // by default we don't do it the old way 
-    int use_ssh_file=0; // by default we use the default 
-    char *words,*words2;
-    char ssh_file[65];
+    // parse command-line arguments
+    char* words;
+    char* words2;
     words = strtok(buffer, " ");
-    while (words != NULL){
-        if (words[0] == '-'){
-            if (words[1] == 't'){
-		old_school=1; // no attempt to ssh in via screen
-		printsend("Make sure you open up another terminal and ssh in to the SBC\n");
-		printsend("ssh daq@10.0.0.30 \n");
-		printsend("cd ORCA_dev/ \n");
-		printsend("./OrcaReadout \n");
-
-            }
-            if (words[1] == 'f'){
+    while (words != NULL) {
+        if (words[0] == '-') {
+            if (words[1] == 'i') {
                 words2 = strtok(NULL, " ");
-                sprintf(ssh_file," -i %s",words2);
-		use_ssh_file=1;
+                sprintf(identity_file, "%s", words2);
             }
-            if (words[1] == 'h'){
-                printsend("Usage: if old school  use -t, if you want to use a special ssh key file use -f /absolute/path/to/file \n");
+            if (words[1] == 'c')
+                sbc_action = 0;
+            if (words[1] == 'r')
+                sbc_action = 1;
+            if (words[1] == 'k')
+                sbc_action = 2;
+            if (words[1] == 'h') {
+                printsend("Usage: sbc_control "
+                          "[-c (connect)|-k (kill)|-r (reconnect)] "
+                          "[-i identity_file]\n");
                 return 0;
             }
         }
         words = strtok(NULL, " ");
     }
 
+    // no action argument -- fail
+    if (sbc_action < 0) {
+        printsend("sbc_control: Must specify -c (connect), -k (kill), "
+                  "or -r (reconnect)\n");
+        return 0;
+    }
 
-    char bash_command[500];
-    char kill_screen[500];
-    char kill_orcareadout[500];
+    // append ssh identity file if necessary
+    if (strcmp(identity_file,"") != 0)
+        sprintf(base_cmd, "%s -i %s", base_cmd, identity_file);
 
-    if(use_ssh_file)
-    sprintf(bash_command,"ssh -t daq@10.0.0.30 %s \"killall OrcaReadout >> /dev/null; killall screen >> /dev/null; screen -wipe >> /dev/null;  cd ORCA_dev >> /dev/null; screen -dmS orca ./OrcaReadout >> /dev/null; screen -d >> /dev/null; exit\" >> /dev/null",ssh_file);
-    else
-    sprintf(bash_command,"ssh -t daq@10.0.0.30 \"killall OrcaReadout >> /dev/null; killall screen >> /dev/null; screen -wipe >> /dev/null; cd ORCA_dev >> /dev/null; screen -dmS orca ./OrcaReadout >> /dev/null; screen -d >> /dev/null; exit\" >> /dev/null");
-
-    int Nretrys=5;  // try 5 times
-    int counter=0;
-    while (sbc_is_connected==0 || counter<Nretrys){
-        counter++;
-        if (counter == 0){  
-            printsend( "\n\t Trying to connect to the SBC\n");
-        }
-        int ALREADY_CONNECTED=0;
-        if(mtc_sock > 0){
-
-            //printsend( "new_daq: Already connected to SBC/MTC (socket %d)\n", mtc_sock);
-            ALREADY_CONNECTED=1;
-            return -1;
-        }
-        mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
-        if (mtc_sock <= 0){
-
-            printsend( "new_daq: error opening SBC/MTC socket\n");
-            printsend("error connecting to SBC\n");
-            return -1;
-        }
-        else if (!ALREADY_CONNECTED) {
-           if(!old_school) {
-		printsend( "Trying to connect with screen \n");
-	       system(bash_command);
-	   }
-	   else 
-		printsend( "Trying to connect the old school way \n");
-	    
-            mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
-        }
-        bzero((char *) &serv_addr, sizeof(serv_addr));
-        serv_addr.sin_family = AF_INET;
-        bcopy((char *)server->h_addr, 
-                (char *)&serv_addr.sin_addr.s_addr,
-                server->h_length);
-        serv_addr.sin_port = htons(portno);
-        // make the connection
-        if (connect(mtc_sock,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0){
+    // close socket and stop remote OrcaReadout service for kill or reconnect
+    if (sbc_action == 1 || sbc_action == 2) {
+        if(mtc_sock > 0) {
             close(mtc_sock);
             FD_CLR(mtc_sock, &mtc_fdset);
             mtc_sock = 0;
-            printsend("kk:error connecting to SBC\n");
-            return -1;
         }
-        // use FD_set so select() can be used
-        FD_SET(mtc_sock, &all_fdset);
-        FD_SET(mtc_sock, &mtc_fdset);
-        if (mtc_sock > fdmax)     // keep track of the max
-            fdmax = mtc_sock;
-
-        // this is the test packet that ./OrcaReadout looks for     
-        // the ppc mac swaps Bytes, the linux sbc does not.
-        int32_t testWord=0x000DCBA;
-        char *send_test= (char *)&testWord;
-
-        int n;
-        n = write(mtc_sock,send_test,4);
-
-        printsend("\t Connected to SBC.\n");
-        sbc_is_connected = 1;
+        char kill_cmd[500];
+        sprintf(kill_cmd, "%s service orcareadout stop", base_cmd);
+        printsend("sbc_control: Stopping remote OrcaReadout process\n");
+        system(kill_cmd);
+        if (sbc_action == 2)
+            return 0;
     }
+
+    // start OrcaReadout and try to connect to it
+    printsend("sbc_control: Connecting to the SBC\n");
+
+    char start_cmd[500];
+    sprintf(start_cmd, "%s service orcareadout start", base_cmd);
+    printsend("sbc_control: Starting remote OrcaReadout process\n");
+    system(start_cmd);
+
+    if (mtc_sock > 0) {
+        printsend("sbc_control: Already connected to SBC (socket %d)\n", mtc_sock);
+        return -1;
+    }
+
+    mtc_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (mtc_sock <= 0) {
+        printsend("sbc_control: Error opening SBC socket\n");
+        return -1;
+    }
+
+    bzero((char*) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char*) server->h_addr, 
+          (char*) &serv_addr.sin_addr.s_addr,
+          server->h_length);
+    serv_addr.sin_port = htons(portno);
+
+    // make the connection
+    if (connect(mtc_sock, (struct sockaddr*) &serv_addr, sizeof(serv_addr))<0) {
+        close(mtc_sock);
+        FD_CLR(mtc_sock, &mtc_fdset);
+        mtc_sock = 0;
+        printsend("sbc_control: Error connecting to SBC\n");
+        return -1;
+    }
+
+    // use FD_set so select() can be used
+    FD_SET(mtc_sock, &all_fdset);
+    FD_SET(mtc_sock, &mtc_fdset);
+    if (mtc_sock > fdmax) // keep track of the max?
+        fdmax = mtc_sock;
+
+    // test packet for OrcaReadout to infer endianness
+    int32_t testWord = 0x000DCBA;
+    char *send_test = (char*) &testWord;
+    int n = write(mtc_sock, send_test, 4);
+
+    printsend("sbc_connect: Connected to SBC\n");
+    sbc_is_connected = 1;
+
     return 0;
 }
-
 
 int mtc_reg_write(uint32_t address, uint32_t data){
     gPacket.cmdHeader.destination = 0x1;

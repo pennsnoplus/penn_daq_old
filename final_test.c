@@ -71,7 +71,7 @@ int final_test(char *buffer)
     printsend("-------------------------------------------\n");
 
     printsend("now connecting to and initializing mtcd\n");
-    connect_to_SBC(SBC_PORT, server);
+    sbc_control(SBC_PORT, server);
     printsend("-------------------------------------------\n");
     sprintf(command_buffer,"mtc_init -x");
     mtc_init(command_buffer);

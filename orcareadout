@@ -1,0 +1,38 @@
+#!/bin/sh -e
+
+start_orca () {
+    command="/home/daq/ORCA_dev/OrcaReadout";
+    ( $command > /dev/null & );
+    # Can't actually tell whether this succeeds or not
+    return $SCRIPT_OK
+}
+
+stop_orca () {
+    command="killall OrcaReadout"
+    if $command > /dev/null; then
+       return $SCRIPT_OK
+    else
+        return $SCRIPT_ERROR
+    fi
+}
+
+parse_script_option_list () {
+    # Parse arguments passed to the script and take appropriate action.
+    case "$1" in
+        start)
+            start_orca;
+            ;;
+        stop)
+            stop_orca;
+            ;;
+        *)
+            cat << EOF >&2
+Usage: $SCRIPT_NAME {start|stop}
+EOF
+            exit $SCRIPT_ERROR
+            ;;
+    esac
+}
+
+parse_script_option_list $@
+

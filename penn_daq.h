@@ -23,6 +23,7 @@ typedef u_char  byte;
 #define MAX_SBC_CON 1
 #define SBC_PORT 44630
 #define SBC_SERVER "10.0.0.30"
+#define SBC_USER "daq"
 
 // Xilinx
 #define MTC_XILINX_LOCATION "data/mtcxilinx.rbt"

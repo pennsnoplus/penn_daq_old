@@ -72,7 +72,7 @@ int sbc_control(int portno, struct hostent *server, char *buffer){
             mtc_sock = 0;
         }
         char kill_cmd[500];
-        sprintf(kill_cmd, "%s service orcareadout stop", base_cmd);
+        sprintf(kill_cmd, "%s /etc/rc.d/orcareadout stop", base_cmd);
         printsend("sbc_control: Stopping remote OrcaReadout process\n");
         system(kill_cmd);
         if (sbc_action == 2)
@@ -83,7 +83,7 @@ int sbc_control(int portno, struct hostent *server, char *buffer){
     printsend("sbc_control: Connecting to the SBC\n");
 
     char start_cmd[500];
-    sprintf(start_cmd, "%s service orcareadout start", base_cmd);
+    sprintf(start_cmd, "%s /etc/rc.d/orcareadout start", base_cmd);
     printsend("sbc_control: Starting remote OrcaReadout process\n");
     system(start_cmd);
 
